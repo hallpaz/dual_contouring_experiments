@@ -37,7 +37,7 @@ enum OctreeNodeType
 {
     Node_None,
     Node_Internal,
-    Node_Psuedo,
+    Node_Pseudo,
     Node_Leaf,
 };
 
@@ -73,7 +73,7 @@ public:
             , size(0)
             , drawInfo(nullptr)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 8; ++i)
         {
             children[i] = nullptr;
         }

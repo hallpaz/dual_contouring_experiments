@@ -164,7 +164,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         position = vec3(mp.x, mp.y, mp.z);
     }
 
-    // change the node from an internal node to a 'psuedo leaf' node
+    // change the node from an internal node to a 'pseudo leaf' node
     OctreeDrawInfo* drawInfo = new OctreeDrawInfo;
 
     for (int i = 0; i < 8; i++)
@@ -186,7 +186,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         if (node->children[i])
         {
             OctreeNode* child = node->children[i];
-            if (child->type == Node_Psuedo ||
+            if (child->type == Node_Pseudo ||
                 child->type == Node_Leaf)
             {
                 drawInfo->averageNormal += child->drawInfo->averageNormal;
@@ -204,7 +204,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         node->children[i] = nullptr;
     }
 
-    node->type = Node_Psuedo;
+    node->type = Node_Pseudo;
     node->drawInfo = drawInfo;
 
     return node;
@@ -232,7 +232,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         OctreeDrawInfo* d = node->drawInfo;
         if (!d)
         {
-            printf("Error! Could not add vertex!\n");
+            std::cout << "Error! Could not add vertex!" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -330,7 +330,7 @@ void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 
             for (int j = 0; j < 4; j++)
             {
-                if (node[j]->type == Node_Leaf || node[j]->type == Node_Psuedo)
+                if (node[j]->type == Node_Leaf || node[j]->type == Node_Pseudo)
                 {
                     edgeNodes[j] = node[j];
                 }
@@ -401,7 +401,7 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
             for (int j = 0; j < 4; j++)
             {
                 if (node[order[j]]->type == Node_Leaf ||
-                    node[order[j]]->type == Node_Psuedo)
+                    node[order[j]]->type == Node_Pseudo)
                 {
                     edgeNodes[j] = node[order[j]];
                 }

@@ -61,4 +61,8 @@ float Density_Func(const vec3& worldPosition)
     const float sphere = Sphere(worldPosition, vec3(15.f, 2.5f, 1.f), 16.f);
 
     return max(-cube, min(sphere, terrain));
+    //return sphere;
+    //return cube;
+    //return noise;
+    //return terrain;
 }
