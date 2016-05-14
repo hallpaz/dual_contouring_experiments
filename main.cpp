@@ -55,11 +55,11 @@ int main(int argc, char** argv)
         VertexBuffer vertices;
         IndexBuffer indices;
 
-        root = BuildOctree(glm::ivec3(-octreeSize / 2), octreeSize, 0.01);
+        root = BuildOctree(glm::ivec3(-octreeSize / 2), octreeSize, 0.0001);
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/mixed.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/sphere16_hard_simplif.off");
         printf("Generated mesh\n\n");
     }
 

@@ -107,7 +107,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         // can't simplify!
         return node;
     }
-
+    std::cout << "Simplifying at level: " << node->size << std::endl;
     svd::QefSolver qef;
     int signs[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
     int midsign = -1;
