@@ -2,17 +2,18 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/density.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/qef.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Utils.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/qef.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/density.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/octree.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/svd.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/density.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Utils.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/octree.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/dataStructures.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/svd.h" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />

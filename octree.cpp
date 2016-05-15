@@ -239,7 +239,8 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         }
 
         d->index = vertexBuffer.size();
-        vertexBuffer.push_back(d->position);
+        //vertexBuffer.push_back(d->position);
+        vertexBuffer.push_back(Vertex(d->position));
     }
 }
 
@@ -280,23 +281,27 @@ void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
     {
         if (!flip)
         {
-            indexBuffer.push_back(indices[0]);
+            /*indexBuffer.push_back(indices[0]);
             indexBuffer.push_back(indices[1]);
-            indexBuffer.push_back(indices[3]);
+            indexBuffer.push_back(indices[3]);*/
+            indexBuffer.push_back(Triangle{indices[0], indices[1], indices[3]});
 
-            indexBuffer.push_back(indices[0]);
+            /*indexBuffer.push_back(indices[0]);
             indexBuffer.push_back(indices[3]);
-            indexBuffer.push_back(indices[2]);
+            indexBuffer.push_back(indices[2]);*/
+            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[2]});
         }
         else
         {
-            indexBuffer.push_back(indices[0]);
+            /*indexBuffer.push_back(indices[0]);
             indexBuffer.push_back(indices[3]);
-            indexBuffer.push_back(indices[1]);
+            indexBuffer.push_back(indices[1]);*/
+            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[1]});
 
-            indexBuffer.push_back(indices[0]);
+            /*indexBuffer.push_back(indices[0]);
             indexBuffer.push_back(indices[2]);
-            indexBuffer.push_back(indices[3]);
+            indexBuffer.push_back(indices[3]);*/
+            indexBuffer.push_back(Triangle{indices[0], indices[2], indices[3]});
         }
     }
 }
@@ -508,10 +513,6 @@ vec3 CalculateSurfaceNormal(const vec3& p)
 
 OctreeNode* ConstructLeaf(OctreeNode* leaf)
 {
-    /*if (!leaf || leaf->size != 1)
-    {
-        return nullptr;
-    }*/
 
     if (!leaf || leaf->height != 0)
     {
@@ -546,6 +547,7 @@ OctreeNode* ConstructLeaf(OctreeNode* leaf)
         const int c1 = edgevmap[i][0];
         const int c2 = edgevmap[i][1];
 
+        //take the signal of each vertex of the edge
         const int m1 = (corners >> c1) & 1;
         const int m2 = (corners >> c2) & 1;
 

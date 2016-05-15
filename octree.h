@@ -28,6 +28,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "qef.h"
 
 #include "glm/glm.hpp"
+#include "dataStructures.h"
 using glm::vec3;
 using glm::ivec3;
 
@@ -40,9 +41,6 @@ enum OctreeNodeType
     Node_Pseudo,
     Node_Leaf,
 };
-
-typedef std::vector<glm::vec3> VertexBuffer;
-typedef std::vector<int> IndexBuffer;
 
 // ----------------------------------------------------------------------------
 

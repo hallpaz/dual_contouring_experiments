@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
     const int octreeSize = 3.0;
-    const int height = 8;
+    const int height = 4;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
         IndexBuffer indices;
 
         cout << "MAIN: will start build" << endl;
-        root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0001);
+        root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0000000001);
         cout << "MAIN: will start mesh generation" << endl;
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;

@@ -73,9 +73,9 @@ float Density_Func(const vec3& worldPosition)
     const float sphere = Sphere(worldPosition, vec3(0.f, 0.f, 0.f), 1.f);
     const float torus = Bitorus(worldPosition, vec3(0.f, 0.f, 0.f));
 
-    return torus;
+    //return torus;
     //return max(-cube, min(sphere, terrain));
-    //return sphere;
+    return sphere;
     //return cube;
     //return noise;
     //return terrain;
