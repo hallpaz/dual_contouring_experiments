@@ -71,6 +71,7 @@ public:
             : type(Node_None)
             , min(0, 0, 0)
             , size(0)
+            , height(0)
             , drawInfo(nullptr)
     {
         for (int i = 0; i < 8; ++i)
@@ -83,6 +84,7 @@ public:
             : type(_type)
             , min(0, 0, 0)
             , size(0)
+            , height(0)
             , drawInfo(nullptr)
     {
         for (int i = 0; i < 8; i++)
@@ -92,15 +94,16 @@ public:
     }
 
     OctreeNodeType	type;
-    ivec3			min;
-    int				size;
+    vec3			min;
+    float			size;
+    int             height;
     OctreeNode*		children[8];
     OctreeDrawInfo*	drawInfo;
 };
 
 // ----------------------------------------------------------------------------
 
-OctreeNode* BuildOctree(const ivec3& min, const int size, const float threshold);
+OctreeNode* BuildOctree(const vec3& min, const float size, const int height, const float threshold);
 void DestroyOctree(OctreeNode* node);
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
 

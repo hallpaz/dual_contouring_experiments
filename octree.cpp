@@ -32,17 +32,17 @@ const int QEF_SWEEPS = 4;
 
 // ----------------------------------------------------------------------------
 
-const ivec3 CHILD_MIN_OFFSETS[] =
+const vec3 CHILD_MIN_OFFSETS[] =
         {
                 // needs to match the vertMap from Dual Contouring impl
-                ivec3( 0, 0, 0 ),
-                ivec3( 0, 0, 1 ),
-                ivec3( 0, 1, 0 ),
-                ivec3( 0, 1, 1 ),
-                ivec3( 1, 0, 0 ),
-                ivec3( 1, 0, 1 ),
-                ivec3( 1, 1, 0 ),
-                ivec3( 1, 1, 1 ),
+                vec3( 0, 0, 0 ),
+                vec3( 0, 0, 1 ),
+                vec3( 0, 1, 0 ),
+                vec3( 0, 1, 1 ),
+                vec3( 1, 0, 0 ),
+                vec3( 1, 0, 1 ),
+                vec3( 1, 1, 0 ),
+                vec3( 1, 1, 1 ),
         };
 
 // ----------------------------------------------------------------------------
@@ -99,6 +99,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
 {
     if (!node)
     {
+        std::cout << "Empty node" << std::endl;
         return NULL;
     }
 
@@ -107,8 +108,9 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         // can't simplify!
         return node;
     }
-    std::cout << "Simplifying at level: " << node->size << std::endl;
+    //std::cout << "Simplifying at level: " << node->height << std::endl;
     svd::QefSolver qef;
+
     int signs[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
     int midsign = -1;
     int edgeCount = 0;
@@ -156,9 +158,9 @@ OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
         return node;
     }
 
-    if (position.x < node->min.x || position.x > (node->min.x + node->size) ||
-        position.y < node->min.y || position.y > (node->min.y + node->size) ||
-        position.z < node->min.z || position.z > (node->min.z + node->size))
+    if ((position.x < node->min.x) || (position.x > (node->min.x + node->size)) ||
+        (position.y < node->min.y) || (position.y > (node->min.y + node->size)) ||
+        (position.z < node->min.z) || (position.z > (node->min.z + node->size)))
     {
         const auto& mp = qef.getMassPoint();
         position = vec3(mp.x, mp.y, mp.z);
@@ -245,7 +247,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 
 void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 {
-    int minSize = 1000000;		// arbitrary big number
+    float minSize = 1000000.f;		// arbitrary big number
     int minIndex = 0;
     int indices[4] = { -1, -1, -1, -1 };
     bool flip = false;
@@ -466,15 +468,15 @@ void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer)
 
 // ----------------------------------------------------------------------------
 
-vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1)
+vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
 {
     // approximate the zero crossing by finding the min value along the edge
     float minValue = 100000.f;
     float t = 0.f;
     float currentT = 0.f;
-    const int steps = 8;
-    const float increment = 1.f / (float)steps;
-    while (currentT <= 1.f)
+    const int steps = 10;
+    const float increment = size / (float)steps;
+    while (currentT <= size)
     {
         const vec3 p = p0 + ((p1 - p0) * currentT);
         const float density = glm::abs(Density_Func(p));
@@ -494,7 +496,7 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1)
 
 vec3 CalculateSurfaceNormal(const vec3& p)
 {
-    const float H = 0.001f;
+    const float H = 0.0001f;
     const float dx = Density_Func(p + vec3(H, 0.f, 0.f)) - Density_Func(p - vec3(H, 0.f, 0.f));
     const float dy = Density_Func(p + vec3(0.f, H, 0.f)) - Density_Func(p - vec3(0.f, H, 0.f));
     const float dz = Density_Func(p + vec3(0.f, 0.f, H)) - Density_Func(p - vec3(0.f, 0.f, H));
@@ -506,15 +508,21 @@ vec3 CalculateSurfaceNormal(const vec3& p)
 
 OctreeNode* ConstructLeaf(OctreeNode* leaf)
 {
-    if (!leaf || leaf->size != 1)
+    /*if (!leaf || leaf->size != 1)
     {
+        return nullptr;
+    }*/
+
+    if (!leaf || leaf->height != 0)
+    {
+        std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
 
     int corners = 0;
     for (int i = 0; i < 8; i++)
     {
-        const ivec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i];
+        const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
         const float density = Density_Func(vec3(cornerPos));
         const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
         corners |= (material << i);
@@ -548,9 +556,9 @@ OctreeNode* ConstructLeaf(OctreeNode* leaf)
             continue;
         }
 
-        const vec3 p1 = vec3(leaf->min + CHILD_MIN_OFFSETS[c1]);
-        const vec3 p2 = vec3(leaf->min + CHILD_MIN_OFFSETS[c2]);
-        const vec3 p = ApproximateZeroCrossingPosition(p1, p2);
+        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
+        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+        const vec3 p = ApproximateZeroCrossingPosition(p1, p2, leaf->size);
         const vec3 n = CalculateSurfaceNormal(p);
         qef.add(p.x, p.y, p.z, n.x, n.y, n.z);
 
@@ -567,7 +575,7 @@ OctreeNode* ConstructLeaf(OctreeNode* leaf)
     drawInfo->qef = qef.getData();
 
     const vec3 min = vec3(leaf->min);
-    const vec3 max = vec3(leaf->min + ivec3(leaf->size));
+    const vec3 max = vec3(leaf->min + vec3(leaf->size));
     if (drawInfo->position.x < min.x || drawInfo->position.x > max.x ||
         drawInfo->position.y < min.y || drawInfo->position.y > max.y ||
         drawInfo->position.z < min.z || drawInfo->position.z > max.z)
@@ -591,26 +599,36 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
 {
     if (!node)
     {
+        std::cout << "Trying to construct empty node" << std::endl;
         return nullptr;
     }
 
-    if (node->size == 1)
+    /*if (node->size == 1)
     {
+        return ConstructLeaf(node);
+    }*/
+
+    if (node->height == 0)
+    {
+        //std::cout << "Will construct Leaf" << std::endl;
         return ConstructLeaf(node);
     }
 
-    const int childSize = node->size / 2;
+    const float childSize = node->size / 2;
+    const int childHeight = node->height - 1;
     bool hasChildren = false;
 
     for (int i = 0; i < 8; i++)
     {
         OctreeNode* child = new OctreeNode;
         child->size = childSize;
+        child->height = childHeight;
         child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
         child->type = Node_Internal;
 
         node->children[i] = ConstructOctreeNodes(child);
         hasChildren |= (node->children[i] != nullptr);
+        //std::cout << hasChildren << std::endl;
     }
 
     if (!hasChildren)
@@ -624,15 +642,19 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
 
 // -------------------------------------------------------------------------------
 
-OctreeNode* BuildOctree(const ivec3& min, const int size, const float threshold)
+OctreeNode* BuildOctree(const vec3& min, const float size, const int height, const float threshold)
 {
     OctreeNode* root = new OctreeNode;
     root->min = min;
     root->size = size;
+    root->height = height;
     root->type = Node_Internal;
 
+    std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodes(root);
+    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
     root = SimplifyOctree(root, threshold);
+    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;
 }

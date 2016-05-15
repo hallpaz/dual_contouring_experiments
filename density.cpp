@@ -28,8 +28,9 @@ float Bitorus(const vec3& worldPosition, const vec3& origin)
 {
     const vec3& local_pos = worldPosition - origin;
     const vec3& d = local_pos;
-
-    return ((d.x*d.x + d.y*d.y)*(d.x*d.x + d.y*d.y) - d.x*d.x + d.y*d.y)*((d.x*d.x + d.y*d.y)*(d.x*d.x + d.y*d.y) - d.x*d.x + d.y*d.y) + d.z*d.z;
+    float r = ((d.x*d.x + d.y*d.y)*(d.x*d.x + d.y*d.y) - d.x*d.x + d.y*d.y)*((d.x*d.x + d.y*d.y)*(d.x*d.x + d.y*d.y) - d.x*d.x + d.y*d.y)
+                                                                              + d.z*d.z - 0.01;
+    return r;
 }
 
 // ----------------------------------------------------------------------------
@@ -67,12 +68,14 @@ float Density_Func(const vec3& worldPosition)
     const float noise = FractalNoise(4, 0.5343f, 2.2324f, 0.68324f, vec2(worldPosition.x, worldPosition.z));
     const float terrain = worldPosition.y - (MAX_HEIGHT * noise);
 
-    const float cube = Cuboid(worldPosition, vec3(-4., 10.f, -4.f), vec3(12.f));
+    const float cube = Cuboid(worldPosition, vec3(0, 0, 0), vec3(1.f));
     //const float sphere = Sphere(worldPosition, vec3(15.f, 2.5f, 1.f), 16.f);
-    const float sphere = Sphere(worldPosition, vec3(0.f, 0.f, 0.f), 16.f);
+    const float sphere = Sphere(worldPosition, vec3(0.f, 0.f, 0.f), 1.f);
+    const float torus = Bitorus(worldPosition, vec3(0.f, 0.f, 0.f));
 
+    return torus;
     //return max(-cube, min(sphere, terrain));
-    return sphere;
+    //return sphere;
     //return cube;
     //return noise;
     //return terrain;

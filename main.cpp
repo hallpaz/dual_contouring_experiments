@@ -40,7 +40,8 @@ int main(int argc, char** argv)
 
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
-    const int octreeSize = 64;
+    const int octreeSize = 3.0;
+    const int height = 8;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
@@ -49,17 +50,18 @@ int main(int argc, char** argv)
     {
         refreshMesh = false;
         //thresholdIndex = (thresholdIndex + 1) % MAX_THRESHOLDS;
-        //write_Hello("/Users/hallpaz/Workspace/research/dual_contouring_experiments/sphere.off");
         cout << "Generating mesh with error threshold...\n" << endl;
 
         VertexBuffer vertices;
         IndexBuffer indices;
 
-        root = BuildOctree(glm::ivec3(-octreeSize / 2), octreeSize, 0.0001);
+        cout << "MAIN: will start build" << endl;
+        root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0001);
+        cout << "MAIN: will start mesh generation" << endl;
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/sphere16_hard_simplif.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/torusH.off");
         printf("Generated mesh\n\n");
     }
 
