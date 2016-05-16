@@ -105,6 +105,11 @@ OctreeNode* BuildOctree(const vec3& min, const float size, const int height, con
 void DestroyOctree(OctreeNode* node);
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
 
+OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int height, const float threshold,
+                                VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
+
+
+
 // ----------------------------------------------------------------------------
 
 #endif	// HAS_OCTREE_H_BEEN_INCLUDED

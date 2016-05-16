@@ -35,16 +35,91 @@ using namespace std;
 
 }*/
 
+void createMesh(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer){
+    int paralelos = 20;
+    int meridianos = 40;
+
+    float theta = 0.005;
+    float phi = 0.00;
+
+    int j = 0; int i = 0;
+    float u, v, depth;
+
+    for(theta = 0.00005; theta < M_PI; theta += (M_PI - 0.0001)/(paralelos-1)){
+        for(phi = 0.0; phi < 2*M_PI; phi += 2*M_PI/meridianos){
+            //Position coordinates
+            depth = 16.0f;
+
+            u = phi/(2*M_PI);
+            v = 1.0 - theta/M_PI;
+
+            vertexBuffer.push_back(Vertex(glm::vec3(depth*sin(theta)*sin(phi), depth*cos(theta), depth*sin(theta)*cos(phi))));
+            ++i;
+        }
+    }
+    //compute triangulation
+    double distanceThreshold = 0.2;
+    double mindist = 100.0, maxdist = -1.0;
+    for(i = 0; i < paralelos-2; ++i){
+        for (j = 0; j < meridianos-1; ++j) {
+
+            indexBuffer.push_back( { i*(meridianos+1) + j, (i+1)*(meridianos+1) +j, i*(meridianos+1) + j+1  });
+
+
+            indexBuffer.push_back( {(i+1)*(meridianos+1) + j+1, i*(meridianos+1) + j, i*(meridianos+1) + j+1});
+        }
+    }
+}
+
+void createCylinder(VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer){
+    int paralelos = 40;
+    int meridianos = 40;
+
+
+
+    int j = 0; int i = 0;
+    float demiheight = 8.0f;
+
+    for(float theta = -demiheight; theta < demiheight; theta += (2*demiheight)/(paralelos)){
+        for(float phi = 0.0; phi < 2*M_PI; phi += 2*M_PI/meridianos){
+            //Position coordinates
+            //height = 16.0f;
+
+            vertexBuffer.push_back(Vertex(glm::vec3(demiheight*cos(phi), demiheight*sin(phi), theta)));
+            ++i;
+        }
+    }
+    //compute triangulation
+    for(i = 0; i < paralelos-1; ++i){
+        for (j = 0; j < meridianos; ++j) {
+
+            indexBuffer.push_back( { i*(meridianos) + j, i*(meridianos) + j+1, (i+1)*(meridianos) +j  });
+
+
+            indexBuffer.push_back( {(i+1)*(meridianos) + j+1, (i+1)*(meridianos) + j, i*(meridianos) + j+1});
+        }
+    }
+}
+
+
+
 int main(int argc, char** argv)
 {
 
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
-    const int octreeSize = 3.0;
-    const int height = 4;
+    const int octreeSize = 4.0;
+    const int height = 2;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
+
+    VertexBuffer testVertices;
+    IndexBuffer testIndices;
+    //createCylinder(testVertices, testIndices);
+
+    read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/cube.off");
+    write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
 
     if (refreshMesh)
     {
@@ -56,12 +131,13 @@ int main(int argc, char** argv)
         IndexBuffer indices;
 
         cout << "MAIN: will start build" << endl;
-        root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0000000001);
+        //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0000000001);
+        root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, 0.00000001, testVertices, testIndices);
         cout << "MAIN: will start mesh generation" << endl;
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/torusH.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/ultimo.off");
         printf("Generated mesh\n\n");
     }
 

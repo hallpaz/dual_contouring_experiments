@@ -64,3 +64,30 @@ void write_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
     }
 
 }
+
+void read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename) {
+    std::ifstream inputfile;
+    inputfile.open(filename.c_str(), std::ios::out);
+
+    if (inputfile.is_open()){
+        std::string off;
+        inputfile >> off;
+        if (off != "OFF"){
+            std::cout << "Invalid OFF File" << std::endl;
+        }
+        int numVertices, numFaces, numEdges;
+        inputfile >> numVertices >> numFaces >> numEdges;
+        for (int i = 0; i < numVertices; ++i) {
+            float x, y, z;
+            inputfile >> x >> y >> z;
+            vertices.push_back(Vertex(glm::vec3(x, y, z)));
+        }
+
+        for (int i = 0; i < numFaces; ++i) {
+            int n, a, b, c;
+            inputfile >> n >> a >> b >> c;
+            faces.push_back(Triangle{a, b, c});
+        }
+        inputfile.close();
+    }
+}
