@@ -108,8 +108,8 @@ int main(int argc, char** argv)
 
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
-    const int octreeSize = 4.0;
-    const int height = 2;
+    const float octreeSize = 8.0;
+    const int height = 5;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     IndexBuffer testIndices;
     //createCylinder(testVertices, testIndices);
 
-    read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/cube.off");
+    read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/models/vase7k.off");
     write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
 
     if (refreshMesh)
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/ultimo.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc5_vase7K.off");
         printf("Generated mesh\n\n");
     }
 

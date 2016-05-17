@@ -717,7 +717,7 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
     std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    root = SimplifyOctree(root, threshold);
+    //root = SimplifyOctree(root, threshold);
     std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;
@@ -802,10 +802,14 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
 
     float t = glm::dot(e2, Q) * inv_det;
 
-    if(t > EPSILON){
+    if(t > 0.0 && t < 1.0){
+        //std::cout << "Valor de t: " << t << std::endl;
         intersection_point = v1 + (v2-v1)*t;
         return true;
-    }
+    }/*else {
+        std::cout << "Valor de t: " << t << std::endl;
+        std::cout << "Fora do alcance do segmento" << std::endl;
+    }*/
 
 
     return false;
@@ -846,6 +850,11 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
 
             const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
             const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+            /*vec3 debug(0);
+            Vertex vc[3] = {vec3(-1, -1, 1), vec3(-1, 1, 1), vec3(1, -1, 1)};
+            bool result = moller_triangle_intersection(vec3(-1, -1, -1), vec3(-1, -1, -0.25), vc, debug);
+            std::cout << "intersection (" << debug.x << ", " << debug.y << ", " << debug.z << ")" << std::endl;
+            exit(EXIT_FAILURE);*/
             vec3 intersection(0);
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 const vec3 n = CalculateMeshNormal(vertices);
@@ -860,11 +869,11 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
                 const int sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 corners |= (sign1 << c1);
                 corners |= (sign2 << c2);
-                std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
+                /*std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
                 << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
                 " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
                 std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
-                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
+                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;*/
             }
             else{
 
