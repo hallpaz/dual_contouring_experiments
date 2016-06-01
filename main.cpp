@@ -108,8 +108,8 @@ int main(int argc, char** argv)
 
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
-    const float octreeSize = 8.0;
-    const int height = 5;
+    float octreeSize = 8;
+    const int height = 3;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
@@ -118,26 +118,27 @@ int main(int argc, char** argv)
     IndexBuffer testIndices;
     //createCylinder(testVertices, testIndices);
 
-    read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/models/vase7k.off");
+    octreeSize = read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/models/teddy1596.off");
     write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
 
     if (refreshMesh)
     {
         refreshMesh = false;
         //thresholdIndex = (thresholdIndex + 1) % MAX_THRESHOLDS;
-        cout << "Generating mesh with error threshold...\n" << endl;
+        cout << "Generating mesh with octreeSize: " << octreeSize << "\n" << endl;
 
         VertexBuffer vertices;
         IndexBuffer indices;
 
         cout << "MAIN: will start build" << endl;
         //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0000000001);
-        root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, 0.00000001, testVertices, testIndices);
+        root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, 0.001, testVertices, testIndices);
         cout << "MAIN: will start mesh generation" << endl;
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc5_vase7K.off");
+        //write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc6_teddy1596.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc3_teddy1596_simplified.off");
         printf("Generated mesh\n\n");
     }
 

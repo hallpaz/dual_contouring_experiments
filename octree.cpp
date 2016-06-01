@@ -717,7 +717,7 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
     std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    //root = SimplifyOctree(root, threshold);
+    root = SimplifyOctree(root, threshold);
     std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;

@@ -65,10 +65,10 @@ void write_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
 
 }
 
-void read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename) {
+float read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename) {
     std::ifstream inputfile;
     inputfile.open(filename.c_str(), std::ios::out);
-
+    float mind = 999999.9, maxd = -999999.9;
     if (inputfile.is_open()){
         std::string off;
         inputfile >> off;
@@ -80,6 +80,12 @@ void read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::
         for (int i = 0; i < numVertices; ++i) {
             float x, y, z;
             inputfile >> x >> y >> z;
+            if (x < mind) mind = x;
+            if (y < mind) mind = y;
+            if (z < mind) mind = z;
+            if (x > maxd) maxd = x;
+            if (y > maxd) maxd = y;
+            if (z > maxd) maxd = z;
             vertices.push_back(Vertex(glm::vec3(x, y, z)));
         }
 
@@ -90,4 +96,5 @@ void read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::
         }
         inputfile.close();
     }
+    return (maxd - mind + 0.1);
 }
