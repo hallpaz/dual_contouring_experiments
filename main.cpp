@@ -1,8 +1,9 @@
 #include <iostream>
-
+#include <sstream>
 #include "Utils.h"
 #include "glm/glm.hpp"
 #include "octree.h"
+
 
 using namespace std;
 // ----------------------------------------------------------------------------
@@ -108,8 +109,8 @@ int main(int argc, char** argv)
 
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
-    float octreeSize = 8;
-    const int height = 3;
+    float octreeSize = 4;
+    const int height = 6;
 
     bool refreshMesh = true;
     int thresholdIndex = 0;
@@ -118,10 +119,12 @@ int main(int argc, char** argv)
     IndexBuffer testIndices;
     //createCylinder(testVertices, testIndices);
 
-    octreeSize = read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/models/teddy1596.off");
-    write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
+    octreeSize = read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/models/vase_mesh_simp.off");
+    //write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
+    //octreeSize = read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/debug/sphere51.off");
+    std::cout << "num of vertices: " << testVertices.size() << " num of indices: " << testIndices.size() << std::endl;
 
-    if (refreshMesh)
+    /*if (refreshMesh)
     {
         refreshMesh = false;
         //thresholdIndex = (thresholdIndex + 1) % MAX_THRESHOLDS;
@@ -131,15 +134,40 @@ int main(int argc, char** argv)
         IndexBuffer indices;
 
         cout << "MAIN: will start build" << endl;
-        //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0000000001);
-        root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, 0.001, testVertices, testIndices);
+        root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, 0.0001);
+        //root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, 0.001, testVertices, testIndices);
         cout << "MAIN: will start mesh generation" << endl;
         GenerateMeshFromOctree(root, vertices, indices);
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
         //write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc6_teddy1596.off");
-        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc3_teddy1596_simplified.off");
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/sphere6.off");
         printf("Generated mesh\n\n");
+    }*/
+
+    float simpthreshold = 0.001;
+    for (int i = 1; i < 2; ++i)
+    {
+
+        //thresholdIndex = (thresholdIndex + 1) % MAX_THRESHOLDS;
+        cout << "Generating mesh with octreeSize: " << octreeSize << "\n" << endl;
+
+        VertexBuffer vertices;
+        IndexBuffer indices;
+
+        cout << "MAIN: will start build" << endl;
+        //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
+        root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold, testVertices, testIndices);
+        cout << "MAIN: will start mesh generation" << endl;
+        GenerateMeshFromOctree(root, vertices, indices);
+        cout << vertices.size() << endl;
+        cout << indices.size() << endl;
+        write_OFF(vertices, indices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/dc6_vase.off");
+        /*std::stringstream filepath;
+        filepath << "/Users/hallpaz/Workspace/research/dual_contouring_experiments/sphere_poly" << height << i << octreeSize << ".off";
+        write_OFF(vertices, indices, filepath.str());*/
+        printf("Generated mesh\n\n");
+        simpthreshold = simpthreshold/10.0;
     }
 
 

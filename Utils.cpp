@@ -96,5 +96,7 @@ float read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
         }
         inputfile.close();
     }
-    return (maxd - mind + 0.1);
+    float size = ((maxd - mind)* 1.1f);
+    std::cout << "Bounding box size: " << size << std::endl;
+    return size;
 }
