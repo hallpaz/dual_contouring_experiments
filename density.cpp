@@ -70,7 +70,7 @@ float Density_Func(const vec3& worldPosition)
 
     const float cube = Cuboid(worldPosition, vec3(0, 0, 0), vec3(1.f));
     //const float sphere = Sphere(worldPosition, vec3(15.f, 2.5f, 1.f), 16.f);
-    const float sphere = Sphere(worldPosition, vec3(0.f, 0.f, 0.f), 16.f);
+    const float sphere = Sphere(worldPosition, vec3(0.f, 0.f, 0.f), 1.f);
     const float torus = Bitorus(worldPosition, vec3(0.f, 0.f, 0.f));
 
     //return torus;

@@ -26,10 +26,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 const int MATERIAL_AIR = 0;
 const int MATERIAL_SOLID = 1;
+const int MATERIAL_UNKNOWN = -1;
 
 const float QEF_ERROR = 1e-6f;
 const int QEF_SWEEPS = 4;
-
+// ----------------------------------------------------------------------------
+const int vneighbors[8][3] = {
+    {1, 2, 4},
+    {0, 3, 5},
+    {0, 3, 6},
+    {1, 2, 7},
+    {0, 5, 6},
+    {1, 4, 7},
+    {2, 4, 7},
+    {3, 5, 6}
+};
 // ----------------------------------------------------------------------------
 
 const vec3 CHILD_MIN_OFFSETS[] =
@@ -95,15 +106,15 @@ const int processEdgeMask[3][4] = {{3,2,1,0},{7,5,6,4},{11,10,9,8}} ;
 
 // -------------------------------------------------------------------------------
 
-OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *pNode, VertexBuffer &vector, IndexBuffer &buffer);
+OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *pNode, const VertexBuffer &vector, const IndexBuffer &buffer);
 
-OctreeNode *ConstructLeafFromMesh(OctreeNode *node, VertexBuffer &vertexBuffer, IndexBuffer &indexBuffer);
+OctreeNode *ConstructLeafFromMesh(OctreeNode *node, const VertexBuffer &vertexBuffer, const IndexBuffer &indexBuffer);
 
 OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
 {
     if (!node)
     {
-        std::cout << "Empty node" << std::endl;
+        //std::cout << "Empty node" << std::endl;
         return NULL;
     }
 
@@ -477,7 +488,7 @@ void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer)
 
 // ----------------------------------------------------------------------------
 //TODO: give a better solution to the steps MAGIC NUMBER
-vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
+/*vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
 {
     // approximate the zero crossing by finding the min value along the edge
     float minValue = 100000.f;
@@ -499,6 +510,47 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
     }
 
     return p0 + ((p1 - p0) * t);
+}*/
+
+vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
+{
+    const float tolerance = 0.00001;
+    const int maxIterations = 21;
+    float tbegin = 0.0;
+    float tend = 1.0;
+    float t = (tbegin + tend)/2;
+    int currentIt = 0;
+    float middle = Density_Func(p0 + ((p1 - p0) * t));
+    float begin = Density_Func(p0 + ((p1 - p0) * tbegin));
+    float end = Density_Func(p0 + ((p1 - p0) * tend));
+    //std::cout << "Begin: " << begin << " Middle: " << middle << " End: " << end << std::endl;
+    while (currentIt < maxIterations)
+    {
+
+        if (fabs(middle) < fabs(tolerance)){
+            break;
+        }
+        //double check
+        if (begin * end > 0){
+            std::cout << "Weird, but this is not a bipolar edge! it: " << currentIt << std::endl;
+        }
+
+        //check the side of the middle point
+        if(middle*begin > 0){ //same side of begin
+            tbegin = t;
+        }
+        else { //same side of end
+            tend = t;
+        }
+        t = (tbegin + tend)/2;
+        middle = Density_Func(p0 + ((p1 - p0) * t));
+        begin = Density_Func(p0 + ((p1 - p0) * tbegin));
+        end = Density_Func(p0 + ((p1 - p0) * tend));
+        //std::cout << "Begin: " << begin << " Middle: " << middle << " End: " << end << std::endl;
+    }
+    std::cout << "Approximation: " << middle << std::endl;
+    //exit(1);
+    return (p0 + ((p1 - p0) * t));
 }
 
 // ----------------------------------------------------------------------------
@@ -510,7 +562,8 @@ vec3 CalculateSurfaceNormal(const vec3& p)
     const float dy = Density_Func(p + vec3(0.f, H, 0.f)) - Density_Func(p - vec3(0.f, H, 0.f));
     const float dz = Density_Func(p + vec3(0.f, 0.f, H)) - Density_Func(p - vec3(0.f, 0.f, H));
 
-    return glm::normalize(vec3(dx, dy, dz));
+    //return glm::normalize(vec3(dx, dy, dz));
+    return glm::normalize(vec3(2*p.x, 2*p.y, 2*p.z));
 }
 
 // ----------------------------------------------------------------------------
@@ -724,7 +777,7 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
 
 }
 
-OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, VertexBuffer &vector, IndexBuffer &buffer) {
+OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &vector, const IndexBuffer &buffer) {
     if (!node)
     {
         std::cout << "Trying to construct empty node" << std::endl;
@@ -825,7 +878,7 @@ vec3 CalculateMeshNormal(Vertex* triangleVertices)
     return normal;
 }
 
-OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, IndexBuffer &indexBuffer) {
+OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBuffer, const IndexBuffer &indexBuffer) {
     if (!leaf || leaf->height != 0)
     {
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
@@ -834,15 +887,17 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
 
     // otherwise the voxel contains the surface, so find the edge intersections
     const int MAX_CROSSINGS = 6;
-    int edgeCount = 0;
+    int edgecount = 0;
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
     bool hasIntersection = false;
     int corners = 0;
-    for (std::vector<Triangle>::iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
+    int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+                       MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+    for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
         Vertex vertices[3] = { vertexBuffer[face->a], vertexBuffer[face->b], vertexBuffer[face->c]  };
 
-        for (int i = 0; i < 12 && edgeCount < MAX_CROSSINGS; i++)
+        for (int i = 0; i < 12; i++)
         {
             const int c1 = edgevmap[i][0];
             const int c2 = edgevmap[i][1];
@@ -855,20 +910,23 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
             bool result = moller_triangle_intersection(vec3(-1, -1, -1), vec3(-1, -1, -0.25), vc, debug);
             std::cout << "intersection (" << debug.x << ", " << debug.y << ", " << debug.z << ")" << std::endl;
             exit(EXIT_FAILURE);*/
-            vec3 intersection(0);
+            vec3 intersection(0.f);
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 const vec3 n = CalculateMeshNormal(vertices);
                 qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
 
                 averageNormal += n;
 
-                edgeCount++;
+                edgecount++;
+                //std::cout << "edgecount: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
                 hasIntersection = true;
 
                 const int sign1 = glm::dot((p1 - intersection), n) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
                 const int sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-                corners |= (sign1 << c1);
-                corners |= (sign2 << c2);
+                /*corners |= (sign1 << c1);
+                corners |= (sign2 << c2);*/
+                vecsigns[c1] = sign1;
+                vecsigns[c2] = sign2;
                 /*std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
                 << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
                 " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
@@ -876,11 +934,11 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
                 std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;*/
             }
             else{
-
+                //std::cout << "No inter: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
             }
-            if (edgeCount == MAX_CROSSINGS){ //found all intersections
+            /*if (edgeCount == MAX_CROSSINGS){ //found all intersections
                 break;
-            }
+            }*/
         }
     }
     if (!hasIntersection){
@@ -888,6 +946,40 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
         delete leaf;
         return nullptr;
     }
+
+    //std::cout << std::endl;
+    int ground_corners = 0;
+    bool checksigns = true;
+    while(checksigns) {
+        checksigns = false;
+        for (size_t i = 0; i < 8; i++) {
+            if (vecsigns[i] == MATERIAL_UNKNOWN) {
+                checksigns = true;
+                for (int j = 0; j < 3; ++j) {
+                    int n = vneighbors[i][j];
+                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                        vecsigns[i] = vecsigns[n];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    for (size_t i = 0; i < 8; i++) {
+        corners |= (vecsigns[i] << i);
+
+        /*const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+        const float density = Density_Func(vec3(cornerPos));
+        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+        ground_corners |= (material << i);*/
+    }
+    /*if (corners != ground_corners) {
+        std::cout << " edgecount: " << edgecount << " corners: " << corners << " ground: " << ground_corners << std::endl;
+        for (int i = 0; i < 8; ++i) {
+            std::cout << ((corners >> i) & 1) << " x " << (vecsigns[i]) << " x " << ((ground_corners >> i) & 1) << std::endl;
+        }
+        //exit(1);
+    }*/
 
     svd::Vec3 qefPosition;
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
@@ -906,7 +998,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, VertexBuffer &vertexBuffer, 
         drawInfo->position = vec3(mp.x, mp.y, mp.z);
     }
 
-    drawInfo->averageNormal = glm::normalize(averageNormal / (float)edgeCount);
+    drawInfo->averageNormal = glm::normalize(averageNormal / (float)edgecount);
     drawInfo->corners = corners;
 
     leaf->type = Node_Leaf;
