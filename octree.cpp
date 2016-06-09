@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include	"octree.h"
 #include	"density.h"
+#include <fstream>
 
 // ----------------------------------------------------------------------------
 
@@ -769,9 +770,9 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
 
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
-    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    root = SimplifyOctree(root, threshold);
-    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
+//    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+//    root = SimplifyOctree(root, threshold);
+//    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;
 
@@ -884,6 +885,18 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
+    std::ofstream gridfile;
+    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_bunny.ply", std::ios::app);
+
+    for (size_t i = 0; i < 8; i++) {
+
+        const vec3 corner = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+        gridfile << corner.x << " " << corner.y << " " << corner.z << " " << 0 << " " << 0 << " " << 255 << std::endl;
+//        const float density = Density_Func(vec3(cornerPos));
+//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+//        ground_corners |= (material << i);
+    }
+    gridfile.close();
 
     // otherwise the voxel contains the surface, so find the edge intersections
     const int MAX_CROSSINGS = 6;
@@ -927,11 +940,16 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 corners |= (sign2 << c2);*/
                 vecsigns[c1] = sign1;
                 vecsigns[c2] = sign2;
-                /*std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
-                << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
-                " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
-                std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
-                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;*/
+//                std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
+//                << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
+//                " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
+//                std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
+//                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
+//
+                std::ofstream outfile;
+                outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_bunny.off", std::ios::app);
+                outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                outfile.close();
             }
             else{
                 //std::cout << "No inter: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
@@ -968,18 +986,18 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
 
-        /*const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
-        const float density = Density_Func(vec3(cornerPos));
-        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-        ground_corners |= (material << i);*/
+//        const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+//        const float density = Density_Func(vec3(cornerPos));
+//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+//        ground_corners |= (material << i);
     }
-    /*if (corners != ground_corners) {
-        std::cout << " edgecount: " << edgecount << " corners: " << corners << " ground: " << ground_corners << std::endl;
-        for (int i = 0; i < 8; ++i) {
-            std::cout << ((corners >> i) & 1) << " x " << (vecsigns[i]) << " x " << ((ground_corners >> i) & 1) << std::endl;
-        }
-        //exit(1);
-    }*/
+//    if (corners != ground_corners) {
+//        std::cout << " edgecount: " << edgecount << " corners: " << corners << " ground: " << ground_corners << std::endl;
+//        for (int i = 0; i < 8; ++i) {
+//            std::cout << ((corners >> i) & 1) << " x " << (vecsigns[i]) << " x " << ((ground_corners >> i) & 1) << std::endl;
+//        }
+//        //exit(1);
+//    }
 
     svd::Vec3 qefPosition;
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
