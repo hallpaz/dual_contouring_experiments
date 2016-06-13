@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    bool IMPA = true;
+    bool IMPA = false;
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
     float octreeSize = 4;
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
 
     string folder_name = IMPA ?  "/home/hallpaz/Workspace/dual_contouring_experiments/" : "/Users/hallpaz/Workspace/research/dual_contouring_experiments/";
 
-    octreeSize = read_OFF(testVertices, testIndices, folder_name + "models/bunny.off");
+    octreeSize = read_OFF(testVertices, testIndices, folder_name + "models/manequin.off");
     //write_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/testCube.off");
     //octreeSize = read_OFF(testVertices, testIndices, "/Users/hallpaz/Workspace/research/dual_contouring_experiments/debug/sphere51.off");
     std::cout << "num of vertices: " << testVertices.size() << " num of indices: " << testIndices.size() << std::endl;
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
         cout << indices.size() << endl;
         //write_OFF(vertices, indices, folder_name + "dc6_vase.off");
         std::stringstream filepath;
-        filepath << folder_name << "check/bunny_no_simpdc6" << height << i << octreeSize << ".off";
+        filepath << folder_name << "check/manequin_no_simpdc5" << height << i << octreeSize << ".off";
         write_OFF(vertices, indices, filepath.str());
         printf("Generated mesh\n\n");
         simpthreshold = simpthreshold/10.0;
