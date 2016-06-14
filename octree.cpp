@@ -796,6 +796,45 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
         return ConstructLeafFromMesh(node, vector, buffer);
     }
 
+    if (node->parent != nullptr){
+        OctreeNode *parent = node->parent;
+        auto iterator = parent->innerTriangles.begin();
+        while(iterator != parent->innerTriangles.end())
+        {
+            Vertex tvertex = vector[iterator->a];
+            int numvinside = 0;
+            vec3 maxvertex = node->min + (CHILD_MIN_OFFSETS[7] * node->size;
+            if ((tvertex.position.x > node->min.x) && (tvertex.position.x < maxvertex.x)){
+                ++numvinside;
+            }
+            if ((tvertex.position.y > node->min.y) && (tvertex.position.y < maxvertex.y)){
+                ++numvinside;
+            }
+            if ((tvertex.position.z > node->min.z) && (tvertex.position.z < maxvertex.z)){
+                ++numvinside;
+            }
+            if (numvinside > 0){
+                if (numvinside == 3) {
+                    node->innerTriangles.push_back(*iterator);
+                    //removes from parent list
+                    iterator = parent->innerTriangles.erase(iterator);
+                }
+                else{
+                    node->crossingTriangles.push_back(*iterator);
+                    ++iterator;
+                }
+            }
+            else {
+                ++iterator;
+            }
+        }
+    }else {
+        //initializes the parent list with all triangles
+        for (auto it = buffer.begin(); it != buffer.end() ; ++it) {
+            node->innerTriangles.push_back(*it);
+        }
+    }
+
     const float childSize = node->size / 2;
     const int childHeight = node->height - 1;
     bool hasChildren = false;
@@ -807,6 +846,7 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
         child->height = childHeight;
         child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
         child->type = Node_Internal;
+        child->parent = node;
 
         node->children[i] = ConstructOctreeNodesFromMesh(child, vector, buffer);
         hasChildren |= (node->children[i] != nullptr);

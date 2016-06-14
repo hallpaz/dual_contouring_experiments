@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define		HAS_OCTREE_H_BEEN_INCLUDED
 
 #include <vector>
+#include <list>
 
 #include "qef.h"
 
@@ -71,6 +72,7 @@ public:
             , size(0)
             , height(0)
             , drawInfo(nullptr)
+            , parent(nullptr)
     {
         for (int i = 0; i < 8; ++i)
         {
@@ -84,6 +86,7 @@ public:
             , size(0)
             , height(0)
             , drawInfo(nullptr)
+            , parent(nullptr)
     {
         for (int i = 0; i < 8; i++)
         {
@@ -96,7 +99,10 @@ public:
     float			size;
     int             height;
     OctreeNode*		children[8];
+    OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
+    std::list<Triangle> innerTriangles;
+    std::list<Triangle> crossingTriangles;
 };
 
 // ----------------------------------------------------------------------------
