@@ -43,6 +43,13 @@ enum OctreeNodeType
     Node_Leaf,
 };
 
+enum RelativePosition
+{
+    INSIDE,
+    CROSSING,
+    OUTSIDE,
+};
+
 // ----------------------------------------------------------------------------
 
 struct OctreeDrawInfo
@@ -101,8 +108,11 @@ public:
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
-    std::list<Triangle> innerTriangles;
-    std::list<Triangle> crossingTriangles;
+    std::list<Triangle > innerTriangles;
+    std::list<Triangle > crossingTriangles;
+
+    RelativePosition vertexRelativePosition(const Vertex &vertex);
+    RelativePosition triangleRelativePosition(const Vertex &a, const Vertex& b, const Vertex& c);
 };
 
 // ----------------------------------------------------------------------------

@@ -785,54 +785,69 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
         return nullptr;
     }
 
-    /*if (node->size == 1)
-    {
-        return ConstructLeaf(node);
-    }*/
-
-    if (node->height == 0)
-    {
-        //std::cout << "Will construct Leaf" << std::endl;
-        return ConstructLeafFromMesh(node, vector, buffer);
-    }
-
     if (node->parent != nullptr){
         OctreeNode *parent = node->parent;
-        auto iterator = parent->innerTriangles.begin();
-        while(iterator != parent->innerTriangles.end())
+        auto titerator = parent->innerTriangles.begin();
+        //parent's inner triangles
+        while(titerator != parent->innerTriangles.end())
         {
-            Vertex tvertex = vector[iterator->a];
-            int numvinside = 0;
-            vec3 maxvertex = node->min + (CHILD_MIN_OFFSETS[7] * node->size;
-            if ((tvertex.position.x > node->min.x) && (tvertex.position.x < maxvertex.x)){
-                ++numvinside;
+            switch (node->triangleRelativePosition(vector[(*titerator).a], vector[(*titerator).b], vector[(*titerator).c]))
+            {
+                case INSIDE:
+                    node->innerTriangles.push_back(*titerator);
+                    titerator = parent->innerTriangles.erase(titerator);
+                    break;
+                case CROSSING:
+                    node->crossingTriangles.push_back(*titerator);
+                    titerator = parent->innerTriangles.erase(titerator);
+                    break;
+                default:
+                    ++titerator;
             }
-            if ((tvertex.position.y > node->min.y) && (tvertex.position.y < maxvertex.y)){
-                ++numvinside;
-            }
-            if ((tvertex.position.z > node->min.z) && (tvertex.position.z < maxvertex.z)){
-                ++numvinside;
-            }
-            if (numvinside > 0){
-                if (numvinside == 3) {
-                    node->innerTriangles.push_back(*iterator);
-                    //removes from parent list
-                    iterator = parent->innerTriangles.erase(iterator);
-                }
-                else{
-                    node->crossingTriangles.push_back(*iterator);
-                    ++iterator;
-                }
-            }
-            else {
-                ++iterator;
+        }
+        //parent's crossing triangles
+        titerator = parent->crossingTriangles.begin();
+        while(titerator != parent->crossingTriangles.end())
+        {
+            switch (node->triangleRelativePosition(vector[(*titerator).a], vector[(*titerator).b], vector[(*titerator).c]))
+            {
+                case INSIDE:
+                    node->innerTriangles.push_back(*titerator);
+                    titerator = parent->crossingTriangles.erase(titerator);
+                    break;
+                case CROSSING:
+                    node->crossingTriangles.push_back(*titerator);
+                    titerator = parent->crossingTriangles.erase(titerator);
+                    break;
+                default:
+                    ++titerator;
             }
         }
     }else {
         //initializes the parent list with all triangles
-        for (auto it = buffer.begin(); it != buffer.end() ; ++it) {
-            node->innerTriangles.push_back(*it);
+        for (auto titerator = buffer.begin(); titerator != buffer.end() ; ++titerator) {
+            RelativePosition tposition = node->triangleRelativePosition(vector[(*titerator).a], vector[(*titerator).b], vector[(*titerator).c]);
+            std::cout << tposition << std::endl;
+            //exit(654);
+            switch (tposition)
+            {
+                case INSIDE:
+                    node->innerTriangles.push_back(*titerator);
+                    break;
+                case CROSSING:
+                    node->crossingTriangles.push_back(*titerator);
+                    break;
+                default:
+                    break;
+            }
         }
+    }
+
+//    std::cout << "Height: " << node->height << " Inner triangles: " << node->innerTriangles.size() << " Crossing Triangles: " << node->crossingTriangles.size() << std::endl;
+    if (node->height == 0)
+    {
+        //std::cout << "Will construct Leaf" << std::endl;
+        return ConstructLeafFromMesh(node, vector, buffer);
     }
 
     const float childSize = node->size / 2;
@@ -947,8 +962,9 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     int corners = 0;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-    for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
-        Vertex vertices[3] = { vertexBuffer[face->a], vertexBuffer[face->b], vertexBuffer[face->c]  };
+//    for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
+    for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
+        Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
 
         for (int i = 0; i < 12; i++)
         {
@@ -1064,3 +1080,39 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 
     return leaf;
 }
+
+RelativePosition OctreeNode::vertexRelativePosition(const Vertex &vertex) {
+    /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
+
+    vec3 maxvertex = this->min + (CHILD_MIN_OFFSETS[7] * this->size);
+//    std::cout <<"min: (" << min.x << ", " << min.y << ", " << min.z << ")" << std::endl;
+//    std::cout <<"max: (" << maxvertex.x << ", " << maxvertex.y << ", " << maxvertex.z << ")" << std::endl;
+//    std::cout <<"vertex: (" << vertex.position.x << ", " << vertex.position.y << ", " << vertex.position.z << ")" << std::endl;
+    if ((vertex.position.x > this->min.x) && (vertex.position.x < maxvertex.x)
+            && (vertex.position.y > this->min.y) && (vertex.position.y < maxvertex.y)
+            && (vertex.position.z > this->min.z) && (vertex.position.z < maxvertex.z)) {
+        return INSIDE;
+    }
+    return OUTSIDE;
+}
+
+RelativePosition OctreeNode::triangleRelativePosition(const Vertex &a, const Vertex &b, const Vertex &c) {
+    int numVerticesInside = 0;
+    if (this->vertexRelativePosition(a) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (this->vertexRelativePosition(b) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (this->vertexRelativePosition(c) == INSIDE){
+        ++numVerticesInside;
+    }
+
+    if (numVerticesInside == 0) return OUTSIDE;
+    if (numVerticesInside == 3) return INSIDE;
+
+    return CROSSING;
+}
+
+
+
