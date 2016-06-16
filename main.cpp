@@ -13,11 +13,11 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    bool IMPA = false;
+    bool IMPA = true;
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
     float octreeSize = 4;
-    const int height = 7;
+    const int height = 6;
 
     VertexBuffer testVertices;
     IndexBuffer testIndices;

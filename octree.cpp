@@ -942,8 +942,12 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
+
+    if (leaf->innerTriangles.size() > 0){
+        std::cout << "Leaf size: " << leaf->size << "Inner Triangles: " << leaf->innerTriangles.size() << std::endl;
+    }
     /*std::ofstream gridfile;
-    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_bunny.ply", std::ios::app);
+    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_cow.ply", std::ios::app);
 
     for (size_t i = 0; i < 8; i++) {
 
@@ -1005,8 +1009,21 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 //                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
 //
                 std::ofstream outfile;
-                outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_bunny.off", std::ios::app);
-                outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_color.ply", std::ios::app);
+                if (i < 4) { // x axis
+                    outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 0 << " " <<
+                    255 << " " << 0 << std::endl;
+                }
+                else {
+                    if (i < 8) { // y axis
+                        outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 0 <<
+                        " " << 255 << " " << 255 << std::endl;
+                    }
+                    else { // z axis
+                        outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 255 <<
+                        " " << 0 << " " << 0 << std::endl;
+                    }
+                }
                 outfile.close();
             }
             else{
@@ -1041,10 +1058,26 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             }
         }
     }
+    std::ofstream gridfile;
+    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_nocheck.ply", std::ios::app);
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
 
-//        const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+        const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+//        const float density = Density_Func(vec3(cornerPos));
+//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+//        ground_corners |= (material << i);
+        if (vecsigns[i] == MATERIAL_SOLID) {
+            gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+        }
+
+        if (vecsigns[i] == MATERIAL_AIR) {
+            gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+        }
+
+        if (vecsigns[i] == MATERIAL_UNKNOWN) {
+            gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+        }
 //        const float density = Density_Func(vec3(cornerPos));
 //        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
 //        ground_corners |= (material << i);
@@ -1110,11 +1143,40 @@ RelativePosition OctreeNode::triangleRelativePosition(const Vertex &a, const Ver
         ++numVerticesInside;
     }
 
+    vec3 max = min + size*CHILD_MIN_OFFSETS[7];
+
     if (numVerticesInside == 3) return INSIDE;
     //if (numVerticesInside > 0) return CROSSING;
+//    Vertex vertices[] = {a, b, c};
+//    for (int i = 0; i < 12; i++)
+//    {
+//        const int c1 = edgevmap[i][0];
+//        const int c2 = edgevmap[i][1];
+//        const vec3 p1 = vec3(min + size*CHILD_MIN_OFFSETS[c1]);
+//        const vec3 p2 = vec3(min + size*CHILD_MIN_OFFSETS[c2]);
+//        vec3 intersection(0.f);
+//        if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+//            return CROSSING;
+//        }
+//    }
+//    //moller_triangle_intersection()
+//    return OUTSIDE;
 
-    //moller_triangle_intersection()
+    if (((a.position.x > max.x) && (b.position.x > max.x) && (c.position.x > max.x))
+        || ((a.position.x < min.x) && (b.position.x < min.x) && (c.position.x < min.x))){
+        return OUTSIDE;
+    }
+    if (((a.position.y > max.y) && (b.position.y > max.y) && (c.position.y > max.y))
+        || ((a.position.y < min.y) && (b.position.y < min.y) && (c.position.y < min.y))){
+        return OUTSIDE;
+    }
+    if (((a.position.z > max.z) && (b.position.z > max.z) && (c.position.z > max.z))
+        || ((a.position.z < min.z) && (b.position.z < min.z) && (c.position.z < min.z))){
+        return OUTSIDE;
+    }
+
     return CROSSING;
+
 }
 
 

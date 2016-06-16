@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <cmath>
 #include "Utils.h"
 
 
@@ -96,7 +97,7 @@ float read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
         }
         inputfile.close();
     }
-    float size = ((maxd - mind)* 1.1f);
-    std::cout << "Bounding box size: " << size << std::endl;
-    return size;
+    float size = fabs(maxd) > fabs(mind) ? ceilf(fabs(maxd)) : ceilf(fabs(mind));
+    std::cout << "Bounding box half size: " << size << std::endl;
+    return 2*size;
 }
