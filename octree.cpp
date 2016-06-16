@@ -799,7 +799,8 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
                     break;
                 case CROSSING:
                     node->crossingTriangles.push_back(*titerator);
-                    titerator = parent->innerTriangles.erase(titerator);
+                    //titerator = parent->innerTriangles.erase(titerator);
+                    ++titerator;
                     break;
                 default:
                     ++titerator;
@@ -817,17 +818,18 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
                     break;
                 case CROSSING:
                     node->crossingTriangles.push_back(*titerator);
-                    titerator = parent->crossingTriangles.erase(titerator);
+                    //titerator = parent->crossingTriangles.erase(titerator);
                     break;
                 default:
-                    ++titerator;
+                    ;
             }
+            ++titerator;
         }
     }else {
         //initializes the parent list with all triangles
         for (auto titerator = buffer.begin(); titerator != buffer.end() ; ++titerator) {
             RelativePosition tposition = node->triangleRelativePosition(vector[(*titerator).a], vector[(*titerator).b], vector[(*titerator).c]);
-            std::cout << tposition << std::endl;
+           //std::cout << tposition << std::endl;
             //exit(654);
             switch (tposition)
             {
@@ -940,7 +942,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
-    std::ofstream gridfile;
+    /*std::ofstream gridfile;
     gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_bunny.ply", std::ios::app);
 
     for (size_t i = 0; i < 8; i++) {
@@ -951,7 +953,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 //        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
 //        ground_corners |= (material << i);
     }
-    gridfile.close();
+    gridfile.close();*/
 
     // otherwise the voxel contains the surface, so find the edge intersections
     const int MAX_CROSSINGS = 6;
@@ -962,7 +964,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     int corners = 0;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-//    for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
+    //for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
     for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
         Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
 
@@ -1108,9 +1110,10 @@ RelativePosition OctreeNode::triangleRelativePosition(const Vertex &a, const Ver
         ++numVerticesInside;
     }
 
-    if (numVerticesInside == 0) return OUTSIDE;
     if (numVerticesInside == 3) return INSIDE;
+    //if (numVerticesInside > 0) return CROSSING;
 
+    //moller_triangle_intersection()
     return CROSSING;
 }
 

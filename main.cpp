@@ -13,11 +13,11 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    bool IMPA = true;
+    bool IMPA = false;
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
     float octreeSize = 4;
-    const int height = 8;
+    const int height = 7;
 
     VertexBuffer testVertices;
     IndexBuffer testIndices;
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
         cout << indices.size() << endl;
         //write_OFF(vertices, indices, folder_name + "dc6_vase.off");
         std::stringstream filepath;
-        filepath << folder_name << "check/unitsphereremodel5" << height << i << octreeSize << ".off";
+        filepath << folder_name << "check/cowdc" << height << i << octreeSize << ".off";
         write_OFF(vertices, indices, filepath.str());
         printf("Generated mesh\n\n");
         simpthreshold = simpthreshold/10.0;
