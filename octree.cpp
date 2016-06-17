@@ -943,21 +943,9 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         return nullptr;
     }
 
-    if (leaf->innerTriangles.size() > 0){
+    /*if (leaf->innerTriangles.size() > 0){
         std::cout << "Leaf size: " << leaf->size << "Inner Triangles: " << leaf->innerTriangles.size() << std::endl;
-    }
-    /*std::ofstream gridfile;
-    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_cow.ply", std::ios::app);
-
-    for (size_t i = 0; i < 8; i++) {
-
-        const vec3 corner = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
-        gridfile << corner.x << " " << corner.y << " " << corner.z << " " << 0 << " " << 0 << " " << 255 << std::endl;
-//        const float density = Density_Func(vec3(cornerPos));
-//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-//        ground_corners |= (material << i);
-    }
-    gridfile.close();*/
+    }*/
 
     // otherwise the voxel contains the surface, so find the edge intersections
     const int MAX_CROSSINGS = 6;
@@ -968,25 +956,29 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     int corners = 0;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-    //for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
-    for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
-        Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
-
-        for (int i = 0; i < 12; i++)
-        {
-            const int c1 = edgevmap[i][0];
-            const int c2 = edgevmap[i][1];
 
 
-            const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-            const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+    for (int i = 0; i < 12; i++)
+    {
+        //for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
+        int numIntersectionsOnEdge = 0;
+
+        const int c1 = edgevmap[i][0];
+        const int c2 = edgevmap[i][1];
+        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
+        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+        vec3 intersection(0.f);
+
+        for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
+
+            Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
             /*vec3 debug(0);
             Vertex vc[3] = {vec3(-1, -1, 1), vec3(-1, 1, 1), vec3(1, -1, 1)};
             bool result = moller_triangle_intersection(vec3(-1, -1, -1), vec3(-1, -1, -0.25), vc, debug);
             std::cout << "intersection (" << debug.x << ", " << debug.y << ", " << debug.z << ")" << std::endl;
             exit(EXIT_FAILURE);*/
-            vec3 intersection(0.f);
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+                ++numIntersectionsOnEdge;
                 const vec3 n = CalculateMeshNormal(vertices);
                 qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
 
@@ -1002,14 +994,16 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 corners |= (sign2 << c2);*/
                 vecsigns[c1] = sign1;
                 vecsigns[c2] = sign2;
+                break;
 //                std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
 //                << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
 //                " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
 //                std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
 //                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
 //
-                std::ofstream outfile;
-                outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_color.ply", std::ios::app);
+                /*std::ofstream outfile;
+                //outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_color.ply", std::ios::app);
+                outfile.open("/Users/hallpaz/Workspace/research/dual_contouring_experiments/intersection_color.ply", std::ios::app);
                 if (i < 4) { // x axis
                     outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 0 << " " <<
                     255 << " " << 0 << std::endl;
@@ -1024,14 +1018,12 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                         " " << 0 << " " << 0 << std::endl;
                     }
                 }
-                outfile.close();
+                outfile.close();*/
             }
-            else{
-                //std::cout << "No inter: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
-            }
-            /*if (edgeCount == MAX_CROSSINGS){ //found all intersections
-                break;
-            }*/
+        }
+        if (numIntersectionsOnEdge != 0 && numIntersectionsOnEdge%2 == 0){
+            vecsigns[c1] = MATERIAL_AIR;
+            vecsigns[c2] = MATERIAL_AIR;
         }
     }
     if (!hasIntersection){
@@ -1059,7 +1051,8 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         }
     }
     std::ofstream gridfile;
-    gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_nocheck.ply", std::ios::app);
+    //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
+    gridfile.open("/Users/hallpaz/Workspace/research/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
 
@@ -1132,36 +1125,7 @@ RelativePosition OctreeNode::vertexRelativePosition(const Vertex &vertex) {
 }
 
 RelativePosition OctreeNode::triangleRelativePosition(const Vertex &a, const Vertex &b, const Vertex &c) {
-    int numVerticesInside = 0;
-    if (this->vertexRelativePosition(a) == INSIDE){
-        ++numVerticesInside;
-    }
-    if (this->vertexRelativePosition(b) == INSIDE){
-        ++numVerticesInside;
-    }
-    if (this->vertexRelativePosition(c) == INSIDE){
-        ++numVerticesInside;
-    }
-
     vec3 max = min + size*CHILD_MIN_OFFSETS[7];
-
-    if (numVerticesInside == 3) return INSIDE;
-    //if (numVerticesInside > 0) return CROSSING;
-//    Vertex vertices[] = {a, b, c};
-//    for (int i = 0; i < 12; i++)
-//    {
-//        const int c1 = edgevmap[i][0];
-//        const int c2 = edgevmap[i][1];
-//        const vec3 p1 = vec3(min + size*CHILD_MIN_OFFSETS[c1]);
-//        const vec3 p2 = vec3(min + size*CHILD_MIN_OFFSETS[c2]);
-//        vec3 intersection(0.f);
-//        if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
-//            return CROSSING;
-//        }
-//    }
-//    //moller_triangle_intersection()
-//    return OUTSIDE;
-
     if (((a.position.x > max.x) && (b.position.x > max.x) && (c.position.x > max.x))
         || ((a.position.x < min.x) && (b.position.x < min.x) && (c.position.x < min.x))){
         return OUTSIDE;
@@ -1174,6 +1138,20 @@ RelativePosition OctreeNode::triangleRelativePosition(const Vertex &a, const Ver
         || ((a.position.z < min.z) && (b.position.z < min.z) && (c.position.z < min.z))){
         return OUTSIDE;
     }
+
+    int numVerticesInside = 0;
+    if (this->vertexRelativePosition(a) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (this->vertexRelativePosition(b) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (this->vertexRelativePosition(c) == INSIDE){
+        ++numVerticesInside;
+    }
+
+    if (numVerticesInside == 3) return INSIDE;
+
 
     return CROSSING;
 
