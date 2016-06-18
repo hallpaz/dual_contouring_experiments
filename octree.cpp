@@ -968,6 +968,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
         const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
         vec3 intersection(0.f);
+        std::vector<vec3> intersection_points;
 
         for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
 
@@ -977,7 +978,11 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             bool result = moller_triangle_intersection(vec3(-1, -1, -1), vec3(-1, -1, -0.25), vc, debug);
             std::cout << "intersection (" << debug.x << ", " << debug.y << ", " << debug.z << ")" << std::endl;
             exit(EXIT_FAILURE);*/
+
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+                //keeps the intersection here
+                intersection_points.push_back(intersection);
+
                 ++numIntersectionsOnEdge;
                 const vec3 n = CalculateMeshNormal(vertices);
                 qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
@@ -994,18 +999,17 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 corners |= (sign2 << c2);*/
                 vecsigns[c1] = sign1;
                 vecsigns[c2] = sign2;
-                break;
+                //break;
 //                std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
 //                << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
 //                " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
 //                std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
 //                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
 //
-                /*std::ofstream outfile;
-                //outfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/intersection_color.ply", std::ios::app);
-                outfile.open("/Users/hallpaz/Workspace/research/dual_contouring_experiments/intersection_color.ply", std::ios::app);
+                std::ofstream outfile;
+                outfile.open("../../intersection_color.ply", std::ios::app);
                 if (i < 4) { // x axis
-                    outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 0 << " " <<
+                    outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 255 << " " <<
                     255 << " " << 0 << std::endl;
                 }
                 else {
@@ -1018,13 +1022,38 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                         " " << 0 << " " << 0 << std::endl;
                     }
                 }
-                outfile.close();*/
+                outfile.close();
             }
         }
-        if (numIntersectionsOnEdge != 0 && numIntersectionsOnEdge%2 == 0){
-            vecsigns[c1] = MATERIAL_AIR;
-            vecsigns[c2] = MATERIAL_AIR;
+        if (numIntersectionsOnEdge > 1) {
+            std::cout << numIntersectionsOnEdge << " Interseções na mesma aresta" << std::endl;
+            std::ofstream anomalyfile;
+            anomalyfile.open("../../anomaly_intersection.ply", std::ios::app);
+            for (auto point = intersection_points.begin(); point != intersection_points.end() ; ++point) {
+                if (i < 4) { // x axis
+                    anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 << " " <<
+                    255 << " " << 0 << std::endl;
+                }
+                else {
+                    if (i < 8) { // y axis
+                        anomalyfile << point->x << " " << point->y << " " << point->z << " " << 0 <<
+                        " " << 255 << " " << 255 << std::endl;
+                    }
+                    else { // z axis
+                        anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 <<
+                        " " << 0 << " " << 0 << std::endl;
+                    }
+                }
+            }
+
+            anomalyfile.close();
+
+            /*if (numIntersectionsOnEdge%2 == 0){
+                vecsigns[c1] = MATERIAL_AIR;
+                vecsigns[c2] = MATERIAL_AIR;
+            }*/
         }
+
     }
     if (!hasIntersection){
         // voxel is full inside or outside the volume
@@ -1052,7 +1081,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     }
     std::ofstream gridfile;
     //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
-    gridfile.open("/Users/hallpaz/Workspace/research/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
+    gridfile.open("../../grid_color_updated.ply", std::ios::app);
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
 
@@ -1065,7 +1094,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         }
 
         if (vecsigns[i] == MATERIAL_AIR) {
-            gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+            gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 128 << " " << 128 << " " << 64 << std::endl;
         }
 
         if (vecsigns[i] == MATERIAL_UNKNOWN) {
@@ -1075,6 +1104,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 //        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
 //        ground_corners |= (material << i);
     }
+    gridfile.close();
 //    if (corners != ground_corners) {
 //        std::cout << " edgecount: " << edgecount << " corners: " << corners << " ground: " << ground_corners << std::endl;
 //        for (int i = 0; i < 8; ++i) {
