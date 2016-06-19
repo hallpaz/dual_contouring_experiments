@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include	"octree.h"
 #include	"density.h"
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 
 // ----------------------------------------------------------------------------
 
@@ -110,6 +112,25 @@ const int processEdgeMask[3][4] = {{3,2,1,0},{7,5,6,4},{11,10,9,8}} ;
 OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *pNode, const VertexBuffer &vector, const IndexBuffer &buffer);
 
 OctreeNode *ConstructLeafFromMesh(OctreeNode *node, const VertexBuffer &vertexBuffer, const IndexBuffer &indexBuffer);
+
+std::unordered_map<std::string, int> OctreeNode::vertexpool;
+std::unordered_map<std::string, HermiteData> OctreeNode::edgepool;
+
+std::string hashvertex(const vec3& vertex){
+    int precision = 3;
+    std::stringstream rep;
+    rep << vertex.x << std::setprecision (precision) << std::fixed
+        << vertex.y << std::setprecision (precision) << std::fixed
+        << vertex.z << std::setprecision (precision) << std::fixed;
+    return rep.str();
+}
+
+std::string hashedge(const vec3& v1, const vec3& v2){
+    if (v1.x < v2.x){
+        return (hashvertex(v1) + hashvertex(v2));
+    }
+    return (hashvertex(v2) + hashvertex(v1));
+}
 
 OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
 {
@@ -770,9 +791,9 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
 
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
-//    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-//    root = SimplifyOctree(root, threshold);
-//    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
+    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    root = SimplifyOctree(root, threshold);
+    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;
 
@@ -948,7 +969,6 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     }*/
 
     // otherwise the voxel contains the surface, so find the edge intersections
-    const int MAX_CROSSINGS = 6;
     int edgecount = 0;
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
@@ -967,20 +987,37 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         const int c2 = edgevmap[i][1];
         const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
         const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+
+        //computes hash for edge
+        std::string edgehash = hashedge(p1, p2);
+        HermiteData edgedata;
+        if (OctreeNode::edgepool.count(edgehash) != 0){
+            // if exists, retrieve the data
+            edgedata = OctreeNode::edgepool[edgehash];
+            if (edgedata.hasIntersection){
+                averageNormal += edgedata.normal;
+                qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
+                        edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
+                hasIntersection = true;
+
+                vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
+                vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
+            }
+            continue;
+        }
+
         vec3 intersection(0.f);
         std::vector<vec3> intersection_points;
 
         for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
 
             Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
-            /*vec3 debug(0);
-            Vertex vc[3] = {vec3(-1, -1, 1), vec3(-1, 1, 1), vec3(1, -1, 1)};
-            bool result = moller_triangle_intersection(vec3(-1, -1, -1), vec3(-1, -1, -0.25), vc, debug);
-            std::cout << "intersection (" << debug.x << ", " << debug.y << ", " << debug.z << ")" << std::endl;
-            exit(EXIT_FAILURE);*/
 
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 //keeps the intersection here
+                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < 0.000001f)){
+                    continue;
+                }
                 intersection_points.push_back(intersection);
 
                 ++numIntersectionsOnEdge;
@@ -993,19 +1030,16 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 //std::cout << "edgecount: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
                 hasIntersection = true;
 
+                edgedata.hasIntersection = true;
+                edgedata.intersection = intersection;
+                edgedata.normal = n;
+
                 const int sign1 = glm::dot((p1 - intersection), n) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
                 const int sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-                /*corners |= (sign1 << c1);
-                corners |= (sign2 << c2);*/
+
                 vecsigns[c1] = sign1;
                 vecsigns[c2] = sign2;
-                //break;
-//                std::cout << "Edge: " << c1 << "-" << c2 << " (" << sign1 << "/" << sign2 << ") "
-//                << leaf->size << " (" << p1.x << " " << p1.y << " " << p1.z << ")" << " and " <<
-//                " (" << p2.x << " " << p2.y << " " << p2.z << ")" << std::endl;
-//                std::cout << "Intersection: (" << intersection.x << ", " << intersection.y << ", " << intersection.z << ")" << std::endl;
-//                std::cout << "Normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n" << std::endl;
-//
+
                 std::ofstream outfile;
                 outfile.open("../../intersection_color.ply", std::ios::app);
                 if (i < 4) { // x axis
@@ -1025,7 +1059,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 outfile.close();
             }
         }
-        if (numIntersectionsOnEdge > 1) {
+        if (intersection_points.size() > 1) {
             std::cout << numIntersectionsOnEdge << " Interseções na mesma aresta" << std::endl;
             std::ofstream anomalyfile;
             anomalyfile.open("../../anomaly_intersection.ply", std::ios::app);
@@ -1045,13 +1079,30 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                     }
                 }
             }
-
             anomalyfile.close();
-
-            /*if (numIntersectionsOnEdge%2 == 0){
+            if (numIntersectionsOnEdge%2 == 0){
                 vecsigns[c1] = MATERIAL_AIR;
                 vecsigns[c2] = MATERIAL_AIR;
-            }*/
+            }
+        }
+        OctreeNode::edgepool[edgehash] = edgedata;
+        std::string vertexhash = hashvertex(p1);
+        if (OctreeNode::vertexpool.count(vertexhash) == 0){
+            OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
+        }
+        else {
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_SOLID){
+                OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
+            }
+        }
+        vertexhash = hashvertex(p2);
+        if (OctreeNode::vertexpool.count(vertexhash) == 0){
+            OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
+        }
+        else {
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_SOLID){
+                OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
+            }
         }
 
     }

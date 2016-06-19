@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <vector>
 #include <list>
+#include <unordered_map>
 
 #include "qef.h"
 
@@ -65,6 +66,13 @@ struct OctreeDrawInfo
     vec3			position;
     vec3			averageNormal;
     svd::QefData	qef;
+};
+
+struct HermiteData
+{
+    bool hasIntersection = false;
+    vec3 intersection;
+    vec3 normal;
 };
 
 // ----------------------------------------------------------------------------
@@ -113,6 +121,9 @@ public:
 
     RelativePosition vertexRelativePosition(const Vertex &vertex);
     RelativePosition triangleRelativePosition(const Vertex &a, const Vertex& b, const Vertex& c);
+
+    static std::unordered_map<std::string, int> vertexpool;
+    static std::unordered_map<std::string, HermiteData> edgepool;
 };
 
 // ----------------------------------------------------------------------------
