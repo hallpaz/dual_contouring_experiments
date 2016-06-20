@@ -791,9 +791,9 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
 
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
-    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    /*std::cout << "Octree.cpp: will simplify nodes" << std::endl;
     root = SimplifyOctree(root, threshold);
-    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
+    std::cout << "Octree.cpp: did simplify nodes" << std::endl;*/
 
     return root;
 
@@ -1008,6 +1008,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 
         vec3 intersection(0.f);
         std::vector<vec3> intersection_points;
+        std::vector<vec3> normals;
 
         for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
 
@@ -1022,17 +1023,18 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
 
                 ++numIntersectionsOnEdge;
                 const vec3 n = CalculateMeshNormal(vertices);
-                qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
+                normals.push_back(n);
+                //qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
 
-                averageNormal += n;
+                //averageNormal += n;
 
-                edgecount++;
+                //edgecount++;
                 //std::cout << "edgecount: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
-                hasIntersection = true;
+                //hasIntersection = true;
 
-                edgedata.hasIntersection = true;
+                /*edgedata.hasIntersection = true;
                 edgedata.intersection = intersection;
-                edgedata.normal = n;
+                edgedata.normal = n;*/
 
                 const int sign1 = glm::dot((p1 - intersection), n) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
                 const int sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
@@ -1080,18 +1082,64 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 }
             }
             anomalyfile.close();
-            if (numIntersectionsOnEdge%2 == 0){
-                vecsigns[c1] = MATERIAL_AIR;
-                vecsigns[c2] = MATERIAL_AIR;
+            /*if (numIntersectionsOnEdge%2 == 0){
+                vecsigns[c1] = MATERIAL_UNKNOWN;
+                vecsigns[c2] = MATERIAL_UNKNOWN;
+            }*/
+            int mindistance = 9999999;
+            int nearindex = -1;
+            for (int j = 0; j < intersection_points.size(); ++j) {
+                int distance = glm::distance(p1, intersection_points[j]);
+                if ( distance < mindistance){
+                    nearindex = j;
+                    mindistance = distance;
+                }
+            }
+            vecsigns[c1] = glm::dot((p1 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+            mindistance = 9999999;
+            nearindex = -1;
+            for (int j = 0; j < intersection_points.size(); ++j) {
+                int distance = glm::distance(p2, intersection_points[j]);
+                if ( distance < mindistance){
+                    nearindex = j;
+                    mindistance = distance;
+                }
+            }
+            vecsigns[c2] = glm::dot((p2 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+            /*if (intersection_points.size()%2 == 0) {
+                vecsigns[c2] = vecsigns[c1];
+            }
+            else {
+                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+            }*/
+
+            /*if (numIntersectionsOnEdge == 2){
+                //vec3 middle = (intersection_points[0] + intersection_points[1])/2;
+                int nearmost_index = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+
+                vecsigns[c2] = vecsigns[c1];
+            }*/
+        }
+        if (vecsigns[c1] != vecsigns[c2]){
+            for (int j = 0; j < intersection_points.size(); ++j) {
+                vec3 n = normals[j];
+                vec3 v = intersection_points[j];
+                qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
+                averageNormal += n;
+                hasIntersection = true;
+                edgedata.hasIntersection = true;
+                edgedata.intersection = intersection;
+                edgedata.normal = n;
             }
         }
+
         OctreeNode::edgepool[edgehash] = edgedata;
         std::string vertexhash = hashvertex(p1);
         if (OctreeNode::vertexpool.count(vertexhash) == 0){
             OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
         }
         else {
-            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_SOLID){
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN /*|| vecsigns[c2] == MATERIAL_SOLID*/){
                 OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
             }
         }
@@ -1100,7 +1148,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
         }
         else {
-            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_SOLID){
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN /*|| vecsigns[c2] == MATERIAL_SOLID*/){
                 OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
             }
         }
@@ -1130,6 +1178,9 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             }
         }
     }
+
+
+
     std::ofstream gridfile;
     //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
     gridfile.open("../../grid_color_updated.ply", std::ios::app);

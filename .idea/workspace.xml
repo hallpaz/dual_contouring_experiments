@@ -12,11 +12,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0f209f5e-4a36-4e0a-9caf-e9262c60b0ba" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/check/minucioso/inside_as_outside_crack01.png" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/octree.cpp" afterPath="$PROJECT_DIR$/octree.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/octree.h" afterPath="$PROJECT_DIR$/octree.h" />
     </list>
     <ignored path="dual_contouring_experiments.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,11 +36,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="octree.cpp" pinned="false" current-in-tab="true">
+      <file leaf-file-name="octree.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/octree.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3809">
-              <caret line="795" column="0" selection-start-line="795" selection-start-column="0" selection-end-line="795" selection-end-column="0" />
+            <state relative-caret-position="6193">
+              <caret line="1098" column="34" selection-start-line="1098" selection-start-column="34" selection-end-line="1098" selection-end-column="34" />
               <folding>
                 <element signature="e#787#806#0" expanded="true" />
               </folding>
@@ -49,11 +48,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="33" column="5" selection-start-line="33" selection-start-column="5" selection-end-line="33" selection-end-column="5" />
+            <state relative-caret-position="557">
+              <caret line="50" column="42" selection-start-line="50" selection-start-column="42" selection-end-line="50" selection-end-column="42" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -876,22 +875,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.cpp">
+    <entry file="file://$PROJECT_DIR$/octree.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="33" column="5" selection-start-line="33" selection-start-column="5" selection-end-line="33" selection-end-column="5" />
+        <state relative-caret-position="6193">
+          <caret line="1098" column="34" selection-start-line="1098" selection-start-column="34" selection-end-line="1098" selection-end-column="34" />
           <folding>
-            <element signature="e#0#19#0" expanded="true" />
+            <element signature="e#787#806#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/octree.cpp">
+    <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3809">
-          <caret line="795" column="0" selection-start-line="795" selection-start-column="0" selection-end-line="795" selection-end-column="0" />
+        <state relative-caret-position="557">
+          <caret line="50" column="42" selection-start-line="50" selection-start-column="42" selection-end-line="50" selection-end-column="42" />
           <folding>
-            <element signature="e#787#806#0" expanded="true" />
+            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
