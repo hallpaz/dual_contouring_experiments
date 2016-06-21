@@ -21,4 +21,7 @@ void write_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
 
 float read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename);
 
+std::string hashvertex(const glm::vec3& vertex);
+std::string hashedge(const glm::vec3& v1, const glm::vec3& v2);
+
 #endif /* Utils_hpp */

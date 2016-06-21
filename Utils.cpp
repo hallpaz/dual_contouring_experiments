@@ -1,8 +1,12 @@
+#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <cmath>
+#include <iomanip>
+#include <sstream>
+
 #include "Utils.h"
 
+using glm::vec3;
 
 void write_Ply(std::vector<glm::vec3> &vertices, std::vector<int> &faces, std::string filename)
 {
@@ -100,4 +104,34 @@ float read_OFF(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std:
     float size = fabs(maxd) > fabs(mind) ? ceilf(fabs(maxd)) : ceilf(fabs(mind));
     std::cout << "Bounding box half size: " << size << std::endl;
     return 2*size;
+}
+
+std::string hashvertex(const vec3& vertex){
+    int precision = 3;
+    std::stringstream rep;
+    rep << vertex.x << std::setprecision (precision) << std::fixed
+    << vertex.y << std::setprecision (precision) << std::fixed
+    << vertex.z << std::setprecision (precision) << std::fixed;
+    return rep.str();
+}
+
+std::string hashedge(const vec3& v1, const vec3& v2){
+    float threshold = 0.0000001;
+    if (fabs(v1.x - v2.x) > threshold){
+        if (v1.x < v2.x){
+            return (hashvertex(v1) + hashvertex(v2));
+        }
+        return (hashvertex(v2) + hashvertex(v1));
+    }
+    if (fabs(v1.y - v2.y) > threshold){
+        if (v1.y < v2.y){
+            return (hashvertex(v1) + hashvertex(v2));
+        }
+        return (hashvertex(v2) + hashvertex(v1));
+    }
+
+    if (v1.z < v2.z){
+        return (hashvertex(v1) + hashvertex(v2));
+    }
+    return (hashvertex(v2) + hashvertex(v1));
 }

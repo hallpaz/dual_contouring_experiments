@@ -19,11 +19,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include	"octree.h"
-#include	"density.h"
 #include <fstream>
-#include <sstream>
-#include <iomanip>
+#include "density.h"
+#include "octree.h"
+#include "Utils.h"
+
 
 // ----------------------------------------------------------------------------
 
@@ -115,22 +115,6 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *node, const VertexBuffer &vertexBu
 
 std::unordered_map<std::string, int> OctreeNode::vertexpool;
 std::unordered_map<std::string, HermiteData> OctreeNode::edgepool;
-
-std::string hashvertex(const vec3& vertex){
-    int precision = 3;
-    std::stringstream rep;
-    rep << vertex.x << std::setprecision (precision) << std::fixed
-        << vertex.y << std::setprecision (precision) << std::fixed
-        << vertex.z << std::setprecision (precision) << std::fixed;
-    return rep.str();
-}
-
-std::string hashedge(const vec3& v1, const vec3& v2){
-    if (v1.x < v2.x){
-        return (hashvertex(v1) + hashvertex(v2));
-    }
-    return (hashvertex(v2) + hashvertex(v1));
-}
 
 OctreeNode* SimplifyOctree(OctreeNode* node, float threshold)
 {
@@ -509,31 +493,8 @@ void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer)
 }
 
 // ----------------------------------------------------------------------------
-//TODO: give a better solution to the steps MAGIC NUMBER
-/*vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
-{
-    // approximate the zero crossing by finding the min value along the edge
-    float minValue = 100000.f;
-    float t = 0.f;
-    float currentT = 0.f;
-    const int steps = 8;
-    const float increment = size / (float)steps;
-    while (currentT <= size)
-    {
-        const vec3 p = p0 + ((p1 - p0) * currentT);
-        const float density = glm::abs(Density_Func(p));
-        if (density < minValue)
-        {
-            minValue = density;
-            t = currentT;
-        }
-
-        currentT += increment;
-    }
-
-    return p0 + ((p1 - p0) * t);
-}*/
-
+/* This function was modified to use a binary search like solution.
+ * */
 vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
 {
     const float tolerance = 0.00001;
@@ -545,10 +506,8 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
     float middle = Density_Func(p0 + ((p1 - p0) * t));
     float begin = Density_Func(p0 + ((p1 - p0) * tbegin));
     float end = Density_Func(p0 + ((p1 - p0) * tend));
-    //std::cout << "Begin: " << begin << " Middle: " << middle << " End: " << end << std::endl;
     while (currentIt < maxIterations)
     {
-
         if (fabs(middle) < fabs(tolerance)){
             break;
         }
@@ -556,7 +515,6 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
         if (begin * end > 0){
             std::cout << "Weird, but this is not a bipolar edge! it: " << currentIt << std::endl;
         }
-
         //check the side of the middle point
         if(middle*begin > 0){ //same side of begin
             tbegin = t;
@@ -568,10 +526,8 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1, float size)
         middle = Density_Func(p0 + ((p1 - p0) * t));
         begin = Density_Func(p0 + ((p1 - p0) * tbegin));
         end = Density_Func(p0 + ((p1 - p0) * tend));
-        //std::cout << "Begin: " << begin << " Middle: " << middle << " End: " << end << std::endl;
     }
     std::cout << "Approximation: " << middle << std::endl;
-    //exit(1);
     return (p0 + ((p1 - p0) * t));
 }
 
@@ -584,8 +540,8 @@ vec3 CalculateSurfaceNormal(const vec3& p)
     const float dy = Density_Func(p + vec3(0.f, H, 0.f)) - Density_Func(p - vec3(0.f, H, 0.f));
     const float dz = Density_Func(p + vec3(0.f, 0.f, H)) - Density_Func(p - vec3(0.f, 0.f, H));
 
-    //return glm::normalize(vec3(dx, dy, dz));
-    return glm::normalize(vec3(2*p.x, 2*p.y, 2*p.z));
+    return glm::normalize(vec3(dx, dy, dz));
+    //return glm::normalize(vec3(2*p.x, 2*p.y, 2*p.z));
 }
 
 // ----------------------------------------------------------------------------
@@ -684,14 +640,8 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
         return nullptr;
     }
 
-    /*if (node->size == 1)
-    {
-        return ConstructLeaf(node);
-    }*/
-
     if (node->height == 0)
     {
-        //std::cout << "Will construct Leaf" << std::endl;
         return ConstructLeaf(node);
     }
 
@@ -709,7 +659,6 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
 
         node->children[i] = ConstructOctreeNodes(child);
         hasChildren |= (node->children[i] != nullptr);
-        //std::cout << hasChildren << std::endl;
     }
 
     if (!hasChildren)
@@ -816,11 +765,13 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
             {
                 case INSIDE:
                     node->innerTriangles.push_back(*titerator);
+                    /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
                     titerator = parent->innerTriangles.erase(titerator);
                     break;
                 case CROSSING:
                     node->crossingTriangles.push_back(*titerator);
-                    //titerator = parent->innerTriangles.erase(titerator);
+                    /*If the triangle might cross the cell, we can't remove it from the cell's parent list
+                     * because it might cross other cells as well*/
                     ++titerator;
                     break;
                 default:
@@ -839,19 +790,16 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
                     break;
                 case CROSSING:
                     node->crossingTriangles.push_back(*titerator);
-                    //titerator = parent->crossingTriangles.erase(titerator);
+                    ++titerator;
                     break;
                 default:
-                    ;
+                    ++titerator;
             }
-            ++titerator;
         }
     }else {
         //initializes the parent list with all triangles
         for (auto titerator = buffer.begin(); titerator != buffer.end() ; ++titerator) {
             RelativePosition tposition = node->triangleRelativePosition(vector[(*titerator).a], vector[(*titerator).b], vector[(*titerator).c]);
-           //std::cout << tposition << std::endl;
-            //exit(654);
             switch (tposition)
             {
                 case INSIDE:
@@ -866,10 +814,8 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
         }
     }
 
-//    std::cout << "Height: " << node->height << " Inner triangles: " << node->innerTriangles.size() << " Crossing Triangles: " << node->crossingTriangles.size() << std::endl;
     if (node->height == 0)
     {
-        //std::cout << "Will construct Leaf" << std::endl;
         return ConstructLeafFromMesh(node, vector, buffer);
     }
 
@@ -888,7 +834,6 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
 
         node->children[i] = ConstructOctreeNodesFromMesh(child, vector, buffer);
         hasChildren |= (node->children[i] != nullptr);
-        //std::cout << hasChildren << std::endl;
     }
 
     if (!hasChildren)
@@ -902,7 +847,6 @@ OctreeNode* ConstructOctreeNodesFromMesh(OctreeNode *node, const VertexBuffer &v
 
 bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, vec3& intersection_point)
 {
-    //std::cout << "moller" << std::endl;
     float EPSILON = 0.000001;
 
     vec3 e1 = triangle_vertices[1].position - triangle_vertices[0].position;
@@ -916,7 +860,6 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
         return false;
     }
 
-
     float inv_det = 1.0/det;
     vec3 T = v1 - triangle_vertices[0].position;
     float u = glm::dot(T, P) * inv_det;
@@ -924,7 +867,6 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
     if(u < 0.0f or u > 1.0f){
         return false;
     }
-
 
     vec3 Q = glm::cross(T, e1);
     float v = glm::dot(D, Q) * inv_det;
@@ -935,14 +877,9 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
     float t = glm::dot(e2, Q) * inv_det;
 
     if(t > 0.0 && t < 1.0){
-        //std::cout << "Valor de t: " << t << std::endl;
         intersection_point = v1 + (v2-v1)*t;
         return true;
-    }/*else {
-        std::cout << "Valor de t: " << t << std::endl;
-        std::cout << "Fora do alcance do segmento" << std::endl;
-    }*/
-
+    }
 
     return false;
 }
@@ -969,20 +906,16 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     }*/
 
     // otherwise the voxel contains the surface, so find the edge intersections
-    int edgecount = 0;
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
     bool hasIntersection = false;
     int corners = 0;
+    //vertices classification
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
 
-
-    for (int i = 0; i < 12; i++)
+    for (int i = 0; i < 12; i++) //for each edge
     {
-        //for (std::vector<Triangle>::const_iterator face = indexBuffer.begin(); face < indexBuffer.end(); ++face) {
-        int numIntersectionsOnEdge = 0;
-
         const int c1 = edgevmap[i][0];
         const int c2 = edgevmap[i][1];
         const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
@@ -992,7 +925,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         std::string edgehash = hashedge(p1, p2);
         HermiteData edgedata;
         if (OctreeNode::edgepool.count(edgehash) != 0){
-            // if exists, retrieve the data
+            // if edge data already exists, retrieve the data
             edgedata = OctreeNode::edgepool[edgehash];
             if (edgedata.hasIntersection){
                 averageNormal += edgedata.normal;
@@ -1009,7 +942,6 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         vec3 intersection(0.f);
         std::vector<vec3> intersection_points;
         std::vector<vec3> normals;
-
         for (std::list<Triangle>::iterator face = leaf->crossingTriangles.begin(); face != leaf->crossingTriangles.end(); ++face) {
 
             Vertex vertices[3] = { vertexBuffer[(*face).a], vertexBuffer[(*face).b], vertexBuffer[(*face).c]  };
@@ -1021,26 +953,19 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 }
                 intersection_points.push_back(intersection);
 
-                ++numIntersectionsOnEdge;
                 const vec3 n = CalculateMeshNormal(vertices);
                 normals.push_back(n);
-                //qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
-
-                //averageNormal += n;
-
-                //edgecount++;
-                //std::cout << "edgecount: " << edgecount << " e1: " << c1 << " e2: " << c2 << std::endl;
-                //hasIntersection = true;
-
-                /*edgedata.hasIntersection = true;
+                /*qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
+                averageNormal += n;
+                hasIntersection = true;
+                edgedata.hasIntersection = true;
                 edgedata.intersection = intersection;
                 edgedata.normal = n;*/
 
-                const int sign1 = glm::dot((p1 - intersection), n) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-                const int sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-
-                vecsigns[c1] = sign1;
-                vecsigns[c2] = sign2;
+                if (vecsigns[c1] == MATERIAL_UNKNOWN)
+                    vecsigns[c1] = glm::dot((p1 - intersection), n) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                if (vecsigns[c2] == MATERIAL_UNKNOWN)
+                    vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
 
                 std::ofstream outfile;
                 outfile.open("../../intersection_color.ply", std::ios::app);
@@ -1062,75 +987,87 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             }
         }
         if (intersection_points.size() > 1) {
-            std::cout << numIntersectionsOnEdge << " Interseções na mesma aresta" << std::endl;
-            std::ofstream anomalyfile;
-            anomalyfile.open("../../anomaly_intersection.ply", std::ios::app);
-            for (auto point = intersection_points.begin(); point != intersection_points.end() ; ++point) {
-                if (i < 4) { // x axis
-                    anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 << " " <<
-                    255 << " " << 0 << std::endl;
-                }
-                else {
-                    if (i < 8) { // y axis
-                        anomalyfile << point->x << " " << point->y << " " << point->z << " " << 0 <<
-                        " " << 255 << " " << 255 << std::endl;
-                    }
-                    else { // z axis
-                        anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 <<
-                        " " << 0 << " " << 0 << std::endl;
-                    }
-                }
-            }
-            anomalyfile.close();
-            /*if (numIntersectionsOnEdge%2 == 0){
-                vecsigns[c1] = MATERIAL_UNKNOWN;
-                vecsigns[c2] = MATERIAL_UNKNOWN;
-            }*/
-            int mindistance = 9999999;
-            int nearindex = -1;
-            for (int j = 0; j < intersection_points.size(); ++j) {
-                int distance = glm::distance(p1, intersection_points[j]);
-                if ( distance < mindistance){
-                    nearindex = j;
-                    mindistance = distance;
-                }
-            }
-            vecsigns[c1] = glm::dot((p1 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-            mindistance = 9999999;
-            nearindex = -1;
-            for (int j = 0; j < intersection_points.size(); ++j) {
-                int distance = glm::distance(p2, intersection_points[j]);
-                if ( distance < mindistance){
-                    nearindex = j;
-                    mindistance = distance;
-                }
-            }
-            vecsigns[c2] = glm::dot((p2 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-            /*if (intersection_points.size()%2 == 0) {
+            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
+            if (intersection_points.size()%2 == 0){
+                int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+                //vec3 middle = (intersection_points[0] + intersection_points[1])/2.0f;
+                vecsigns[c1] = glm::dot((p1 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                // they are on the same side of the surface. We must ignore the intersection
                 vecsigns[c2] = vecsigns[c1];
+                //vecsigns[c1] = glm::dot((p1 - intersection_points[0]), normals[0]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                //vecsigns[c2] = glm::dot((p2 - intersection_points[1]), normals[1]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                if (vecsigns[c1] != vecsigns[c2]){
+                    std::cout << "XABU" <<std::endl;
+                    exit(763);
+                }
+                std::ofstream doublefile;
+                doublefile.open("../../double_grid.ply", std::ios::app);
+                if (vecsigns[c1] == MATERIAL_SOLID) {
+                    doublefile << p1.x << " " << p1.y << " " << p1.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+                    doublefile << p2.x << " " << p2.y << " " << p2.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+                }
+
+                if (vecsigns[c1] == MATERIAL_AIR) {
+                    doublefile << p1.x << " " << p1.y << " " << p1.z << " " << 128 << " " << 128 << " " << 64 << std::endl;
+                    doublefile << p2.x << " " << p2.y << " " << p2.z << " " << 128 << " " << 128 << " " << 64 << std::endl;
+                }
+
+                if (vecsigns[c1] == MATERIAL_UNKNOWN) {
+                    doublefile << p1.x << " " << p1.y << " " << p1.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                    doublefile << p2.x << " " << p2.y << " " << p2.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                }
+                //doublefile << intersection_points[nearindex].x << " " << intersection_points[nearindex].y << " " << intersection_points[nearindex].z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                //doublefile << intersection_points[(nearindex+1)%2].x << " " << intersection_points[(nearindex+1)%2].y << " " << intersection_points[(nearindex+1)%2].z << " " << 0 << " " << 0 << " " << 255 << std::endl;
+                doublefile.close();
+
             }
-            else {
+            else{
+                // they are on the opposite side of the surface
+                //vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+                nearindex = glm::distance(p1, intersection_points[nearindex]) < glm::distance(p1, intersection_points[2]) ? nearindex : 2;
+                //vec3 middle = (intersection_points[0] + intersection_points[1])/2.0f;
+                vecsigns[c1] = glm::dot((p1 - intersection_points[nearindex]), normals[nearindex]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                // they are on the same side of the surface. We must ignore the intersection
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-            }*/
+                //vecsigns[c1] = glm::dot((p1 - intersection_points[0]), normals[0]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                //vecsigns[c2] = glm::dot((p2 - intersection_points[1]), normals[1]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+                std::ofstream anomalyfile;
+                anomalyfile.open("../../triple_intersection.ply", std::ios::app);
+                for (auto point = intersection_points.begin(); point != intersection_points.end() ; ++point) {
+                    if (i < 4) { // x axis
+                        anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 << " " <<
+                        255 << " " << 0 << std::endl;
+                    }
+                    else {
+                        if (i < 8) { // y axis
+                            anomalyfile << point->x << " " << point->y << " " << point->z << " " << 0 <<
+                            " " << 255 << " " << 255 << std::endl;
+                        }
+                        else { // z axis
+                            anomalyfile << point->x << " " << point->y << " " << point->z << " " << 255 <<
+                            " " << 0 << " " << 0 << std::endl;
+                        }
+                    }
+                }
+                anomalyfile.close();
+            }
 
-            /*if (numIntersectionsOnEdge == 2){
-                //vec3 middle = (intersection_points[0] + intersection_points[1])/2;
-                int nearmost_index = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
 
-                vecsigns[c2] = vecsigns[c1];
-            }*/
         }
-        if (vecsigns[c1] != vecsigns[c2]){
-            for (int j = 0; j < intersection_points.size(); ++j) {
-                vec3 n = normals[j];
-                vec3 v = intersection_points[j];
+        // if we consider that an intersection happened.
+        if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2])){
+            //for (int j = 0; j < intersection_points.size(); ++j) {
+            // we'll consider only the first intersection for now
+                vec3 &n = normals[0];
+                vec3 &v = intersection_points[0];
                 qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
                 averageNormal += n;
                 hasIntersection = true;
                 edgedata.hasIntersection = true;
                 edgedata.intersection = intersection;
                 edgedata.normal = n;
-            }
+            //}
         }
 
         OctreeNode::edgepool[edgehash] = edgedata;
@@ -1139,8 +1076,11 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
         }
         else {
-            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN /*|| vecsigns[c2] == MATERIAL_SOLID*/){
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN){
                 OctreeNode::vertexpool[vertexhash] = vecsigns[c1];
+            }
+            if (vecsigns[c1] == MATERIAL_UNKNOWN){
+                vecsigns[c1] = OctreeNode::vertexpool[vertexhash];
             }
         }
         vertexhash = hashvertex(p2);
@@ -1148,11 +1088,13 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
             OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
         }
         else {
-            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN /*|| vecsigns[c2] == MATERIAL_SOLID*/){
+            if (OctreeNode::vertexpool[vertexhash] == MATERIAL_UNKNOWN){
                 OctreeNode::vertexpool[vertexhash] = vecsigns[c2];
             }
+            if (vecsigns[c2] == MATERIAL_UNKNOWN){
+                vecsigns[c2] = OctreeNode::vertexpool[vertexhash];
+            }
         }
-
     }
     if (!hasIntersection){
         // voxel is full inside or outside the volume
@@ -1160,8 +1102,6 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         return nullptr;
     }
 
-    //std::cout << std::endl;
-    int ground_corners = 0;
     bool checksigns = true;
     while(checksigns) {
         checksigns = false;
@@ -1180,17 +1120,12 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
     }
 
 
-
     std::ofstream gridfile;
-    //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
     gridfile.open("../../grid_color_updated.ply", std::ios::app);
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
-
         const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
-//        const float density = Density_Func(vec3(cornerPos));
-//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-//        ground_corners |= (material << i);
+
         if (vecsigns[i] == MATERIAL_SOLID) {
             gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
         }
@@ -1202,18 +1137,8 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         if (vecsigns[i] == MATERIAL_UNKNOWN) {
             gridfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
         }
-//        const float density = Density_Func(vec3(cornerPos));
-//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-//        ground_corners |= (material << i);
     }
     gridfile.close();
-//    if (corners != ground_corners) {
-//        std::cout << " edgecount: " << edgecount << " corners: " << corners << " ground: " << ground_corners << std::endl;
-//        for (int i = 0; i < 8; ++i) {
-//            std::cout << ((corners >> i) & 1) << " x " << (vecsigns[i]) << " x " << ((ground_corners >> i) & 1) << std::endl;
-//        }
-//        //exit(1);
-//    }
 
     svd::Vec3 qefPosition;
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
@@ -1232,7 +1157,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
         drawInfo->position = vec3(mp.x, mp.y, mp.z);
     }
 
-    drawInfo->averageNormal = glm::normalize(averageNormal / (float)edgecount);
+    drawInfo->averageNormal = glm::normalize(averageNormal);
     drawInfo->corners = corners;
 
     leaf->type = Node_Leaf;
