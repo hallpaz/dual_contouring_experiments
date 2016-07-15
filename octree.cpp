@@ -740,9 +740,9 @@ OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int hei
 
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodesFromMesh(root, vertexBuffer, indexBuffer);
-    /*std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
     root = SimplifyOctree(root, threshold);
-    std::cout << "Octree.cpp: did simplify nodes" << std::endl;*/
+    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
 
     return root;
 
@@ -967,7 +967,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 if (vecsigns[c2] == MATERIAL_UNKNOWN)
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
 
-                std::ofstream outfile;
+                /*std::ofstream outfile;
                 outfile.open("../../intersection_color.ply", std::ios::app);
                 if (i < 4) { // x axis
                     outfile << intersection.x << " " << intersection.y << " " << intersection.z << " " << 255 << " " <<
@@ -983,7 +983,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                         " " << 0 << " " << 0 << std::endl;
                     }
                 }
-                outfile.close();
+                outfile.close();*/
             }
         }
         if (intersection_points.size() > 1) {
@@ -1000,7 +1000,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                     std::cout << "XABU" <<std::endl;
                     exit(763);
                 }
-                std::ofstream doublefile;
+                /*std::ofstream doublefile;
                 doublefile.open("../../double_grid.ply", std::ios::app);
                 if (vecsigns[c1] == MATERIAL_SOLID) {
                     doublefile << p1.x << " " << p1.y << " " << p1.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
@@ -1018,7 +1018,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 }
                 //doublefile << intersection_points[nearindex].x << " " << intersection_points[nearindex].y << " " << intersection_points[nearindex].z << " " << 255 << " " << 0 << " " << 0 << std::endl;
                 //doublefile << intersection_points[(nearindex+1)%2].x << " " << intersection_points[(nearindex+1)%2].y << " " << intersection_points[(nearindex+1)%2].z << " " << 0 << " " << 0 << " " << 255 << std::endl;
-                doublefile.close();
+                doublefile.close();*/
 
             }
             else{
@@ -1032,7 +1032,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 //vecsigns[c1] = glm::dot((p1 - intersection_points[0]), normals[0]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
                 //vecsigns[c2] = glm::dot((p2 - intersection_points[1]), normals[1]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-                std::ofstream anomalyfile;
+                /*std::ofstream anomalyfile;
                 anomalyfile.open("../../triple_intersection.ply", std::ios::app);
                 for (auto point = intersection_points.begin(); point != intersection_points.end() ; ++point) {
                     if (i < 4) { // x axis
@@ -1050,7 +1050,7 @@ OctreeNode *ConstructLeafFromMesh(OctreeNode *leaf, const VertexBuffer &vertexBu
                         }
                     }
                 }
-                anomalyfile.close();
+                anomalyfile.close();*/
             }
 
 

@@ -16,17 +16,17 @@ int main(int argc, char** argv)
     OctreeNode* root = nullptr;
     // octreeSize must be a power of two!
     float octreeSize = 4;
-    const int height = 6;
+    const int height = 7;
 
     VertexBuffer testVertices;
     IndexBuffer testIndices;
 
     string folder_name = IMPA ?  "/home/hallpaz/Workspace/dual_contouring_experiments/" : "/Users/hallpaz/Workspace/research/dual_contouring_experiments/";
 
-    octreeSize = read_OFF(testVertices, testIndices, folder_name + "models/teddy1596.off");
+    octreeSize = read_OFF(testVertices, testIndices, folder_name + "models/sofa_better.off");
     std::cout << "num of vertices: " << testVertices.size() << " num of indices: " << testIndices.size() << std::endl;
 
-    float simpthreshold = 0.1;
+    float simpthreshold = octreeSize/100000.0;
     for (int i = 1; i < 2; ++i)
     {
         cout << "Generating mesh with octreeSize: " << octreeSize << "\n" << endl;
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
         cout << vertices.size() << endl;
         cout << indices.size() << endl;
         std::stringstream filepath;
-        filepath << folder_name << "check/teddydc" << height << i << octreeSize << ".off";
+        filepath << folder_name << "check/sofabetterdc_simp" << height << i << ".off";
         write_OFF(vertices, indices, filepath.str());
         printf("Generated mesh\n\n");
         simpthreshold = simpthreshold/10.0;
