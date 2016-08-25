@@ -5,3 +5,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(SOURCE_FILES main.cpp octree.cpp octree.h density.cpp density.h qef.cpp qef.h svd.cpp svd.h Utils.cpp Utils.h dataStructures.h)
 add_executable(dual_contouring_experiments ${SOURCE_FILES})
+
+include(FindOpenMesh.cmake)
+
+include_directories(${OPENMESH_INCLUDE_DIR})
+
+target_link_libraries(dual_contouring_experiments ${OPENMESH_LIBRARIES})

@@ -24,6 +24,6 @@ float read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<
 std::string hashvertex(const glm::vec3& vertex);
 std::string hashedge(const glm::vec3& v1, const glm::vec3& v2);
 
-void void barycentric(glm::vec3 p, glm::vec3 a, glm::vec3 b, glm::vec3 c, float &u, float &v, float &w);
+void barycentric(glm::vec3 p, glm::vec3 a, glm::vec3 b, glm::vec3 c, float &u, float &v, float &w);
 
 #endif /* Utils_hpp */

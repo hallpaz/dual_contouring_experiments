@@ -7,7 +7,10 @@
 
 #include <vector>
 #include "glm/glm.hpp"
+#include <OpenMesh/Core/IO/MeshIO.hh>
+#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
+typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
 
 const unsigned int posOffset3D = 0;
 const unsigned int normalOffset3D = 3*sizeof(float);
