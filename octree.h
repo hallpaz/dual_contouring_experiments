@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "qef.h"
 
 #include "glm/glm.hpp"
-#include "dataStructures.h"
+#include "DataStructures.h"
 using glm::vec3;
 using glm::ivec3;
 
@@ -124,6 +124,16 @@ public:
 
     static std::unordered_map<std::string, int> vertexpool;
     static std::unordered_map<std::string, HermiteData> edgepool;
+
+// ---------------------------------------------------------------------------- OPENMESH
+    RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle);
+    RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const DefaultMesh::HalfedgeHandle &halfedgeHandle);
+    RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle);
+
+    std::list<DefaultMesh::FaceHandle> innerFaces;
+    std::list<DefaultMesh::FaceHandle> crossingFaces;
+
+
 };
 
 // ----------------------------------------------------------------------------
@@ -134,6 +144,8 @@ void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexB
 
 OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int height, const float threshold,
                                 VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
+
+OctreeNode* BuildOctreeFromOpenMesh(const vec3& min, const float size, const int height, const float threshold, DefaultMesh &mesh);
 
 
 

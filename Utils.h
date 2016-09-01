@@ -13,7 +13,7 @@
 #include <string>
 
 #include "glm/glm.hpp"
-#include "dataStructures.h"
+#include "DataStructures.h"
 
 
 void write_Ply(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename);
