@@ -66,7 +66,13 @@ namespace svd
 
         QefData(const QefData &rhs);
         QefData &operator= (const QefData &rhs);
+
+
+        QefData operator*(const float &number);
+        QefData operator+(const QefData &qefData);
+
     };
+    QefData operator*(const float &number, QefData &qefData);
 #ifndef NO_OSTREAM
     std::ostream &operator<<(std::ostream &os, const QefData &d) ;
 #endif
@@ -93,6 +99,10 @@ namespace svd
         void reset();
         float solve(Vec3 &outx, const float svd_tol,
                     const int svd_sweeps, const float pinv_tol) ;
+
+
+        void setData(QefData rhs);
+
     private:
         QefSolver(const QefSolver &rhs);
         QefSolver &operator=(const QefSolver &rhs);

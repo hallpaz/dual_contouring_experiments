@@ -110,6 +110,27 @@ namespace svd
                   rhs.numPoints);
     }
 
+    QefData QefData::operator*(const float &number)
+    {
+        return QefData(this->ata_00 * number, this->ata_01 * number, this->ata_02 * number,
+                       this->ata_11 * number, this->ata_12 * number, this->ata_22 * number,
+                       this->atb_x * number, this->atb_y * number, this->atb_z * number,
+                       this->btb * number, this->massPoint_x * number, this->massPoint_y * number,
+                       this->massPoint_z * number, this->numPoints);
+    }
+    QefData operator*(const float &number, QefData &qefData)
+    {
+        return qefData * number;
+    }
+
+    QefData QefData::operator+(const QefData &rhs)
+    {
+        QefData newqef;
+        newqef.add(*this);
+        newqef.add(rhs);
+        return newqef;
+    }
+
 #ifndef NO_OSTREAM
     std::ostream &operator<<(std::ostream &os, const QefData &qef)
     {
@@ -248,4 +269,10 @@ namespace svd
         this->hasSolution = true;
         return result;
     }
+
+    void QefSolver::setData(QefData rhs)
+    {
+        this->data.set(rhs);
+    }
 }
+
