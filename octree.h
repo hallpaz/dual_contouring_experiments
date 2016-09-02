@@ -31,8 +31,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "glm/glm.hpp"
 #include "DataStructures.h"
-using glm::vec3;
-using glm::ivec3;
 
 // ----------------------------------------------------------------------------
 
@@ -42,13 +40,6 @@ enum OctreeNodeType
     Node_Internal,
     Node_Pseudo,
     Node_Leaf,
-};
-
-enum RelativePosition
-{
-    INSIDE,
-    CROSSING,
-    OUTSIDE,
 };
 
 // ----------------------------------------------------------------------------
@@ -61,18 +52,25 @@ struct OctreeDrawInfo
     {
     }
 
-    int				index;
-    int				corners;
-    vec3			position;
-    vec3			averageNormal;
-    svd::QefData	qef;
+    int	index;
+    int	corners;
+    glm::vec3 position;
+    glm::vec3 averageNormal;
+    svd::QefData qef;
 };
 
 struct HermiteData
 {
-    bool hasIntersection = false;
-    vec3 intersection;
-    vec3 normal;
+    glm::vec3 intersection;
+    glm::vec3 normal;
+
+    bool hasIntersection(){
+        if (normal.x || normal.y || normal.z)
+        {
+            return true;
+        }
+        return false;
+    }
 };
 
 // ----------------------------------------------------------------------------
@@ -110,42 +108,35 @@ public:
     }
 
     OctreeNodeType	type;
-    vec3			min;
+    glm::vec3		min;
     float			size;
     int             height;
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
-    std::list<Triangle > innerTriangles;
-    std::list<Triangle > crossingTriangles;
-
-    RelativePosition vertexRelativePosition(const Vertex &vertex);
-    RelativePosition triangleRelativePosition(const Vertex &a, const Vertex& b, const Vertex& c);
 
     static std::unordered_map<std::string, int> vertexpool;
     static std::unordered_map<std::string, HermiteData> edgepool;
 
 // ---------------------------------------------------------------------------- OPENMESH
-    RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle);
-    RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const DefaultMesh::HalfedgeHandle &halfedgeHandle);
-    RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle);
 
     std::list<DefaultMesh::FaceHandle> innerFaces;
     std::list<DefaultMesh::FaceHandle> crossingFaces;
-
 
 };
 
 // ----------------------------------------------------------------------------
 
-OctreeNode* BuildOctree(const vec3& min, const float size, const int height, const float threshold);
+OctreeNode* BuildOctree(const glm::vec3& min, const float size, const int height, const float threshold);
 void DestroyOctree(OctreeNode* node);
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
 
-OctreeNode* BuildOctreeFromMesh(const vec3& min, const float size, const int height, const float threshold,
-                                VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
+OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3& min, const float size, const int height, const DefaultMesh &mesh);
 
-OctreeNode* BuildOctreeFromOpenMesh(const vec3& min, const float size, const int height, const float threshold, DefaultMesh &mesh);
+/* OPENMESH */
+OctreeNode *ConstructOctreeNodesFromOpenMesh(OctreeNode *pNode, const DefaultMesh &mesh);
+OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh);
+OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 
 
 

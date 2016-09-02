@@ -6,19 +6,17 @@
 
 #include "NormalsEstimator.h"
 
+
 using namespace std;
+using glm::vec3;
 // ----------------------------------------------------------------------------
 
 int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    // octreeSize must be a power of two!
-//    float octreeSize = 4;
     const int height = 6;
 
-//    VertexBuffer testVertices;
-//    IndexBuffer testIndices;
 
     string folder_name = "../";
     std::cout << "Input File Name" << endl;
@@ -26,20 +24,18 @@ int main(int argc, char** argv)
     std::cin >> inputfilename;
     std::cout <<"Output File Name" << endl;
     std::cin >> outputfilename;
-//    vec3 minPoint = vec3(0, 0, 0);
-//    octreeSize = read_OFF(folder_name + inputfilename, testVertices, testIndices, minPoint);
-//    std::cout << "num of vertices: " << testVertices.size() << " num of indices: " << testIndices.size() << std::endl;
+
 
     DefaultMesh myMesh;
     OpenMesh::IO::read_mesh(myMesh, folder_name + inputfilename);
     // compute bounding box
     DefaultMesh::Point bb_min, bb_max;
     auto v_it = myMesh.vertices_begin();
-    bb_min = bb_max = myMesh.point(v_it);
+    bb_min = bb_max = myMesh.point(*v_it);
     for (; v_it != myMesh.vertices_end(); ++v_it)
     {
-        bb_min.minimize(myMesh.point(v_it));
-        bb_max.maximize(myMesh.point(v_it));
+        bb_min.minimize(myMesh.point(*v_it));
+        bb_max.maximize(myMesh.point(*v_it));
     }
     float octreeSize = (bb_max - bb_min).max();
     std::cout << "Min: (" << bb_min[0] << ", " << bb_min[1] << ", " << bb_min[2] << ") " << "Size: " << octreeSize << std::endl;
@@ -60,7 +56,7 @@ int main(int argc, char** argv)
     //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
     //root = BuildOctreeFromMesh(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold, testVertices, testIndices);
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
-    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, simpthreshold, myMesh);
+    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
     cout << "MAIN: will start mesh generation" << endl;
     GenerateMeshFromOctree(root, vertices, indices);
     cout << vertices.size() << endl;

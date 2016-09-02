@@ -12,10 +12,6 @@
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
 
-const unsigned int posOffset3D = 0;
-const unsigned int normalOffset3D = 3*sizeof(float);
-const unsigned int texOffset3D= 6*sizeof(float);
-
 struct Vertex {
     // position coordinates
     glm::vec3 position;
@@ -29,15 +25,6 @@ struct Vertex {
             normal(0),
             texCoords(0){
     }
-};
-
-struct Vertex2D {
-    // position coordinates
-    glm::vec2 position;
-    // normal coordinates
-    glm::vec3 normal;
-    // texture coordinates
-    glm::vec2 texCoords;
 };
 
 struct Triangle{

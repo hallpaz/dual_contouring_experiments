@@ -5,6 +5,10 @@
 #include <sstream>
 
 #include "Utils.h"
+#include "Constants.h"
+#include "glm/ext.hpp"
+
+#include "density.h"
 
 using glm::vec3;
 
@@ -161,4 +165,219 @@ void barycentric(vec3 p, vec3 a, vec3 b, vec3 c, float &u, float &v, float &w)
     v = (d11 * d20 - d01 * d21) / denom;
     w = (d00 * d21 - d01 * d20) / denom;
     u = 1.0f - v - w;
+}
+
+bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, vec3& intersection_point)
+{
+    float EPSILON = 0.000001;
+
+    vec3 e1 = triangle_vertices[1].position - triangle_vertices[0].position;
+    vec3 e2 = triangle_vertices[2].position - triangle_vertices[0].position;
+
+    vec3 D = v2 - v1;
+    auto P = glm::cross(D, e2);
+
+    float det = glm::dot(e1, P);
+    if (glm::abs(det) < EPSILON){
+        return false;
+    }
+
+    float inv_det = 1.0/det;
+    vec3 T = v1 - triangle_vertices[0].position;
+    float u = glm::dot(T, P) * inv_det;
+
+    if(u < 0.0f or u > 1.0f){
+        return false;
+    }
+
+    vec3 Q = glm::cross(T, e1);
+    float v = glm::dot(D, Q) * inv_det;
+    if(v < 0.0f or (u + v)  > 1.0f) {
+        return false;
+    }
+
+    float t = glm::dot(e2, Q) * inv_det;
+
+    if(t > 0.0 && t < 1.0){
+        intersection_point = v1 + (v2-v1)*t;
+        return true;
+    }
+
+    return false;
+}
+
+// ----------------------------------------------------------------------------
+/* This function was modified to use a binary search like solution.
+ * */
+vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1)
+{
+    const float tolerance = 0.00001;
+    const int maxIterations = 21;
+    float tbegin = 0.0;
+    float tend = 1.0;
+    float t = (tbegin + tend)/2;
+    int currentIt = 0;
+    float middle = Density_Func(p0 + ((p1 - p0) * t));
+    float begin = Density_Func(p0 + ((p1 - p0) * tbegin));
+    float end = Density_Func(p0 + ((p1 - p0) * tend));
+    while (currentIt < maxIterations)
+    {
+        if (fabs(middle) < fabs(tolerance)){
+            break;
+        }
+        //double check
+        if (begin * end > 0){
+            std::cout << "Weird, but this is not a bipolar edge! it: " << currentIt << std::endl;
+        }
+        //check the side of the middle point
+        if(middle*begin > 0){ //same side of begin
+            tbegin = t;
+        }
+        else { //same side of end
+            tend = t;
+        }
+        t = (tbegin + tend)/2;
+        middle = Density_Func(p0 + ((p1 - p0) * t));
+        begin = Density_Func(p0 + ((p1 - p0) * tbegin));
+        end = Density_Func(p0 + ((p1 - p0) * tend));
+    }
+    std::cout << "Approximation: " << middle << std::endl;
+    return (p0 + ((p1 - p0) * t));
+}
+
+// ----------------------------------------------------------------------------
+
+vec3 CalculateSurfaceNormal(const vec3& p)
+{
+    const float H = 0.001f;
+    const float dx = Density_Func(p + vec3(H, 0.f, 0.f)) - Density_Func(p - vec3(H, 0.f, 0.f));
+    const float dy = Density_Func(p + vec3(0.f, H, 0.f)) - Density_Func(p - vec3(0.f, H, 0.f));
+    const float dz = Density_Func(p + vec3(0.f, 0.f, H)) - Density_Func(p - vec3(0.f, 0.f, H));
+
+    return glm::normalize(vec3(dx, dy, dz));
+}
+// ----------------------------------------------------------------------------
+RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle, glm::vec3 min, float size) {
+    vec3 max = min + size*CHILD_MIN_OFFSETS[7];
+
+    DefaultMesh::FaceVertexIter fv_it = mesh.cfv_iter(faceHandle);
+    DefaultMesh::VertexHandle verticesHandle[3];
+    DefaultMesh::Point a, b, c;
+    int index = 0;
+    while (fv_it.is_valid())
+    {
+        verticesHandle[index++] = *fv_it;
+        ++fv_it;
+    }
+    a = mesh.point(verticesHandle[0]);
+    b = mesh.point(verticesHandle[1]);
+    c = mesh.point(verticesHandle[2]);
+
+    if (((a[0] > max.x) && (b[0] > max.x) && (c[0] > max.x))
+        || ((a[0] < min.x) && (b[0] < min.x) && (c[0] < min.x))){
+        return OUTSIDE;
+    }
+    if (((a[1] > max.y) && (b[1] > max.y) && (c[1] > max.y))
+        || ((a[1] < min.y) && (b[1] < min.y) && (c[1] < min.y))){
+        return OUTSIDE;
+    }
+    if (((a[2] > max.z) && (b[2] > max.z) && (c[2] > max.z))
+        || ((a[2] < min.z) && (b[2] < min.z) && (c[2] < min.z))){
+        return OUTSIDE;
+    }
+
+    int numVerticesInside = 0;
+    if (vertexRelativePosition(mesh, verticesHandle[0], min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (vertexRelativePosition(mesh, verticesHandle[1], min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (vertexRelativePosition(mesh, verticesHandle[2], min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+
+    if (numVerticesInside == 3) return INSIDE;
+
+    return CROSSING;
+}
+
+// -------------------------------------------------------------------------------
+RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle, glm::vec3 min, float size) {
+    /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
+    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
+
+    DefaultMesh::Point vertex = mesh.point(vertexHandle);
+    if ((vertex[0] > min.x) && (vertex[0] < maxvertex.x)
+        && (vertex[1] > min.y) && (vertex[1] < maxvertex.y)
+        && (vertex[2] > min.z) && (vertex[2] < maxvertex.z)) {
+        return INSIDE;
+    }
+    return OUTSIDE;
+}
+
+// -------------------------------------------------------------------------------
+RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const DefaultMesh::HalfedgeHandle &halfedgeHandle, glm::vec3 min, float size) {
+    int numVerticesInside = 0;
+    if (vertexRelativePosition(mesh, mesh.to_vertex_handle(halfedgeHandle), min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (vertexRelativePosition(mesh, mesh.from_vertex_handle(halfedgeHandle), min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (numVerticesInside == 2) return INSIDE;
+    if (numVerticesInside == 0) return OUTSIDE;
+    return CROSSING;
+}
+// -------------------------------------------------------------------------------
+RelativePosition triangleRelativePosition(const Vertex &a, const Vertex &b, const Vertex &c, glm::vec3 min, float size) {
+    vec3 max = min + size*CHILD_MIN_OFFSETS[7];
+    if (((a.position.x > max.x) && (b.position.x > max.x) && (c.position.x > max.x))
+        || ((a.position.x < min.x) && (b.position.x < min.x) && (c.position.x < min.x))){
+        return OUTSIDE;
+    }
+    if (((a.position.y > max.y) && (b.position.y > max.y) && (c.position.y > max.y))
+        || ((a.position.y < min.y) && (b.position.y < min.y) && (c.position.y < min.y))){
+        return OUTSIDE;
+    }
+    if (((a.position.z > max.z) && (b.position.z > max.z) && (c.position.z > max.z))
+        || ((a.position.z < min.z) && (b.position.z < min.z) && (c.position.z < min.z))){
+        return OUTSIDE;
+    }
+
+    int numVerticesInside = 0;
+    if (vertexRelativePosition(a, min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (vertexRelativePosition(b, min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+    if (vertexRelativePosition(c, min, size) == INSIDE){
+        ++numVerticesInside;
+    }
+
+    if (numVerticesInside == 3) return INSIDE;
+
+
+    return CROSSING;
+}
+
+// -------------------------------------------------------------------------------
+
+RelativePosition vertexRelativePosition(const Vertex &vertex, glm::vec3 min, float size) {
+    /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
+
+    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
+    if ((vertex.position.x > min.x) && (vertex.position.x < maxvertex.x)
+        && (vertex.position.y > min.y) && (vertex.position.y < maxvertex.y)
+        && (vertex.position.z > min.z) && (vertex.position.z < maxvertex.z)) {
+        return INSIDE;
+    }
+    return OUTSIDE;
+}
+
+// -------------------------------------------------------------------------------
+glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
+{
+    return glm::make_vec3(&om_vec[0]);
 }
