@@ -1490,8 +1490,9 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, DefaultMesh &mesh) {
                             u, v, w);
 
                 vec3 n = u * glm::make_vec3(&mesh.normal(a)[0]) + v * glm::make_vec3(&mesh.normal(b)[0]) + w * glm::make_vec3(&mesh.normal(c)[0]);
-                n =  glm::normalize(n);
+                //n =  glm::normalize(n);
 //                n = CalculateMeshNormal(vertices);
+                n = glm::normalize(glm::make_vec3(&mesh.normal(*face)[0]));
                 normals.push_back(n);
                 /*qef.add(intersection.x, intersection.y, intersection.z, n.x, n.y, n.z);
                 averageNormal += n;
