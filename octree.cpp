@@ -273,25 +273,25 @@ OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3 &min, const float size, cons
 
 void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh)
 {
-    auto titerator = facesList.begin();
+    auto f_it = facesList.begin();
     //parent's inner triangles
-    while(titerator != facesList.end())
+    while(f_it != facesList.end())
     {
-        switch (triangleRelativePosition(mesh, *titerator, node->min, node->size))
+        switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
         {
             case INSIDE:
-                node->innerFaces.push_back(*titerator);
+                node->innerFaces.push_back(*f_it);
                 /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
-                titerator = facesList.erase(titerator);
+                f_it = facesList.erase(f_it);
                 break;
             case CROSSING:
-                node->crossingFaces.push_back(*titerator);
+                node->crossingFaces.push_back(*f_it);
                 /*If the triangle might cross the cell, we can't remove it from the cell's parent list
                  * because it might cross other cells as well*/
-                ++titerator;
+                ++f_it;
                 break;
             default:
-                ++titerator;
+                ++f_it;
         }
     }
 }
@@ -310,9 +310,9 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
     }
     else
     {   //initializes the parent list with all triangles
-        for (auto titerator = mesh.faces_begin(); titerator != mesh.faces_end(); ++titerator)
+        for (auto f_it = mesh.faces_begin(); f_it != mesh.faces_end(); ++f_it)
         {
-            node->innerFaces.push_back(*titerator);
+            node->innerFaces.push_back(*f_it);
         }
     }
 
@@ -421,17 +421,19 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 //                n = CalculateMeshNormal(vertices);
                 //n = glm::normalize(glm::make_vec3(&mesh.normal(*face)[0]));
                 normals.push_back(n);
-//                auto fh_iter = mesh.fh_iter(*face);
-//                for (; fh_iter.is_valid(); ++fh_iter) {
+
+
+//                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+//                {
 //                    DefaultMesh::Normal faceNormal;
 //                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-//                    DefaultMesh::Point edge;
+//                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
 //                    DefaultMesh::Normal planeNormal;
 //                    if (!mesh.is_boundary(*fh_iter))
 //                    {
 //                        faceNormal = mesh.normal(*face);
-//                        edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-//                        planeNormal = edge % faceNormal;
+//                        planeNormal =  edge % faceNormal;
+//                        planeNormal.normalize();
 //                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
 //                    }
 //                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
@@ -439,6 +441,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 //                    {
 //                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
 //                        planeNormal = faceNormal % edge;
+//                        planeNormal.normalize();
 //                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
 //                    }
 //                }
@@ -504,7 +507,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     updateSignsArray(vecsigns, 8);
 
     for (size_t i = 0; i < 8; i++)
-    {   //save the signs to the corners variable to save memory
+    {   //encode the signs to the corners variable to save memory
         corners |= (vecsigns[i] << i);
     }
     svd::Vec3 qefPosition;
