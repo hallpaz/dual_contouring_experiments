@@ -353,11 +353,9 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
-
     /*if (leaf->innerFaces.size() > 0){
         std::cout << "Leaf size: " << leaf->size << "Inner Triangles: " << leaf->innerFaces.size() << std::endl;
     }*/
-
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
@@ -367,7 +365,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     //vertices classification
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-
     for (int i = 0; i < 12; i++) //for each edge
     {
         const int c1 = edgevmap[i][0];
@@ -386,9 +383,10 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
                         edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
                 hasIntersection = true;
-
                 vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
                 vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
+//                vecsigns[c1] = computeSideOfPoint(p1, edgedata.intersection, edgedata.normal);
+//                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
             continue;
         }
@@ -396,8 +394,9 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         vec3 intersection;
         std::vector<vec3> intersection_points;
         std::vector<vec3> normals;
-        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face) {
-            
+        std::vector<vec3> face_normals;
+        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
+        {
             auto fv_it = mesh.cfv_iter(*face);
             DefaultMesh::VertexHandle a = *fv_it;
             DefaultMesh::VertexHandle b = *(++fv_it);
@@ -408,7 +407,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 //keeps the intersection here
-                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < 0.000001f)){
+                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
                     continue;
                 }
                 intersection_points.push_back(intersection);
@@ -416,68 +415,57 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 float u, v, w;
                 barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
 
-                vec3 n = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                n =  glm::normalize(n);
-//                n = CalculateMeshNormal(vertices);
-                //n = glm::normalize(glm::make_vec3(&mesh.normal(*face)[0]));
-                normals.push_back(n);
+                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
+                normal_at_intersection =  glm::normalize(normal_at_intersection);
+                normals.push_back(normal_at_intersection);
+                vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
+                face_normals.push_back(face_normal);
 
-
-//                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-//                {
-//                    DefaultMesh::Normal faceNormal;
-//                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-//                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-//                    DefaultMesh::Normal planeNormal;
-//                    if (!mesh.is_boundary(*fh_iter))
-//                    {
-//                        faceNormal = mesh.normal(*face);
-//                        planeNormal =  edge % faceNormal;
-//                        planeNormal.normalize();
-//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                    }
-//                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-//                    if (!mesh.is_boundary(opposite_halfedge))
-//                    {
-//                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
-//                        planeNormal = faceNormal % edge;
-//                        planeNormal.normalize();
-//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                    }
-//                }
-
-                if (vecsigns[c1] == MATERIAL_UNKNOWN){
-                    vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                    //float openmesh_sign = glm::dot(p1 - intersection, face_normal);
+                if (vecsigns[c1] != MATERIAL_SOLID/*vecsigns[c1] == MATERIAL_UNKNOWN*/){
                     vecsigns[c1] = computeSideOfPoint(p1, intersection, face_normal);
                 }
-                if (vecsigns[c2] == MATERIAL_UNKNOWN){
+                if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
-                
+
+                if (mesh.is_boundary(*face))
+                {
+                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+                    {
+                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
+                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+                        DefaultMesh::Normal planeNormal;
+                        if (mesh.is_boundary(*fh_iter))
+                        {
+                            planeNormal =  edge % faceNormal;
+                            planeNormal.normalize();
+                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                        }
+                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+                        if (mesh.is_boundary(opposite_halfedge))
+                        {
+                            planeNormal = faceNormal % edge;
+                            planeNormal.normalize();
+                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                        }
+                    }
+                }
             }
         }
         if (intersection_points.size() > 1) {
 //            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
             if (intersection_points.size()%2 == 0){
                 int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
-                //vec3 middle = (intersection_points[0] + intersection_points[1])/2.0f;
-                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], normals[nearindex]);
+                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
                 // they are on the same side of the surface. We must ignore the intersection
                 vecsigns[c2] = vecsigns[c1];
-                //vecsigns[c1] = glm::dot((p1 - intersection_points[0]), normals[0]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-                //vecsigns[c2] = glm::dot((p2 - intersection_points[1]), normals[1]) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-                if (vecsigns[c1] != vecsigns[c2]){
-                    std::cout << "XABU" <<std::endl;
-                    exit(763);
-                }
-
             }
             else{
                 // they are on the opposite side of the surface
                 int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
                 nearindex = glm::distance(p1, intersection_points[nearindex]) < glm::distance(p1, intersection_points[2]) ? nearindex : 2;
-                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], normals[nearindex]);
+                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
                 // they are on the same side of the surface. We must ignore the intersection
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
@@ -512,7 +500,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     }
     svd::Vec3 qefPosition;
     //qef.setData(qef.getData()*0.5f + featureQef.getData()*0.5f);
-    //qef.add(featureQef.getData());
+    qef.add(featureQef.getData());
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
 
     OctreeDrawInfo* drawInfo = new OctreeDrawInfo;
@@ -555,8 +543,9 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
     //std::cout << "Simplifying at level: " << node->height << std::endl;
     svd::QefSolver qef;
 
-    int signs[8] = { -1, -1, -1, -1, -1, -1, -1, -1 };
-    int midsign = -1;
+    int signs[8] = { MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+                    MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+    int midsign = MATERIAL_UNKNOWN;
     int edgeCount = 0;
     bool isCollapsible = true;
 
@@ -615,7 +604,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
 
     for (int i = 0; i < 8; i++)
     {
-        if (signs[i] == -1)
+        if (signs[i] == MATERIAL_UNKNOWN)
         {
             // Undetermined, use centre sign instead
             drawInfo->corners |= (midsign << i);

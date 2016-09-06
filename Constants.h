@@ -110,4 +110,51 @@ const int processEdgeMask[3][4] = {{3,2,1,0},{7,5,6,4},{11,10,9,8}} ;
 // -------------------------------------------------------------------------------
 
 
+const float POINT_DISTANCE_THRESHOLD = 0.000001f;
 #endif //DUAL_CONTOURING_EXPERIMENTS_CONSTANTS_H
+
+//if (mesh.is_boundary(*face))
+//{
+//for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+//{
+//DefaultMesh::Normal faceNormal = mesh.normal(*face);
+//DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+//DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+//DefaultMesh::Normal planeNormal;
+//if (mesh.is_boundary(*fh_iter))
+//{
+//planeNormal =  edge % faceNormal;
+//planeNormal.normalize();
+//featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//}
+//DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+//if (mesh.is_boundary(opposite_halfedge))
+//{
+//planeNormal = faceNormal % edge;
+//planeNormal.normalize();
+//featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//}
+//}
+//}
+//                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+//                {
+//                    DefaultMesh::Normal faceNormal;
+//                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+//                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+//                    DefaultMesh::Normal planeNormal;
+//                    if (!mesh.is_boundary(*fh_iter))
+//                    {
+//                        faceNormal = mesh.normal(*face);
+//                        planeNormal =  edge % faceNormal;
+//                        planeNormal.normalize();
+//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                    }
+//                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+//                    if (!mesh.is_boundary(opposite_halfedge))
+//                    {
+//                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
+//                        planeNormal = faceNormal % edge;
+//                        planeNormal.normalize();
+//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                    }
+//                }
