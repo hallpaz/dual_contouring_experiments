@@ -451,6 +451,28 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                         }
                     }
                 }
+//                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+//                {
+//                    DefaultMesh::Normal faceNormal;
+//                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+//                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+//                    DefaultMesh::Normal planeNormal;
+//                    if (!mesh.is_boundary(*fh_iter))
+//                    {
+//                        faceNormal = mesh.normal(*face);
+//                        planeNormal =  edge % faceNormal;
+//                        planeNormal.normalize();
+//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                    }
+//                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+//                    if (!mesh.is_boundary(opposite_halfedge))
+//                    {
+//                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
+//                        planeNormal = faceNormal % edge;
+//                        planeNormal.normalize();
+//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                    }
+//                }
             }
         }
         if (intersection_points.size() > 1) {
@@ -499,8 +521,8 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         corners |= (vecsigns[i] << i);
     }
     svd::Vec3 qefPosition;
-    //qef.setData(qef.getData()*0.5f + featureQef.getData()*0.5f);
-    qef.add(featureQef.getData());
+    qef.setData(qef.getData()*0.5f + featureQef.getData()*0.5f);
+    //qef.add(featureQef.getData());
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
 
     OctreeDrawInfo* drawInfo = new OctreeDrawInfo;

@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    const int height = 6;
+    const int height = 7;
 
 
     string folder_name = "../";

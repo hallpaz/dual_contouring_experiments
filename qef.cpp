@@ -115,8 +115,8 @@ namespace svd
         return QefData(this->ata_00 * number, this->ata_01 * number, this->ata_02 * number,
                        this->ata_11 * number, this->ata_12 * number, this->ata_22 * number,
                        this->atb_x * number, this->atb_y * number, this->atb_z * number,
-                       this->btb * number, this->massPoint_x * number, this->massPoint_y * number,
-                       this->massPoint_z * number, this->numPoints);
+                       this->btb * number, this->massPoint_x, this->massPoint_y,
+                       this->massPoint_z, this->numPoints);
     }
     QefData operator*(const float &number, QefData &qefData)
     {
