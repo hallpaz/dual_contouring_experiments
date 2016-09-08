@@ -379,16 +379,16 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
             // if edge data already exists, retrieve the data
             edgedata = OctreeNode::edgepool[edgehash];
             if (edgedata.hasIntersection()){
-                averageNormal += edgedata.normal;
-                qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
-                        edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
-                hasIntersection = true;
+//                averageNormal += edgedata.normal;
+//                qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
+//                        edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
+//                hasIntersection = true;
                 vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
                 vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
 //                vecsigns[c1] = computeSideOfPoint(p1, edgedata.intersection, edgedata.normal);
 //                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
-            continue;
+            //continue;
         }
 
         vec3 intersection;
@@ -439,40 +439,42 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                         if (mesh.is_boundary(*fh_iter))
                         {
                             planeNormal =  edge % faceNormal;
-                            planeNormal.normalize();
+                            //planeNormal.normalize();
                             featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
                         }
                         DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
                         if (mesh.is_boundary(opposite_halfedge))
                         {
                             planeNormal = faceNormal % edge;
-                            planeNormal.normalize();
+                            //planeNormal.normalize();
                             featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
                         }
                     }
                 }
-//                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-//                {
-//                    DefaultMesh::Normal faceNormal;
-//                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-//                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-//                    DefaultMesh::Normal planeNormal;
-//                    if (!mesh.is_boundary(*fh_iter))
-//                    {
-//                        faceNormal = mesh.normal(*face);
-//                        planeNormal =  edge % faceNormal;
-//                        planeNormal.normalize();
-//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                    }
-//                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-//                    if (!mesh.is_boundary(opposite_halfedge))
-//                    {
-//                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
-//                        planeNormal = faceNormal % edge;
-//                        planeNormal.normalize();
-//                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                    }
-//                }
+
+                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+                {
+                    DefaultMesh::Normal faceNormal;
+                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+                    DefaultMesh::Normal planeNormal;
+                    float dihedral_angle = mesh.calc_dihedral_angle(*fh_iter);
+                    if (!mesh.is_boundary(*fh_iter) && dihedral_angle > 2*M_PI/3)
+                    {
+                        faceNormal = mesh.normal(*face);
+                        planeNormal =  edge % faceNormal;
+                        //planeNormal.normalize();
+                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                    }
+                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+                    if (!mesh.is_boundary(opposite_halfedge) && dihedral_angle > 2*M_PI/3)
+                    {
+                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
+                        planeNormal = faceNormal % edge;
+                        //planeNormal.normalize();
+                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                    }
+                }
             }
         }
         if (intersection_points.size() > 1) {
@@ -521,7 +523,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         corners |= (vecsigns[i] << i);
     }
     svd::Vec3 qefPosition;
-    qef.setData(qef.getData()*0.5f + featureQef.getData()*0.5f);
+    qef.setData(qef.getData()*0.4f + featureQef.getData()*0.6f);
     //qef.add(featureQef.getData());
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
 

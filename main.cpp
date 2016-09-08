@@ -56,9 +56,9 @@ int main(int argc, char** argv)
     //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
     root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
-//    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-//    root = SimplifyOctree(root, simpthreshold);
-//    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
+    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    root = SimplifyOctree(root, simpthreshold);
+    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
     cout << "MAIN: will start mesh generation" << endl;
     GenerateMeshFromOctree(root, vertices, indices);
     cout << vertices.size() << endl;
