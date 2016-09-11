@@ -133,7 +133,7 @@ void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 
             for (int j = 0; j < 4; j++)
             {
-                if (node[j]->type == Node_Leaf || node[j]->type == Node_Pseudo)
+                if (node[j]->type != Node_Internal/*node[j]->type == Node_Leaf || node[j]->type == Node_Pseudo*/)
                 {
                     edgeNodes[j] = node[j];
                 }
@@ -203,8 +203,7 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
             const int* order = orders[faceProcEdgeMask[dir][i][0]];
             for (int j = 0; j < 4; j++)
             {
-                if (node[order[j]]->type == Node_Leaf ||
-                    node[order[j]]->type == Node_Pseudo)
+                if (node[order[j]]->type != Node_Internal/*node[order[j]]->type == Node_Leaf || node[order[j]]->type == Node_Pseudo*/)
                 {
                     edgeNodes[j] = node[order[j]];
                 }

@@ -15,7 +15,7 @@ int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    const int height = 7;
+    const int height = 6;
 
 
     string folder_name = "../";
@@ -57,9 +57,9 @@ int main(int argc, char** argv)
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
     root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
     std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    root = SimplifyOctree(root, simpthreshold);
+    /*root = SimplifyOctree(root, simpthreshold);
     std::cout << "Octree.cpp: did simplify nodes" << std::endl;
-    cout << "MAIN: will start mesh generation" << endl;
+    cout << "MAIN: will start mesh generation" << endl;*/
     GenerateMeshFromOctree(root, vertices, indices);
     cout << vertices.size() << endl;
     cout << indices.size() << endl;

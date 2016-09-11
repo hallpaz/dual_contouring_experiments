@@ -645,8 +645,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
         if (node->children[i])
         {
             OctreeNode* child = node->children[i];
-            if (child->type == Node_Pseudo ||
-                child->type == Node_Leaf)
+            if (child->type != Node_Internal /*child->type == Node_Pseudo || child->type == Node_Leaf*/)
             {
                 drawInfo->averageNormal += child->drawInfo->averageNormal;
             }
