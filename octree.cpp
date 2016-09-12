@@ -47,8 +47,13 @@ int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, cons
 }
 
 // ----------------------------------------------------------------------------
-void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 vertex, int &sign)
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
 {
+    if(sign == MATERIAL_UNKNOWN)
+    {
+        std::cout << "TENTA OUTRA NEGAO!!" << std::endl;
+        exit(98);
+    }
     std::string vertexhash = hashvertex(vertex);
     if (pool.count(vertexhash) == 0)
     {
@@ -56,14 +61,25 @@ void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec
     }
     else
     {
-        if (pool[vertexhash] == MATERIAL_UNKNOWN)
-        {
-            pool[vertexhash] = sign;
+        if (pool[vertexhash] == MATERIAL_SOLID)
+        {   // if it was marked as interior anytime
+            sign = pool[vertexhash];
         }
-        if (sign == MATERIAL_UNKNOWN)
+        else
         {
-            sign = OctreeNode::vertexpool[vertexhash];
+            if (sign != MATERIAL_UNKNOWN)
+            {
+                pool[vertexhash] = sign;
+            }
+            else
+            {
+                sign = pool[vertexhash];
+            }
         }
+    }
+    if (sign != MATERIAL_UNKNOWN && pool[vertexhash] == MATERIAL_UNKNOWN){
+        std::cout << "LEFTING UNKNOWN!!!!!!!" << std::endl;
+        exit(98);
     }
 }
 
@@ -316,8 +332,23 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         }
     }
 
+    if (node->innerFaces.size() == 0)
+    {   //Empty space, no triangles crossing or inside this cell
+        if (node->crossingFaces.size() == 0)
+        {
+            //std::cout << "Empty space HERE!!" << std::endl;
+            delete node;
+            return nullptr;
+        }
+        else
+        {
+            if (node->parent->innerFaces.size() == 0) return ConstructLeafFromOpenMesh(node, mesh);
+        }
+    }
+
     if (node->height == 0)
     {
+        //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
         return ConstructLeafFromOpenMesh(node, mesh);
     }
 
@@ -348,14 +379,12 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
 }
 
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh) {
-    if (!leaf || leaf->height != 0)
+    if (!leaf)
     {
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
-    /*if (leaf->innerFaces.size() > 0){
-        std::cout << "Leaf size: " << leaf->size << "Inner Triangles: " << leaf->innerFaces.size() << std::endl;
-    }*/
+    //std::cout << "Leaf height: " << leaf->height << std::endl;
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
@@ -385,6 +414,10 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 //                hasIntersection = true;
                 vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
                 vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
+                if (vecsigns[c1] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_UNKNOWN)
+                {
+                    std::cout << "SIGNAL INCONSISTENCY FOR VERTICES IN INTERSECTION" << std::endl;
+                }
 //                vecsigns[c1] = computeSideOfPoint(p1, edgedata.intersection, edgedata.normal);
 //                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
@@ -427,54 +460,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
-
-                if (mesh.is_boundary(*face))
-                {
-                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-                    {
-                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
-                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-                        DefaultMesh::Normal planeNormal;
-                        if (mesh.is_boundary(*fh_iter))
-                        {
-                            planeNormal =  edge % faceNormal;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-                        if (mesh.is_boundary(opposite_halfedge))
-                        {
-                            planeNormal = faceNormal % edge;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                    }
-                }
-
-                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-                {
-                    DefaultMesh::Normal faceNormal;
-                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-                    DefaultMesh::Normal planeNormal;
-                    float dihedral_angle = mesh.calc_dihedral_angle(*fh_iter);
-                    if (!mesh.is_boundary(*fh_iter) && dihedral_angle > 2*M_PI/3)
-                    {
-                        faceNormal = mesh.normal(*face);
-                        planeNormal =  edge % faceNormal;
-                        //planeNormal.normalize();
-                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                    }
-                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-                    if (!mesh.is_boundary(opposite_halfedge) && dihedral_angle > 2*M_PI/3)
-                    {
-                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
-                        planeNormal = faceNormal % edge;
-                        //planeNormal.normalize();
-                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                    }
-                }
             }
         }
         if (intersection_points.size() > 1) {
@@ -507,8 +492,8 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         }
 
         OctreeNode::edgepool[edgehash] = edgedata;
-        updateVertexpool(OctreeNode::vertexpool, p1, vecsigns[c1]);
-        updateVertexpool(OctreeNode::vertexpool, p2, vecsigns[c2]);
+//        updateVertexpool(OctreeNode::vertexpool, p1, vecsigns[c1]);
+//        updateVertexpool(OctreeNode::vertexpool, p2, vecsigns[c2]);
     }
 
     if (!hasIntersection)
@@ -518,12 +503,49 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     }
     updateSignsArray(vecsigns, 8);
 
+    for (int j = 0; j < 8; ++j) {
+        updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[j], vecsigns[j]);
+    }
+
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
         corners |= (vecsigns[i] << i);
     }
+
+
+    std::ofstream interiorfile, exteriorfile;
+    //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
+    interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
+    exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
+    for (size_t i = 0; i < 8; i++) {
+        corners |= (vecsigns[i] << i);
+
+        const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
+//        const float density = Density_Func(vec3(cornerPos));
+//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+//        ground_corners |= (material << i);
+        if (vecsigns[i] == MATERIAL_SOLID) {
+            interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+        }
+
+        if (vecsigns[i] == MATERIAL_AIR) {
+            exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+        }
+
+        if (vecsigns[i] == MATERIAL_UNKNOWN) {
+            interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+            exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+        }
+//        const float density = Density_Func(vec3(cornerPos));
+//        const int material = density < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+//        ground_corners |= (material << i);
+    }
+    interiorfile.close();
+    exteriorfile.close();
+
+
     svd::Vec3 qefPosition;
-    qef.setData(qef.getData()*0.4f + featureQef.getData()*0.6f);
+    //qef.setData(qef.getData()*0.4f + featureQef.getData()*0.6f);
     //qef.add(featureQef.getData());
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
 

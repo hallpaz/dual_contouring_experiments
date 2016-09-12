@@ -5,6 +5,7 @@
 #include "octree.h"
 
 #include "NormalsEstimator.h"
+#include "Tests.h"
 
 
 using namespace std;
@@ -15,7 +16,7 @@ int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    const int height = 6;
+    const int height = 9;
 
 
     string folder_name = "../";
@@ -56,8 +57,23 @@ int main(int argc, char** argv)
     //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
     root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
-    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    /*root = SimplifyOctree(root, simpthreshold);
+
+    if (!Tests::validate_vertices_map(OctreeNode::vertexpool))
+    {
+        exit(99);
+    }
+    int num_incorrect = 0;
+    if (Tests::validate_cells_signs(root, OctreeNode::vertexpool, num_incorrect))
+    {
+        cout << "ALL Signs are correct" << endl;
+    }
+    else
+    {
+        cout << "There are " << num_incorrect << " signs incorrect" << endl;
+    }
+
+    /*std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    root = SimplifyOctree(root, simpthreshold);
     std::cout << "Octree.cpp: did simplify nodes" << std::endl;
     cout << "MAIN: will start mesh generation" << endl;*/
     GenerateMeshFromOctree(root, vertices, indices);

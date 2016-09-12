@@ -381,3 +381,52 @@ glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
 {
     return glm::make_vec3(&om_vec[0]);
 }
+
+
+/*if (mesh.is_boundary(*face))
+                {
+                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+                    {
+                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
+                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+                        DefaultMesh::Normal planeNormal;
+                        if (mesh.is_boundary(*fh_iter))
+                        {
+                            planeNormal =  edge % faceNormal;
+                            //planeNormal.normalize();
+                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                        }
+                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+                        if (mesh.is_boundary(opposite_halfedge))
+                        {
+                            planeNormal = faceNormal % edge;
+                            //planeNormal.normalize();
+                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                        }
+                    }
+                }
+
+                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+                {
+                    DefaultMesh::Normal faceNormal;
+                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+                    DefaultMesh::Normal planeNormal;
+                    float dihedral_angle = mesh.calc_dihedral_angle(*fh_iter);
+                    if (!mesh.is_boundary(*fh_iter) && dihedral_angle > 2*M_PI/3)
+                    {
+                        faceNormal = mesh.normal(*face);
+                        planeNormal =  edge % faceNormal;
+                        //planeNormal.normalize();
+                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                    }
+                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+                    if (!mesh.is_boundary(opposite_halfedge) && dihedral_angle > 2*M_PI/3)
+                    {
+                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
+                        planeNormal = faceNormal % edge;
+                        //planeNormal.normalize();
+                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+                    }
+                }*/
