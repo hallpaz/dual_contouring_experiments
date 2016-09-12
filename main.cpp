@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    const int height = 9;
+    const int height = 12;
 
 
     string folder_name = "../";
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     NormalsEstimator::compute_better_normals(myMesh);
 //    OctreeNode *root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]), octreeSize, height, simpthreshold, myMesh);
 
-    float simpthreshold = octreeSize/100000.0;
+    float simpthreshold = octreeSize/10.0;
 
     cout << "Generating mesh with octreeSize: " << octreeSize << "\n" << endl;
 
@@ -72,10 +72,10 @@ int main(int argc, char** argv)
         cout << "There are " << num_incorrect << " signs incorrect" << endl;
     }
 
-    /*std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
     root = SimplifyOctree(root, simpthreshold);
     std::cout << "Octree.cpp: did simplify nodes" << std::endl;
-    cout << "MAIN: will start mesh generation" << endl;*/
+    cout << "MAIN: will start mesh generation" << endl;
     GenerateMeshFromOctree(root, vertices, indices);
     cout << vertices.size() << endl;
     cout << indices.size() << endl;
