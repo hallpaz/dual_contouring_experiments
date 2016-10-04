@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 {
     bool IMPA = false;
     OctreeNode* root = nullptr;
-    const int height = 12;
+    const int height = 9;
 
 
     string folder_name = "../";
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
 
 
     DefaultMesh myMesh;
-    //OpenMesh::IO::read_mesh(myMesh, folder_name + inputfilename);
+//    OpenMesh::IO::read_mesh(myMesh, folder_name + inputfilename);
     OpenMesh::IO::read_mesh(myMesh, "../models/sphere8.off");
     // compute bounding box
     DefaultMesh::Point bb_min, bb_max;
@@ -43,10 +43,10 @@ int main(int argc, char** argv)
     float octreeSize = (bb_max - bb_min).max();
     std::cout << "Min: (" << bb_min[0] << ", " << bb_min[1] << ", " << bb_min[2] << ") " << "Size: " << octreeSize << std::endl;
 
-//    myMesh.request_vertex_status();
-//    myMesh.request_edge_status();
-//    myMesh.request_face_status();
-//    NormalsEstimator::compute_better_normals(myMesh);
+    myMesh.request_vertex_status();
+    myMesh.request_edge_status();
+    myMesh.request_face_status();
+    NormalsEstimator::compute_better_normals(myMesh);
 
 //    OctreeNode *root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]), octreeSize, height, simpthreshold, myMesh);
 
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
 //    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
-    std::vector<string> filenames {"../models/esfera0.off", "../models/esfera1.off", "../models/esfera2.off", "../models/esfera3.off"};
+    std::vector<string> filenames { "../models/divided/esfera3.off", "../models/divided/esfera0.off", "../models/divided/esfera2.off", "../models/divided/esfera1.off"};
     root = Fusion::octree_from_samples(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, filenames);
 
     /*if (!Tests::validate_vertices_map(OctreeNode::vertexpool))

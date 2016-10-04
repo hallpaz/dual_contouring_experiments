@@ -5,6 +5,7 @@
 #include "Reconstruction.h"
 #include "Utils.h"
 #include "Constants.h"
+#include "NormalsEstimator.h"
 
 using glm::vec3;
 
@@ -13,75 +14,63 @@ using std::string;
 namespace Fusion
 {
 
-    OctreeNode *ConstructLeafFusion(OctreeNode *leaf, const DefaultMesh &mesh);
-
-
-    void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh)
-    {
-        auto f_it = facesList.begin();
-        //parent's inner triangles
-        while(f_it != facesList.end())
-        {
-            switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
-            {
-                case INSIDE:
-                    node->innerFaces.push_back(*f_it);
-                    /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
-                    f_it = facesList.erase(f_it);
-                    break;
-                case CROSSING:
-                    node->crossingFaces.push_back(*f_it);
-                    /*If the triangle might cross the cell, we can't remove it from the cell's parent list
-                     * because it might cross other cells as well*/
-                    ++f_it;
-                    break;
-                default:
-                    ++f_it;
-            }
-        }
-    }
+    OctreeNode *update_leaf(OctreeNode *leaf, const DefaultMesh &mesh);
 
 
     OctreeNode* update_octree(OctreeNode *node, const DefaultMesh &mesh)
     {
+        std::cout << "update_octree" << std::endl;
         if (!node)
         {
             std::cout << "Trying to construct empty node" << std::endl;
             return nullptr;
         }
 
-        if (node->parent != nullptr)
-        {
-            divideFacesByLocation(node, node->parent->innerFaces, mesh); //parent's inner triangles
-            divideFacesByLocation(node, node->parent->crossingFaces, mesh); //parent's crossing triangles
-        }
-        else
-        {   //initializes the parent list with all triangles
-            for (auto f_it = mesh.faces_begin(); f_it != mesh.faces_end(); ++f_it)
-            {
-                node->innerFaces.push_back(*f_it);
-            }
-        }
+        select_inner_crossing_faces(node, mesh);
 
         if (node->innerFaces.size() == 0)
         {   //Empty space, no triangles crossing or inside this cell
             if (node->crossingFaces.size() == 0)
             {
-                //std::cout << "Empty space HERE!!" << std::endl;
+                //we should only delete this node if it didn't exist before. If it existed, either it has children or it is a leaf
+                bool hasChildren = false;
+                for (int i = 0; i < 8; ++i) {
+                    if (node->children[i] != nullptr)
+                    {
+                        hasChildren = true;
+                    }
+                }
+                if (hasChildren || node->type == Node_Leaf)
+                    return node;
+
                 delete node;
                 return nullptr;
             }
             else
             {
-                if (node->parent->innerFaces.size() == 0)
-                    return ConstructLeafFusion(node, mesh);
+                if (node->parent->innerFaces.size() == 0 && node->type == Node_Leaf)
+                {
+                    std::cout << "going to update_leaf" << std::endl;
+                    return update_leaf(node, mesh);
+                }
+
+                //if it wasn't a leaf, we let it unchanged
+                std::cout << "no changes" << std::endl;
+                return node;
             }
         }
 
         if (node->height == 0)
         {
             //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
-            return ConstructLeafFusion(node, mesh);
+            //this is a moment to construct, not update
+            if (node->type == Node_Leaf){
+                std::cout << "Heigh 0, will update" << std::endl;
+                return update_leaf(node, mesh);
+            }
+
+            std::cout << "Height 0, will construct" << std::endl;
+            return ConstructLeafFromOpenMesh(node, mesh);
         }
 
         const float childSize = node->size / 2;
@@ -90,27 +79,40 @@ namespace Fusion
 
         for (int i = 0; i < 8; i++)
         {
-            OctreeNode* child = new OctreeNode;
-            child->size = childSize;
-            child->height = childHeight;
-            child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
-            child->type = Node_Internal;
-            child->parent = node;
+            if (node->children[i] == nullptr)
+            {
+                OctreeNode* child = new OctreeNode;
+                child->size = childSize;
+                child->height = childHeight;
+                child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
+                child->type = Node_Internal;
+                child->parent = node;
 
-            node->children[i] = update_octree(child, mesh);
+                std::cout << i << " constructing inside update " << node->type << "Inner " << node->innerFaces.size() << "Crossing: " << node->crossingFaces.size() << std::endl;
+                node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
+            }
+            else
+            {
+                update_octree(node->children[i], mesh);
+            }
             hasChildren |= (node->children[i] != nullptr);
         }
 
         if (!hasChildren)
         {
+            std::cout << "will delete node" << std::endl;
             delete node;
             return nullptr;
         }
 
+        node->crossingFaces.clear();
+        node->innerFaces.clear();
+
+        std::cout << "Node updated" << std::endl;
         return node;
     }
 
-    OctreeNode *ConstructLeafFusion(OctreeNode *leaf, const DefaultMesh &mesh) {
+    OctreeNode *update_leaf(OctreeNode *leaf, const DefaultMesh &mesh) {
         if (!leaf)
         {
             std::cout << "Trying to construct a leaf in the middle" << std::endl;
@@ -120,12 +122,13 @@ namespace Fusion
         // otherwise the voxel contains the surface, so find the edge intersections
         vec3 averageNormal(0.f);
         svd::QefSolver qef;
-        svd::QefSolver featureQef;
         bool hasIntersection = false;
         int corners = 0;
         //vertices classification
+        //TODO: first we'll try to "merge" both signs using logical operations. if it doens't work, we'll have to figure out a way to update sign by sign
         int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                            MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+
         for (int i = 0; i < 12; i++) //for each edge
         {
             const int c1 = edgevmap[i][0];
@@ -140,18 +143,12 @@ namespace Fusion
                 // if edge data already exists, retrieve the data
                 edgedata = OctreeNode::edgepool[edgehash];
                 if (edgedata.hasIntersection()){
-//                averageNormal += edgedata.normal;
-//                qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
-//                        edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
-//                hasIntersection = true;
                     vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
                     vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
                     if (vecsigns[c1] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_UNKNOWN)
                     {
                         std::cout << "SIGNAL INCONSISTENCY FOR VERTICES IN INTERSECTION" << std::endl;
                     }
-//                vecsigns[c1] = computeSideOfPoint(p1, edgedata.intersection, edgedata.normal);
-//                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
                 //continue;
             }
@@ -160,8 +157,14 @@ namespace Fusion
             std::vector<vec3> intersection_points;
             std::vector<vec3> normals;
             std::vector<vec3> face_normals;
+            std::cout << "Update Leaf" << std::endl;
             for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
             {
+                if (! mesh.is_valid_handle(*face))
+                {
+                    std::cout << "Invalid Handle" << std::endl;
+                    continue;
+                }
                 auto fv_it = mesh.cfv_iter(*face);
                 DefaultMesh::VertexHandle a = *fv_it;
                 DefaultMesh::VertexHandle b = *(++fv_it);
@@ -197,10 +200,6 @@ namespace Fusion
             if (intersection_points.size() > 1) {
 //            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
                 if (intersection_points.size()%2 == 0){
-//                int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
-//                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
-//                // they are on the same side of the surface. We must ignore the intersection
-//                vecsigns[c2] = vecsigns[c1];
                     const float childSize = leaf->size / 2;
                     const int childHeight = leaf->height - 1;
                     std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
@@ -225,6 +224,8 @@ namespace Fusion
                         return nullptr;
                     }
 
+                    leaf->crossingFaces.clear();
+                    leaf->innerFaces.clear();
                     return leaf;
                 }
                 else{
@@ -256,9 +257,10 @@ namespace Fusion
         }
 
         if (!hasIntersection)
-        {   // voxel is full inside or outside the volume
-            delete leaf;
-            return nullptr;
+        {   // can't delet leaf here, because other image constructed it
+            leaf->crossingFaces.clear();
+            leaf->innerFaces.clear();
+            return leaf;
         }
         updateSignsArray(vecsigns, 8);
 
@@ -268,62 +270,15 @@ namespace Fusion
             updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
         }
 
-//        std::ofstream interiorfile, exteriorfile;
-//        //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
-//        interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
-//        exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
-//        for (size_t i = 0; i < 8; i++) {
-//            corners |= (vecsigns[i] << i);
-//
-//            const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
-//            if (vecsigns[i] == MATERIAL_SOLID) {
-//                interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
-//            }
-//
-//            if (vecsigns[i] == MATERIAL_AIR) {
-//                exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
-//            }
-//
-//            if (vecsigns[i] == MATERIAL_UNKNOWN) {
-//                interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
-//                exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
-//            }
-//        }
-//        interiorfile.close();
-//        exteriorfile.close();
-
-
-
-        //qef.setData(qef.getData()*0.4f + featureQef.getData()*0.6f);
-        //qef.add(featureQef.getData());
-
-
-
-//        svd::Vec3 qefPosition;
-//        qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
-//
-//        OctreeDrawInfo* drawInfo = new OctreeDrawInfo;
-//        drawInfo->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
-//        drawInfo->qef = qef.getData();
-//
-//        const vec3 min = vec3(leaf->min);
-//        const vec3 max = vec3(leaf->min + vec3(leaf->size));
-//        if (drawInfo->position.x < min.x || drawInfo->position.x > max.x ||
-//            drawInfo->position.y < min.y || drawInfo->position.y > max.y ||
-//            drawInfo->position.z < min.z || drawInfo->position.z > max.z)
-//        {
-//            const auto& mp = qef.getMassPoint();
-//            drawInfo->position = vec3(mp.x, mp.y, mp.z);
-//        }
-
-
-
 
         leaf->drawInfo->averageNormal += averageNormal;
         leaf->drawInfo->corners |= corners;
 
+        // redundant??
         leaf->type = Node_Leaf;
-        //leaf->drawInfo = drawInfo;
+
+        leaf->crossingFaces.clear();
+        leaf->innerFaces.clear();
 
         return leaf;
     }
@@ -337,16 +292,31 @@ namespace Fusion
         root->height = height;
         root->type = Node_Internal;
 
+        DefaultMesh mesh;
+        OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
+//        OpenMesh::IO::read_mesh(mesh, "../models/sphere8.off");
+        mesh.request_vertex_status();
+        mesh.request_edge_status();
+        mesh.request_face_status();
+        NormalsEstimator::compute_better_normals(mesh);
 
-
-        for (std::vector<string>::iterator s_it = meshfiles.begin(); s_it != meshfiles.end(); ++s_it)
+        root = BuildOctreeFromOpenMesh(min, size, height, mesh);
+        root = SimplifyOctree(root, size/10);
+        for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             DefaultMesh mesh;
             OpenMesh::IO::read_mesh(mesh, *s_it);
+            mesh.request_vertex_status();
+            mesh.request_edge_status();
+            mesh.request_face_status();
+            NormalsEstimator::compute_better_normals(mesh);
             std::cout << "Opening " << *s_it << std::endl;
-            update_octree(root, mesh);
+            root = update_octree(root, mesh);
+            // we must clear the data used to build the representation from the previous mesh
+            OctreeNode::vertexpool.clear();
+            OctreeNode::edgepool.clear();
+            root = SimplifyOctree(root, size/10);
         }
-
 
 
         return root;

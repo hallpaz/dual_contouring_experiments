@@ -142,6 +142,9 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
 void updateSignsArray(int *vecsigns, int size);
 int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal);
+void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh);
+
+inline void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh);
 
 
 

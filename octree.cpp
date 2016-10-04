@@ -286,6 +286,12 @@ void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> 
     //parent's inner triangles
     while(f_it != facesList.end())
     {
+        if (! mesh.is_valid_handle(*f_it))
+        {
+            std::cout << "Invalid Face Handle on divideFacesByLocation" << std::endl;
+            ++f_it;
+            continue;
+        }
         switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
         {
             case INSIDE:
@@ -305,13 +311,8 @@ void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> 
     }
 }
 
-OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh) {
-    if (!node)
-    {
-        std::cout << "Trying to construct empty node" << std::endl;
-        return nullptr;
-    }
-
+void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
+{
     if (node->parent != nullptr)
     {
         divideFacesByLocation(node, node->parent->innerFaces, mesh); //parent's inner triangles
@@ -324,6 +325,16 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
             node->innerFaces.push_back(*f_it);
         }
     }
+}
+
+OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh) {
+    if (!node)
+    {
+        std::cout << "Trying to construct empty node" << std::endl;
+        return nullptr;
+    }
+
+    select_inner_crossing_faces(node, mesh);
 
     if (node->innerFaces.size() == 0)
     {   //Empty space, no triangles crossing or inside this cell
@@ -368,6 +379,9 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         delete node;
         return nullptr;
     }
+
+    node->crossingFaces.clear();
+    node->innerFaces.clear();
 
     return node;
 }
@@ -424,6 +438,11 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         std::vector<vec3> face_normals;
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
+            if (! mesh.is_valid_handle(*face))
+            {
+                std::cout << "Invalid Handle Constructing" << std::endl;
+                continue;
+            }
             auto fv_it = mesh.cfv_iter(*face);
             DefaultMesh::VertexHandle a = *fv_it;
             DefaultMesh::VertexHandle b = *(++fv_it);
@@ -511,6 +530,8 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                     return nullptr;
                 }
 
+                leaf->crossingFaces.clear();
+                leaf->innerFaces.clear();
                 return leaf;
             }
             else{
@@ -604,6 +625,10 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 
     leaf->type = Node_Leaf;
     leaf->drawInfo = drawInfo;
+
+    // TODO: check if it won't trouble other part
+    leaf->crossingFaces.clear();
+    leaf->innerFaces.clear();
 
     return leaf;
 }
