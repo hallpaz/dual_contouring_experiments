@@ -5,6 +5,9 @@
 #include "Contouring.h"
 #include "Constants.h"
 
+#include "glm/glm.hpp"
+
+using glm::vec3;
 
 // ----------------------------------------------------------------------------
 
@@ -50,6 +53,23 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 
         d->index = vertexBuffer.size();
         //vertexBuffer.push_back(d->position);
+        svd::Vec3 qefPosition;
+        svd::QefSolver qef;
+        qef.setData(d->qef);
+
+        qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
+        d->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
+        d->qef = qef.getData();
+
+        const vec3 min = vec3(node->min);
+        const vec3 max = vec3(node->min + vec3(node->size));
+        if (d->position.x < min.x || d->position.x > max.x ||
+            d->position.y < min.y || d->position.y > max.y ||
+            d->position.z < min.z || d->position.z > max.z)
+        {
+            const auto& mp = qef.getMassPoint();
+            d->position = vec3(mp.x, mp.y, mp.z);
+        }
         vertexBuffer.push_back(Vertex(d->position));
     }
 }

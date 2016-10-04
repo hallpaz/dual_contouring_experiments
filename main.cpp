@@ -6,6 +6,7 @@
 
 #include "NormalsEstimator.h"
 #include "Tests.h"
+#include "Reconstruction.h"
 
 
 using namespace std;
@@ -28,7 +29,8 @@ int main(int argc, char** argv)
 
 
     DefaultMesh myMesh;
-    OpenMesh::IO::read_mesh(myMesh, folder_name + inputfilename);
+    //OpenMesh::IO::read_mesh(myMesh, folder_name + inputfilename);
+    OpenMesh::IO::read_mesh(myMesh, "../models/sphere8.off");
     // compute bounding box
     DefaultMesh::Point bb_min, bb_max;
     auto v_it = myMesh.vertices_begin();
@@ -40,13 +42,15 @@ int main(int argc, char** argv)
     }
     float octreeSize = (bb_max - bb_min).max();
     std::cout << "Min: (" << bb_min[0] << ", " << bb_min[1] << ", " << bb_min[2] << ") " << "Size: " << octreeSize << std::endl;
-    myMesh.request_vertex_status();
-    myMesh.request_edge_status();
-    myMesh.request_face_status();
-    NormalsEstimator::compute_better_normals(myMesh);
+
+//    myMesh.request_vertex_status();
+//    myMesh.request_edge_status();
+//    myMesh.request_face_status();
+//    NormalsEstimator::compute_better_normals(myMesh);
+
 //    OctreeNode *root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]), octreeSize, height, simpthreshold, myMesh);
 
-    float simpthreshold = octreeSize/10.0;
+//    float simpthreshold = octreeSize/10.0;
 
     cout << "Generating mesh with octreeSize: " << octreeSize << "\n" << endl;
 
@@ -56,9 +60,12 @@ int main(int argc, char** argv)
     cout << "MAIN: will start build" << endl;
     //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
-    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
+//    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
-    if (!Tests::validate_vertices_map(OctreeNode::vertexpool))
+    std::vector<string> filenames {"../models/esfera0.off", "../models/esfera1.off", "../models/esfera2.off", "../models/esfera3.off"};
+    root = Fusion::octree_from_samples(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, filenames);
+
+    /*if (!Tests::validate_vertices_map(OctreeNode::vertexpool))
     {
         exit(99);
     }
@@ -70,11 +77,11 @@ int main(int argc, char** argv)
     else
     {
         cout << "There are " << num_incorrect << " signs incorrect" << endl;
-    }
+    }*/
 
-    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
-    root = SimplifyOctree(root, simpthreshold);
-    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
+//    std::cout << "Octree.cpp: will simplify nodes" << std::endl;
+//    root = SimplifyOctree(root, simpthreshold);
+//    std::cout << "Octree.cpp: did simplify nodes" << std::endl;
     cout << "MAIN: will start mesh generation" << endl;
     GenerateMeshFromOctree(root, vertices, indices);
     cout << vertices.size() << endl;
@@ -83,7 +90,7 @@ int main(int argc, char** argv)
     filepath << folder_name << outputfilename << height << ".off";
     write_OFF(filepath.str(), vertices, indices);
     printf("Generated mesh\n\n");
-    simpthreshold = simpthreshold/10.0;
+//    simpthreshold = simpthreshold/10.0;
 
 
     return EXIT_SUCCESS;

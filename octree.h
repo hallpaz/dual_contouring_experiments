@@ -139,6 +139,11 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh)
 OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 
 
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
+void updateSignsArray(int *vecsigns, int size);
+int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal);
+
+
 
 // ----------------------------------------------------------------------------
 
