@@ -199,13 +199,14 @@ OctreeNode::~OctreeNode()
 
 OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3 &min, const float size, const int height, const DefaultMesh &mesh)
 {
-    trace_name("Octree.cpp: BuildOctreeFromOpenMesh");
+    trace("Octree.cpp: BuildOctreeFromOpenMesh");
     OctreeNode* root = new OctreeNode(NODE_INTERNAL, min, size, height);
     ConstructOctreeNodesFromOpenMesh(root, mesh);
     return root;
 }
 
-OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh) {
+OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh)
+{
     if (!node)
     {
         std::cout << "Trying to construct empty node" << std::endl;
@@ -213,7 +214,6 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
     }
 
     select_inner_crossing_faces(node, mesh);
-
     if (node->innerFaces.size() == 0)
     {   //Empty space, no triangles crossing or inside this cell
         if (node->crossingFaces.size() == 0)
@@ -231,14 +231,12 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
 
     if (node->height == 0)
     {
-        //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
         return ConstructLeafFromOpenMesh(node, mesh);
     }
 
     const float childSize = node->size / 2;
     const int childHeight = node->height - 1;
     bool hasChildren = false;
-
     for (int i = 0; i < 8; i++)
     {
         OctreeNode* child = new OctreeNode(NODE_INTERNAL,
@@ -249,7 +247,6 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
         hasChildren |= (node->children[i] != nullptr);
     }
-
     if (!hasChildren)
     {
         delete node;
@@ -342,30 +339,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 }
                 if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-                }
-
-                if (mesh.is_boundary(*face))
-                {
-                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-                    {
-                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
-                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-                        DefaultMesh::Normal planeNormal;
-                        if (mesh.is_boundary(*fh_iter))
-                        {
-                            planeNormal =  edge % faceNormal;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-                        if (mesh.is_boundary(opposite_halfedge))
-                        {
-                            planeNormal = faceNormal % edge;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                    }
                 }
             }
         }
@@ -460,31 +433,14 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     exteriorfile.close();
     // DEBUG --------------------------------------------------------------------//
 
-
-    svd::Vec3 qefPosition;
-    qef.setData(qef.getData()*0.4f + featureQef.getData()*0.6f);
-    //qef.add(featureQef.getData());
-    qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
-
     OctreeDrawInfo* drawInfo = new OctreeDrawInfo;
-    drawInfo->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
     drawInfo->qef = qef.getData();
-
-    const vec3 min = vec3(leaf->min);
-    const vec3 max = vec3(leaf->min + vec3(leaf->size));
-    if (drawInfo->position.x < min.x || drawInfo->position.x > max.x ||
-        drawInfo->position.y < min.y || drawInfo->position.y > max.y ||
-        drawInfo->position.z < min.z || drawInfo->position.z > max.z)
-    {
-        const auto& mp = qef.getMassPoint();
-        drawInfo->position = vec3(mp.x, mp.y, mp.z);
-    }
-
-    drawInfo->averageNormal = glm::normalize(averageNormal);
+    drawInfo->averageNormal += averageNormal;
     drawInfo->corners = corners;
+    leaf->drawInfo = drawInfo;
 
     leaf->type = NODE_LEAF;
-    leaf->drawInfo = drawInfo;
+
 
     // TODO: check if it won't trouble other part
     leaf->crossingFaces.clear();
@@ -511,12 +467,12 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
     svd::QefSolver qef;
 
     int signs[8] = { MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
-                    MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+                    MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN };
     int midsign = MATERIAL_UNKNOWN;
     int edgeCount = 0;
     bool isCollapsible = true;
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
         node->children[i] = SimplifyOctree(node->children[i], threshold);
         if (node->children[i])

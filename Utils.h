@@ -62,9 +62,9 @@ void updateSignsArray(int *vecsigns, int size);
 void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh);
 
 // ----------------------------------------------------------------------------
-inline void trace_name(std::string name)
+inline void trace(std::string debug_text)
 {
-    std::cout << name << std::endl;
+    std::cout << debug_text << std::endl;
 }
 
 // ----------------------------------------------------------------------------

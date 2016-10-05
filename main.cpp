@@ -6,10 +6,13 @@
 
 #include "NormalsEstimator.h"
 #include "Reconstruction.h"
+#include "Contouring.h"
 
 
 using namespace std;
 using glm::vec3;
+
+
 // ----------------------------------------------------------------------------
 
 int main(int argc, char** argv)
@@ -54,11 +57,11 @@ int main(int argc, char** argv)
     cout << "MAIN: will start build" << endl;
     //root = BuildOctree(glm::vec3(-octreeSize / 2), octreeSize, height, simpthreshold);
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
-    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
+//    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
     //std::vector<string> filenames { "../models/divided/esfera3.off", "../models/divided/esfera0.off", "../models/divided/esfera2.off", "../models/divided/esfera1.off"};
-    //std::vector<string> filenames {"../models/sphere8.off"};
-    //root = Fusion::octree_from_samples(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, filenames);
+    std::vector<string> filenames {"../models/sphere8.off"};
+    root = Fusion::octree_from_samples(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, filenames);
 
     /*if (!Tests::validate_vertices_map(OctreeNode::vertexpool))
     {

@@ -9,6 +9,14 @@
 
 using glm::vec3;
 
+
+// Declarations
+void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer);
+void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer);
+void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer);
+void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer);
+void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer);
+
 // ----------------------------------------------------------------------------
 
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer)
@@ -52,14 +60,12 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         }
 
         d->index = vertexBuffer.size();
-        //vertexBuffer.push_back(d->position);
+        d->averageNormal = glm::normalize(d->averageNormal);
         svd::Vec3 qefPosition;
         svd::QefSolver qef;
         qef.setData(d->qef);
-
         qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
         d->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
-        d->qef = qef.getData();
 
         const vec3 min = vec3(node->min);
         const vec3 max = vec3(node->min + vec3(node->size));

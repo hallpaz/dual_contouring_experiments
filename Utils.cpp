@@ -545,3 +545,27 @@ glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
                         featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
                     }
                 }*/
+
+//                if (mesh.is_boundary(*face))
+//                {
+//                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
+//                    {
+//                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
+//                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
+//                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
+//                        DefaultMesh::Normal planeNormal;
+//                        if (mesh.is_boundary(*fh_iter))
+//                        {
+//                            planeNormal =  edge % faceNormal;
+//                            //planeNormal.normalize();
+//                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                        }
+//                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
+//                        if (mesh.is_boundary(opposite_halfedge))
+//                        {
+//                            planeNormal = faceNormal % edge;
+//                            //planeNormal.normalize();
+//                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
+//                        }
+//                    }
+//                }

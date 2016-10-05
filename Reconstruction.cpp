@@ -65,7 +65,7 @@ namespace Fusion
             //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
             //this is a moment to construct, not update
             if (node->type == NODE_LEAF){
-                std::cout << "Heigh 0, will update" << std::endl;
+                std::cout << "Height 0, will update" << std::endl;
                 return update_leaf(node, mesh);
             }
 
@@ -160,11 +160,6 @@ namespace Fusion
             std::cout << "Update Leaf" << std::endl;
             for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
             {
-                if (! mesh.is_valid_handle(*face))
-                {
-                    std::cout << "Invalid Handle" << std::endl;
-                    continue;
-                }
                 auto fv_it = mesh.cfv_iter(*face);
                 DefaultMesh::VertexHandle a = *fv_it;
                 DefaultMesh::VertexHandle b = *(++fv_it);
@@ -238,8 +233,6 @@ namespace Fusion
 
                     std::cout << "CHEGA MAIS" << std::endl;
                 }
-
-
             }
             // if we consider that an intersection happened.
             if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2]))
@@ -286,18 +279,14 @@ namespace Fusion
 
     OctreeNode* octree_from_samples(const glm::vec3 &min, const float size, const int height, std::vector<string> meshfiles)
     {
-
-        OctreeNode* root = new OctreeNode(NODE_INTERNAL, min, size, height);
-
         DefaultMesh mesh;
         OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
-//        OpenMesh::IO::read_mesh(mesh, "../models/sphere8.off");
         mesh.request_vertex_status();
         mesh.request_edge_status();
         mesh.request_face_status();
         NormalsEstimator::compute_better_normals(mesh);
 
-        root = BuildOctreeFromOpenMesh(min, size, height, mesh);
+        OctreeNode* root = BuildOctreeFromOpenMesh(min, size, height, mesh);
         //root = SimplifyOctree(root, size/10);
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {

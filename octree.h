@@ -63,8 +63,8 @@ struct HermiteData
 {
     glm::vec3 intersection;
     glm::vec3 normal;
-
-    bool hasIntersection(){
+    bool hasIntersection()
+    {
         if (normal.x || normal.y || normal.z)
         {
             return true;
@@ -144,8 +144,6 @@ public:
 // ----------------------------------------------------------------------------
 
 OctreeNode* BuildOctree(const glm::vec3& min, const float size, const int height, const float threshold);
-void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
-
 OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3& min, const float size, const int height, const DefaultMesh &mesh);
 
 /* OPENMESH */
