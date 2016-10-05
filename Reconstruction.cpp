@@ -19,11 +19,20 @@ namespace Fusion
 
     OctreeNode* update_octree(OctreeNode *node, const DefaultMesh &mesh)
     {
-        std::cout << "update_octree" << std::endl;
+        //std::cout << "update_octree" << std::endl;
         if (!node)
         {
             std::cout << "Trying to construct empty node" << std::endl;
             return nullptr;
+        }
+
+        if (node->innerFaces.size() > 0)
+        {
+            std::cout << "On Height Size: " << node->height << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
+        }
+        if (node->crossingFaces.size() > 0)
+        {
+            std::cout << "On Height: " << node->height << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
         }
 
         select_inner_crossing_faces(node, mesh);
@@ -41,7 +50,13 @@ namespace Fusion
                     }
                 }
                 if (hasChildren || node->type == NODE_LEAF)
+                {
+                    //TODO: Figure out a better solution for this. To Have to call these 2 lines ever before a "return node" is highly error prone
+                    node->innerFaces.clear();
+                    node->crossingFaces.clear();
                     return node;
+                }
+
 
                 delete node;
                 return nullptr;
@@ -50,12 +65,13 @@ namespace Fusion
             {
                 if (node->parent->innerFaces.size() == 0 && node->type == NODE_LEAF)
                 {
-                    std::cout << "going to update_leaf" << std::endl;
+                    //std::cout << "going to update_leaf" << std::endl;
                     return update_leaf(node, mesh);
                 }
 
                 //if it wasn't a leaf, we let it unchanged
-                std::cout << "no changes" << std::endl;
+                node->innerFaces.clear();
+                node->crossingFaces.clear();
                 return node;
             }
         }
@@ -65,11 +81,11 @@ namespace Fusion
             //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
             //this is a moment to construct, not update
             if (node->type == NODE_LEAF){
-                std::cout << "Height 0, will update" << std::endl;
+                //std::cout << "Height 0, will update" << std::endl;
                 return update_leaf(node, mesh);
             }
 
-            std::cout << "Height 0, will construct" << std::endl;
+            //std::cout << "Height 0, will construct" << std::endl;
             return ConstructLeafFromOpenMesh(node, mesh);
         }
 
@@ -88,7 +104,7 @@ namespace Fusion
                 child->type = NODE_INTERNAL;
                 child->parent = node;
 
-                std::cout << i << " constructing inside update " << node->type << "Inner " << node->innerFaces.size() << "Crossing: " << node->crossingFaces.size() << std::endl;
+                //std::cout << i << " constructing inside update " << node->type << "Inner " << node->innerFaces.size() << "Crossing: " << node->crossingFaces.size() << std::endl;
                 node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
             }
             else
@@ -100,15 +116,13 @@ namespace Fusion
 
         if (!hasChildren)
         {
-            std::cout << "will delete node" << std::endl;
+          //  std::cout << "will delete node" << std::endl;
             delete node;
             return nullptr;
         }
 
         node->crossingFaces.clear();
         node->innerFaces.clear();
-
-        std::cout << "Node updated" << std::endl;
         return node;
     }
 
@@ -301,7 +315,7 @@ namespace Fusion
             // we must clear the data used to build the representation from the previous mesh
             OctreeNode::vertexpool.clear();
             OctreeNode::edgepool.clear();
-            root = SimplifyOctree(root, size/10);
+            //root = SimplifyOctree(root, size/10);
         }
 
 
