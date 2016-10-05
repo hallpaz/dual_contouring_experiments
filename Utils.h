@@ -11,9 +11,12 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <list>
 
 #include "glm/glm.hpp"
 #include "DataStructures.h"
+
 
 // ----------------------------------------------------------------------------
 enum RelativePosition
@@ -22,6 +25,8 @@ enum RelativePosition
     CROSSING,
     OUTSIDE,
 };
+
+class OctreeNode;
 // ----------------------------------------------------------------------------
 
 void write_Ply(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename);
@@ -47,5 +52,22 @@ RelativePosition triangleRelativePosition(const Vertex &a, const Vertex &b, cons
 
 glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec);
 
+
+int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal);
+
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
+
+void updateSignsArray(int *vecsigns, int size);
+
+void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh);
+
+// ----------------------------------------------------------------------------
+inline void trace_name(std::string name)
+{
+    std::cout << name << std::endl;
+}
+
+// ----------------------------------------------------------------------------
+void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh);
 
 #endif /* Utils_hpp */

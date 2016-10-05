@@ -40,7 +40,7 @@ namespace Fusion
                         hasChildren = true;
                     }
                 }
-                if (hasChildren || node->type == Node_Leaf)
+                if (hasChildren || node->type == NODE_LEAF)
                     return node;
 
                 delete node;
@@ -48,7 +48,7 @@ namespace Fusion
             }
             else
             {
-                if (node->parent->innerFaces.size() == 0 && node->type == Node_Leaf)
+                if (node->parent->innerFaces.size() == 0 && node->type == NODE_LEAF)
                 {
                     std::cout << "going to update_leaf" << std::endl;
                     return update_leaf(node, mesh);
@@ -64,7 +64,7 @@ namespace Fusion
         {
             //std::cout << "HEIGHT 0 ACTIVATED!!" << std::endl;
             //this is a moment to construct, not update
-            if (node->type == Node_Leaf){
+            if (node->type == NODE_LEAF){
                 std::cout << "Heigh 0, will update" << std::endl;
                 return update_leaf(node, mesh);
             }
@@ -85,7 +85,7 @@ namespace Fusion
                 child->size = childSize;
                 child->height = childHeight;
                 child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
-                child->type = Node_Internal;
+                child->type = NODE_INTERNAL;
                 child->parent = node;
 
                 std::cout << i << " constructing inside update " << node->type << "Inner " << node->innerFaces.size() << "Crossing: " << node->crossingFaces.size() << std::endl;
@@ -211,7 +211,7 @@ namespace Fusion
                         child->size = childSize;
                         child->height = childHeight;
                         child->min = leaf->min + (CHILD_MIN_OFFSETS[i] * childSize);
-                        child->type = Node_Internal;
+                        child->type = NODE_INTERNAL;
                         child->parent = leaf;
 
                         leaf->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
@@ -273,9 +273,10 @@ namespace Fusion
 
         leaf->drawInfo->averageNormal += averageNormal;
         leaf->drawInfo->corners |= corners;
+        leaf->drawInfo->qef.add(qef.getData());
 
         // redundant??
-        leaf->type = Node_Leaf;
+        //leaf->type = NODE_LEAF;
 
         leaf->crossingFaces.clear();
         leaf->innerFaces.clear();
@@ -286,11 +287,7 @@ namespace Fusion
     OctreeNode* octree_from_samples(const glm::vec3 &min, const float size, const int height, std::vector<string> meshfiles)
     {
 
-        OctreeNode* root = new OctreeNode();
-        root->min = min;
-        root->size = size;
-        root->height = height;
-        root->type = Node_Internal;
+        OctreeNode* root = new OctreeNode(NODE_INTERNAL, min, size, height);
 
         DefaultMesh mesh;
         OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
@@ -301,7 +298,7 @@ namespace Fusion
         NormalsEstimator::compute_better_normals(mesh);
 
         root = BuildOctreeFromOpenMesh(min, size, height, mesh);
-        root = SimplifyOctree(root, size/10);
+        //root = SimplifyOctree(root, size/10);
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             DefaultMesh mesh;

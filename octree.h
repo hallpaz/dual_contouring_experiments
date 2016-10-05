@@ -36,10 +36,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 enum OctreeNodeType
 {
-    Node_None,
-    Node_Internal,
-    Node_Pseudo,
-    Node_Leaf,
+    NODE_NONE,
+    NODE_INTERNAL,
+    NODE_PSEUDO,
+    NODE_LEAF,
 };
 
 // ----------------------------------------------------------------------------
@@ -79,8 +79,22 @@ class OctreeNode
 {
 public:
 
+    OctreeNode(OctreeNodeType type, glm::vec3 min, float size, int height, OctreeNode* parent = nullptr)
+            : type(type)
+            , min(min)
+            , size(size)
+            , height(height)
+            , drawInfo(nullptr)
+            , parent(parent)
+    {
+        for (int i = 0; i < 8; ++i)
+        {
+            children[i] = nullptr;
+        }
+    }
+
     OctreeNode()
-            : type(Node_None)
+            : type(NODE_NONE)
             , min(0, 0, 0)
             , size(0)
             , height(0)
@@ -107,6 +121,8 @@ public:
         }
     }
 
+    ~OctreeNode();
+
     OctreeNodeType	type;
     glm::vec3		min;
     float			size;
@@ -128,7 +144,6 @@ public:
 // ----------------------------------------------------------------------------
 
 OctreeNode* BuildOctree(const glm::vec3& min, const float size, const int height, const float threshold);
-void DestroyOctree(OctreeNode* node);
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
 
 OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3& min, const float size, const int height, const DefaultMesh &mesh);
@@ -137,14 +152,6 @@ OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3& min, const float size, cons
 OctreeNode *ConstructOctreeNodesFromOpenMesh(OctreeNode *pNode, const DefaultMesh &mesh);
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh);
 OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
-
-
-void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
-void updateSignsArray(int *vecsigns, int size);
-int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal);
-void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh);
-
-inline void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh);
 
 
 

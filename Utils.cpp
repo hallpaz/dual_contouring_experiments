@@ -3,14 +3,129 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <unordered_map>
+#include <list>
 
 #include "Utils.h"
 #include "Constants.h"
 #include "glm/ext.hpp"
 
 #include "density.h"
+#include "octree.h"
 
 using glm::vec3;
+
+
+// ----------------------------------------------------------------------------
+
+void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh)
+{
+    auto f_it = facesList.begin();
+    //parent's inner triangles
+    while(f_it != facesList.end())
+    {
+        if (! mesh.is_valid_handle(*f_it))
+        {
+            std::cout << "Invalid Face Handle on divideFacesByLocation" << std::endl;
+            ++f_it;
+            continue;
+        }
+        switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
+        {
+            case INSIDE:
+                node->innerFaces.push_back(*f_it);
+                /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
+                f_it = facesList.erase(f_it);
+                break;
+            case CROSSING:
+                node->crossingFaces.push_back(*f_it);
+                /*If the triangle might cross the cell, we can't remove it from the cell's parent list
+                 * because it might cross other cells as well*/
+                ++f_it;
+                break;
+            default:
+                ++f_it;
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
+{
+    if (node->parent != nullptr)
+    {
+        divideFacesByLocation(node, node->parent->innerFaces, mesh); //parent's inner triangles
+        divideFacesByLocation(node, node->parent->crossingFaces, mesh); //parent's crossing triangles
+    }
+    else
+    {   //initializes the parent list with all triangles
+        for (auto f_it = mesh.faces_begin(); f_it != mesh.faces_end(); ++f_it)
+        {
+            node->innerFaces.push_back(*f_it);
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal)
+{
+    return glm::dot(point - intersection, face_normal) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+}
+
+// ----------------------------------------------------------------------------
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
+{
+    if(sign == MATERIAL_UNKNOWN)
+    {
+        std::cout << "TENTA OUTRA NEGAO!!" << std::endl;
+        exit(98);
+    }
+    std::string vertexhash = hashvertex(vertex);
+    if (pool.count(vertexhash) == 0)
+    {
+        pool[vertexhash] = sign;
+    }
+    else
+    {
+        if (pool[vertexhash] == MATERIAL_SOLID)
+        {   // if it was marked as interior anytime
+            sign = pool[vertexhash];
+        }
+        else
+        {
+            pool[vertexhash] = sign;
+        }
+    }
+    if (sign != MATERIAL_UNKNOWN && pool[vertexhash] == MATERIAL_UNKNOWN){
+        std::cout << "LEFTING UNKNOWN!!!!!!!" << std::endl;
+        exit(98);
+    }
+}
+
+// ----------------------------------------------------------------------------
+void updateSignsArray(int *vecsigns, int size)
+{
+    bool checksigns = true;
+    while(checksigns) {
+        checksigns = false;
+        for (size_t i = 0; i < size; ++i) {
+            if (vecsigns[i] == MATERIAL_UNKNOWN) {
+                checksigns = true;
+                for (int j = 0; j < 3; ++j) {
+                    int n = vneighbors[i][j];
+                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                        vecsigns[i] = vecsigns[n];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 void write_Ply(std::vector<glm::vec3> &vertices, std::vector<int> &faces, std::string filename)
 {

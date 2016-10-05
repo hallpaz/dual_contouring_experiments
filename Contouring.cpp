@@ -34,7 +34,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         return;
     }
 
-    if (node->type != Node_Leaf)
+    if (node->type != NODE_LEAF)
     {
         for (int i = 0; i < 8; i++)
         {
@@ -42,7 +42,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         }
     }
 
-    if (node->type != Node_Internal)
+    if (node->type != NODE_INTERNAL)
     {
         OctreeDrawInfo* d = node->drawInfo;
         if (!d)
@@ -131,10 +131,10 @@ void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
         return;
     }
 
-    if (node[0]->type != Node_Internal &&
-        node[1]->type != Node_Internal &&
-        node[2]->type != Node_Internal &&
-        node[3]->type != Node_Internal)
+    if (node[0]->type != NODE_INTERNAL &&
+        node[1]->type != NODE_INTERNAL &&
+        node[2]->type != NODE_INTERNAL &&
+        node[3]->type != NODE_INTERNAL)
     {
         ContourProcessEdge(node, dir, indexBuffer);
     }
@@ -153,7 +153,7 @@ void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 
             for (int j = 0; j < 4; j++)
             {
-                if (node[j]->type != Node_Internal/*node[j]->type == Node_Leaf || node[j]->type == Node_Pseudo*/)
+                if (node[j]->type != NODE_INTERNAL/*node[j]->type == NODE_LEAF || node[j]->type == NODE_PSEUDO*/)
                 {
                     edgeNodes[j] = node[j];
                 }
@@ -177,8 +177,8 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
         return;
     }
 
-    if (node[0]->type == Node_Internal ||
-        node[1]->type == Node_Internal)
+    if (node[0]->type == NODE_INTERNAL ||
+        node[1]->type == NODE_INTERNAL)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -191,7 +191,7 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
 
             for (int j = 0; j < 2; j++)
             {
-                if (node[j]->type != Node_Internal)
+                if (node[j]->type != NODE_INTERNAL)
                 {
                     faceNodes[j] = node[j];
                 }
@@ -223,7 +223,7 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
             const int* order = orders[faceProcEdgeMask[dir][i][0]];
             for (int j = 0; j < 4; j++)
             {
-                if (node[order[j]]->type != Node_Internal/*node[order[j]]->type == Node_Leaf || node[order[j]]->type == Node_Pseudo*/)
+                if (node[order[j]]->type != NODE_INTERNAL/*node[order[j]]->type == NODE_LEAF || node[order[j]]->type == NODE_PSEUDO*/)
                 {
                     edgeNodes[j] = node[order[j]];
                 }
@@ -247,7 +247,7 @@ void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer)
         return;
     }
 
-    if (node->type == Node_Internal)
+    if (node->type == NODE_INTERNAL)
     {
         for (int i = 0; i < 8; i++)
         {

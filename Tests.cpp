@@ -16,7 +16,7 @@ bool Tests::validate_cells_signs(OctreeNode *node, std::unordered_map<std::strin
     {
         return true;
     }
-    if (node->type == Node_Internal)
+    if (node->type == NODE_INTERNAL)
     {
         for (int i = 0; i < 8; ++i) {
             validate_cells_signs(node->children[i], vertexpool, num_incorrect);

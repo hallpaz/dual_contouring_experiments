@@ -41,75 +41,17 @@ std::unordered_map<std::string, HermiteData> OctreeNode::edgepool;
 
 // ----------------------------------------------------------------------------
 
-int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal)
-{
-    return glm::dot(point - intersection, face_normal) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-}
-
-// ----------------------------------------------------------------------------
-void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
-{
-    if(sign == MATERIAL_UNKNOWN)
-    {
-        std::cout << "TENTA OUTRA NEGAO!!" << std::endl;
-        exit(98);
-    }
-    std::string vertexhash = hashvertex(vertex);
-    if (pool.count(vertexhash) == 0)
-    {
-        pool[vertexhash] = sign;
-    }
-    else
-    {
-        if (pool[vertexhash] == MATERIAL_SOLID)
-        {   // if it was marked as interior anytime
-            sign = pool[vertexhash];
-        }
-        else
-        {
-                pool[vertexhash] = sign;
-        }
-    }
-    if (sign != MATERIAL_UNKNOWN && pool[vertexhash] == MATERIAL_UNKNOWN){
-        std::cout << "LEFTING UNKNOWN!!!!!!!" << std::endl;
-        exit(98);
-    }
-}
-
-// ----------------------------------------------------------------------------
-void updateSignsArray(int *vecsigns, int size)
-{
-    bool checksigns = true;
-    while(checksigns) {
-        checksigns = false;
-        for (size_t i = 0; i < size; ++i) {
-            if (vecsigns[i] == MATERIAL_UNKNOWN) {
-                checksigns = true;
-                for (int j = 0; j < 3; ++j) {
-                    int n = vneighbors[i][j];
-                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
-                        vecsigns[i] = vecsigns[n];
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
-
 OctreeNode* ConstructLeaf(OctreeNode* leaf)
 {
 
-    if (!leaf || leaf->height != 0)
+    if (!leaf || leaf->height > 0)
     {
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
 
     int corners = 0;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
         const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
         const float density = Density_Func(vec3(cornerPos));
@@ -177,7 +119,7 @@ OctreeNode* ConstructLeaf(OctreeNode* leaf)
     drawInfo->averageNormal = glm::normalize(averageNormal / (float)edgeCount);
     drawInfo->corners = corners;
 
-    leaf->type = Node_Leaf;
+    leaf->type = NODE_LEAF;
     leaf->drawInfo = drawInfo;
 
     return leaf;
@@ -208,7 +150,7 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
         child->size = childSize;
         child->height = childHeight;
         child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
-        child->type = Node_Internal;
+        child->type = NODE_INTERNAL;
 
         node->children[i] = ConstructOctreeNodes(child);
         hasChildren |= (node->children[i] != nullptr);
@@ -231,7 +173,7 @@ OctreeNode* BuildOctree(const vec3& min, const float size, const int height, con
     root->min = min;
     root->size = size;
     root->height = height;
-    root->type = Node_Internal;
+    root->type = NODE_INTERNAL;
 
     std::cout << "Octree.cpp: will construct nodes" << std::endl;
     ConstructOctreeNodes(root);
@@ -244,87 +186,23 @@ OctreeNode* BuildOctree(const vec3& min, const float size, const int height, con
 
 // -------------------------------------------------------------------------------
 
-void DestroyOctree(OctreeNode* node)
+OctreeNode::~OctreeNode()
 {
-    if (!node)
-    {
-        return;
-    }
-
+    delete drawInfo;
     for (int i = 0; i < 8; i++)
     {
-        DestroyOctree(node->children[i]);
+        delete children[i];
     }
-
-    if (node->drawInfo)
-    {
-        delete node->drawInfo;
-    }
-
-    delete node;
 }
 
 // -------------------------------------------------------------------------------
 
 OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3 &min, const float size, const int height, const DefaultMesh &mesh)
 {
-    OctreeNode* root = new OctreeNode;
-    root->min = min;
-    root->size = size;
-    root->height = height;
-    root->type = Node_Internal;
-
-    std::cout << "Octree.cpp: will construct nodes" << std::endl;
+    trace_name("Octree.cpp: BuildOctreeFromOpenMesh");
+    OctreeNode* root = new OctreeNode(NODE_INTERNAL, min, size, height);
     ConstructOctreeNodesFromOpenMesh(root, mesh);
-    std::cout << "Octree is Ready" << std::endl;
     return root;
-}
-
-void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh)
-{
-    auto f_it = facesList.begin();
-    //parent's inner triangles
-    while(f_it != facesList.end())
-    {
-        if (! mesh.is_valid_handle(*f_it))
-        {
-            std::cout << "Invalid Face Handle on divideFacesByLocation" << std::endl;
-            ++f_it;
-            continue;
-        }
-        switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
-        {
-            case INSIDE:
-                node->innerFaces.push_back(*f_it);
-                /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
-                f_it = facesList.erase(f_it);
-                break;
-            case CROSSING:
-                node->crossingFaces.push_back(*f_it);
-                /*If the triangle might cross the cell, we can't remove it from the cell's parent list
-                 * because it might cross other cells as well*/
-                ++f_it;
-                break;
-            default:
-                ++f_it;
-        }
-    }
-}
-
-void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
-{
-    if (node->parent != nullptr)
-    {
-        divideFacesByLocation(node, node->parent->innerFaces, mesh); //parent's inner triangles
-        divideFacesByLocation(node, node->parent->crossingFaces, mesh); //parent's crossing triangles
-    }
-    else
-    {   //initializes the parent list with all triangles
-        for (auto f_it = mesh.faces_begin(); f_it != mesh.faces_end(); ++f_it)
-        {
-            node->innerFaces.push_back(*f_it);
-        }
-    }
 }
 
 OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh) {
@@ -363,13 +241,11 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
 
     for (int i = 0; i < 8; i++)
     {
-        OctreeNode* child = new OctreeNode;
-        child->size = childSize;
-        child->height = childHeight;
-        child->min = node->min + (CHILD_MIN_OFFSETS[i] * childSize);
-        child->type = Node_Internal;
-        child->parent = node;
-
+        OctreeNode* child = new OctreeNode(NODE_INTERNAL,
+                                           node->min + (CHILD_MIN_OFFSETS[i] * childSize),
+                                           childSize,
+                                           childHeight,
+                                           node);
         node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
         hasChildren |= (node->children[i] != nullptr);
     }
@@ -379,7 +255,7 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         delete node;
         return nullptr;
     }
-
+    //clear memory used for inner and crossing faces
     node->crossingFaces.clear();
     node->innerFaces.clear();
 
@@ -392,7 +268,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
         return nullptr;
     }
-    //std::cout << "Leaf height: " << leaf->height << std::endl;
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
@@ -402,7 +277,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     //vertices classification
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-    for (int i = 0; i < 12; i++) //for each edge
+    for (int i = 0; i < 12; ++i) //for each edge
     {
         const int c1 = edgevmap[i][0];
         const int c2 = edgevmap[i][1];
@@ -438,11 +313,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         std::vector<vec3> face_normals;
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
-            if (! mesh.is_valid_handle(*face))
-            {
-                std::cout << "Invalid Handle Constructing" << std::endl;
-                continue;
-            }
             auto fv_it = mesh.cfv_iter(*face);
             DefaultMesh::VertexHandle a = *fv_it;
             DefaultMesh::VertexHandle b = *(++fv_it);
@@ -513,39 +383,32 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 
                 for (int i = 0; i < 8; i++)
                 {
-                    OctreeNode* child = new OctreeNode;
-                    child->size = childSize;
-                    child->height = childHeight;
-                    child->min = leaf->min + (CHILD_MIN_OFFSETS[i] * childSize);
-                    child->type = Node_Internal;
-                    child->parent = leaf;
-
+                    OctreeNode* child = new OctreeNode(NODE_INTERNAL,
+                                                       leaf->min + (CHILD_MIN_OFFSETS[i] * childSize),
+                                                       childSize,
+                                                       childHeight,
+                                                       leaf);
                     leaf->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
                     hasChildren |= (leaf->children[i] != nullptr);
                 }
-
                 if (!hasChildren)
                 {
                     delete leaf;
                     return nullptr;
                 }
-
                 leaf->crossingFaces.clear();
                 leaf->innerFaces.clear();
                 return leaf;
             }
-            else{
-                // they are on the opposite side of the surface
+            else
+            {   // they are on the opposite side of the surface
                 int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
                 nearindex = glm::distance(p1, intersection_points[nearindex]) < glm::distance(p1, intersection_points[2]) ? nearindex : 2;
                 vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
                 // they are on the same side of the surface. We must ignore the intersection
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-
                 std::cout << "CHEGA MAIS" << std::endl;
             }
-
-
         }
         // if we consider that an intersection happened.
         if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2]))
@@ -558,7 +421,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
             edgedata.intersection = intersection_points[0];
             edgedata.normal = normals[0];
         }
-
         OctreeNode::edgepool[edgehash] = edgedata;
     }
 
@@ -568,21 +430,18 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         return nullptr;
     }
     updateSignsArray(vecsigns, 8);
-
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
         corners |= (vecsigns[i] << i);
         updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
     }
 
-
+    // DEBUG --------------------------------------------------------------------
     std::ofstream interiorfile, exteriorfile;
-    //gridfile.open("/home/hallpaz/Workspace/dual_contouring_experiments/grid_color_updated.ply", std::ios::app);
     interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
     exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
     for (size_t i = 0; i < 8; i++) {
         corners |= (vecsigns[i] << i);
-
         const vec3 cornerPos = leaf->min + CHILD_MIN_OFFSETS[i]*leaf->size;
         if (vecsigns[i] == MATERIAL_SOLID) {
             interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
@@ -599,6 +458,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     }
     interiorfile.close();
     exteriorfile.close();
+    // DEBUG --------------------------------------------------------------------//
 
 
     svd::Vec3 qefPosition;
@@ -623,7 +483,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     drawInfo->averageNormal = glm::normalize(averageNormal);
     drawInfo->corners = corners;
 
-    leaf->type = Node_Leaf;
+    leaf->type = NODE_LEAF;
     leaf->drawInfo = drawInfo;
 
     // TODO: check if it won't trouble other part
@@ -642,7 +502,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
         return nullptr;
     }
 
-    if (node->type != Node_Internal)
+    if (node->type != NODE_INTERNAL)
     {
         // can't simplify!
         return node;
@@ -662,7 +522,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
         if (node->children[i])
         {
             OctreeNode* child = node->children[i];
-            if (child->type == Node_Internal)
+            if (child->type == NODE_INTERNAL)
             {
                 isCollapsible = false;
             }
@@ -728,7 +588,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
         if (node->children[i])
         {
             OctreeNode* child = node->children[i];
-            if (child->type != Node_Internal /*child->type == Node_Pseudo || child->type == Node_Leaf*/)
+            if (child->type != NODE_INTERNAL /*child->type == NODE_PSEUDO || child->type == NODE_LEAF*/)
             {
                 drawInfo->averageNormal += child->drawInfo->averageNormal;
             }
@@ -741,11 +601,11 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
 
     for (int i = 0; i < 8; i++)
     {
-        DestroyOctree(node->children[i]);
+        delete node->children[i];
         node->children[i] = nullptr;
     }
 
-    node->type = Node_Pseudo;
+    node->type = NODE_PSEUDO;
     node->drawInfo = drawInfo;
 
     return node;
