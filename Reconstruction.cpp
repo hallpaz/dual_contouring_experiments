@@ -25,93 +25,58 @@ namespace Fusion
             std::cout << "Trying to construct empty node" << std::endl;
             return nullptr;
         }
-        // DEBUG ------------------------------------------------------
-        if (node->innerFaces.size() > 0)
-        {
-            std::cout << "On Height Size: " << node->height << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
-        }
-        if (node->crossingFaces.size() > 0)
-        {
-            std::cout << "On Height: " << node->height << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
-        }
-        // DEBUG ------------------------------------------------------ //
 
         select_inner_crossing_faces(node, mesh);
-
         bool inner_is_empty = node->innerFaces.empty();
         bool crossing_is_empty = node->crossingFaces.empty();
         // cases 2 and 5
         if ( inner_is_empty && crossing_is_empty)
         {   //no data here to update. other frame must've created this node
-            node->innerFaces.clear();
-            node->crossingFaces.clear();
-            return node;
+            return clean_node(node);
         }
 
         const float childSize = node->size / 2;
         const int childHeight = node->height - 1;
         bool hasChildren = false;
-        if (node->type == NODE_LEAF) {
+        if (node->type == NODE_LEAF)
+        {
             // case 3
             if (crossing_is_empty && !inner_is_empty) {
-                if (node->height > 0) {
-                    for (int i = 0; i < 8; ++i) {
-                        OctreeNode *child = new OctreeNode(NODE_INTERNAL,
-                                                           node->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                           childSize, childHeight, node);
-                        node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-                        hasChildren |= (node->children[i] != nullptr);
-                    }
-                    if (hasChildren) {
+                if (node->height > 0)
+                {
+                    hasChildren = construct_children(node, mesh);
+                    if (hasChildren)
+                    {
                         node->type = NODE_INTERNAL;
                     }
-                    //clear memory used for inner and crossing faces
-                    node->crossingFaces.clear();
-                    node->innerFaces.clear();
-                    return node;
                 }
-                node->crossingFaces.clear();
-                node->innerFaces.clear();
-                return node;
+                return clean_node(node);
             }
             //case 4
             if (!crossing_is_empty && inner_is_empty) {
-                if (node->parent->innerFaces.empty() || node->height <= 0) {
+                if (node->parent->innerFaces.empty() || node->height <= 0)
+                {
                     return update_leaf(node, mesh);
                 }
-                for (int i = 0; i < 8; ++i) {
-                    OctreeNode *child = new OctreeNode(NODE_INTERNAL,
-                                                       node->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                       childSize, childHeight, node);
-                    node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-                    hasChildren |= (node->children[i] != nullptr);
-                }
-                if (hasChildren) {
+                hasChildren = construct_children(node, mesh);
+                if (hasChildren)
+                {
                     node->type = NODE_INTERNAL;
                 }
                 //clear memory used for inner and crossing faces
-                node->crossingFaces.clear();
-                node->innerFaces.clear();
-                return node;
+                return clean_node(node);
             }
 
             //case 6
             if (!crossing_is_empty && !inner_is_empty) {
                 if (node->height > 0) {
-                    for (int i = 0; i < 8; ++i) {
-                        OctreeNode *child = new OctreeNode(NODE_INTERNAL,
-                                                           node->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                           childSize, childHeight, node);
-                        node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-                        hasChildren |= (node->children[i] != nullptr);
-                    }
-                    if (hasChildren) {
+                    hasChildren = construct_children(node, mesh);
+                    if (hasChildren)
+                    {
                         node->type = NODE_INTERNAL;
                     }
                     //clear memory used for inner and crossing faces
-                    node->crossingFaces.clear();
-                    node->innerFaces.clear();
-                    return node;
+                    return clean_node(node);
                 }
                 return update_leaf(node, mesh);
             }
@@ -133,9 +98,7 @@ namespace Fusion
             hasChildren |= (node->children[i] != nullptr);
         }
         //clear memory used for inner and crossing faces
-        node->crossingFaces.clear();
-        node->innerFaces.clear();
-        return node;
+        return clean_node(node);
     }
 
     OctreeNode *update_leaf(OctreeNode *leaf, const DefaultMesh &mesh) {

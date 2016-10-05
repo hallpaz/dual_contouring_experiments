@@ -212,51 +212,27 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         std::cout << "Trying to construct empty node" << std::endl;
         return nullptr;
     }
-
     select_inner_crossing_faces(node, mesh);
-    if (node->innerFaces.size() == 0)
+    if (node->innerFaces.empty() && node->crossingFaces.empty())
     {   //Empty space, no triangles crossing or inside this cell
-        if (node->crossingFaces.size() == 0)
-        {
             //std::cout << "Empty space HERE!!" << std::endl;
-            delete node;
-            return nullptr;
-        }
-        else
-        {
-            if (node->parent->innerFaces.size() == 0)
-                return ConstructLeafFromOpenMesh(node, mesh);
-        }
+        delete node;
+        return nullptr;
     }
-
-    if (node->height == 0)
+    if ((node->parent && node->parent->innerFaces.empty()) || node->height == 0)
     {
         return ConstructLeafFromOpenMesh(node, mesh);
     }
 
-    const float childSize = node->size / 2;
-    const int childHeight = node->height - 1;
-    bool hasChildren = false;
-    for (int i = 0; i < 8; i++)
+    bool has_children = construct_children(node, mesh);
+    if (has_children)
     {
-        OctreeNode* child = new OctreeNode(NODE_INTERNAL,
-                                           node->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                           childSize,
-                                           childHeight,
-                                           node);
-        node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-        hasChildren |= (node->children[i] != nullptr);
+        //clear memory used for inner and crossing faces
+        return clean_node(node);
     }
-    if (!hasChildren)
-    {
-        delete node;
-        return nullptr;
-    }
-    //clear memory used for inner and crossing faces
-    node->crossingFaces.clear();
-    node->innerFaces.clear();
 
-    return node;
+    delete node;
+    return nullptr;
 }
 
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh) {
@@ -268,7 +244,6 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
-    svd::QefSolver featureQef;
     bool hasIntersection = false;
     int corners = 0;
     //vertices classification
@@ -349,29 +324,17 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 //                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
 //                // they are on the same side of the surface. We must ignore the intersection
 //                vecsigns[c2] = vecsigns[c1];
-                const float childSize = leaf->size / 2;
-                const int childHeight = leaf->height - 1;
-                std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
-                bool hasChildren = false;
+//                const float childSize = leaf->size / 2;
+//                const int childHeight = leaf->height - 1;
+//                std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
 
-                for (int i = 0; i < 8; i++)
+                if (construct_children(leaf, mesh))
                 {
-                    OctreeNode* child = new OctreeNode(NODE_INTERNAL,
-                                                       leaf->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                       childSize,
-                                                       childHeight,
-                                                       leaf);
-                    leaf->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-                    hasChildren |= (leaf->children[i] != nullptr);
+                    leaf->type = NODE_INTERNAL;
+                    return clean_node(leaf);
                 }
-                if (!hasChildren)
-                {
-                    delete leaf;
-                    return nullptr;
-                }
-                leaf->crossingFaces.clear();
-                leaf->innerFaces.clear();
-                return leaf;
+                delete leaf;
+                return nullptr;
             }
             else
             {   // they are on the opposite side of the surface
@@ -441,12 +404,7 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
 
     leaf->type = NODE_LEAF;
 
-
-    // TODO: check if it won't trouble other part
-    leaf->crossingFaces.clear();
-    leaf->innerFaces.clear();
-
-    return leaf;
+    return clean_node(leaf);
 }
 // -------------------------------------------------------------------------------
 
@@ -539,12 +497,12 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
     }
 
     drawInfo->averageNormal = vec3(0.f);
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < 8; ++i)
     {
         if (node->children[i])
         {
             OctreeNode* child = node->children[i];
-            if (child->type != NODE_INTERNAL /*child->type == NODE_PSEUDO || child->type == NODE_LEAF*/)
+            if (child->type != NODE_INTERNAL)
             {
                 drawInfo->averageNormal += child->drawInfo->averageNormal;
             }

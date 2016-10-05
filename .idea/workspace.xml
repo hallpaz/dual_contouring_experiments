@@ -13,7 +13,8 @@
   <component name="ChangeListManager">
     <list default="true" id="0f209f5e-4a36-4e0a-9caf-e9262c60b0ba" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Reconstruction.cpp" afterPath="$PROJECT_DIR$/Reconstruction.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.cpp" afterPath="$PROJECT_DIR$/Utils.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/octree.cpp" afterPath="$PROJECT_DIR$/octree.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/octree.h" afterPath="$PROJECT_DIR$/octree.h" />
     </list>
     <ignored path="dual_contouring_experiments.iws" />
@@ -46,14 +47,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Contouring.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Contouring.cpp">
+      <file leaf-file-name="Utils.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Utils.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1950">
-              <caret line="12" column="15" selection-start-line="12" selection-start-column="15" selection-end-line="12" selection-end-column="15" />
-              <folding>
-                <element signature="e#52#75#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="588">
+              <caret line="581" column="68" selection-start-line="572" selection-start-column="2" selection-end-line="581" selection-end-column="68" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -61,8 +60,8 @@
       <file leaf-file-name="Reconstruction.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Reconstruction.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-780">
-              <caret line="164" column="0" selection-start-line="164" selection-start-column="0" selection-end-line="164" selection-end-column="0" />
+            <state relative-caret-position="491">
+              <caret line="100" column="32" selection-start-line="100" selection-start-column="32" selection-end-line="100" selection-end-column="32" />
               <folding>
                 <element signature="e#52#79#0" expanded="true" />
               </folding>
@@ -70,11 +69,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Contouring.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Contouring.h">
+      <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="11" selection-end-column="0" />
+            <state relative-caret-position="360">
+              <caret line="63" column="29" selection-start-line="63" selection-start-column="29" selection-end-line="63" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -93,8 +92,8 @@
       <file leaf-file-name="octree.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/octree.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="346">
-              <caret line="172" column="1" selection-start-line="172" selection-start-column="1" selection-end-line="172" selection-end-column="1" />
+            <state relative-caret-position="498">
+              <caret line="174" column="47" selection-start-line="174" selection-start-column="47" selection-end-line="174" selection-end-column="47" />
               <folding>
                 <element signature="e#861#878#0" expanded="true" />
               </folding>
@@ -135,15 +134,14 @@
       <file leaf-file-name="octree.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/octree.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="464">
-              <caret line="254" column="52" selection-start-line="254" selection-start-column="52" selection-end-line="254" selection-end-column="52" />
+            <state relative-caret-position="197">
+              <caret line="214" column="22" selection-start-line="214" selection-start-column="17" selection-end-line="214" selection-end-column="22" />
               <folding>
                 <element signature="e#787#805#0" expanded="true" />
                 <element signature="e#1271#3856#0" expanded="false" />
                 <element signature="e#3942#4788#0" expanded="false" />
                 <element signature="e#4874#5409#0" expanded="false" />
                 <element signature="e#5495#5617#0" expanded="false" />
-                <element signature="e#5703#6015#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -173,13 +171,13 @@
         <option value="$PROJECT_DIR$/Tests.h" />
         <option value="$PROJECT_DIR$/Tests.cpp" />
         <option value="$PROJECT_DIR$/Reconstruction.h" />
-        <option value="$PROJECT_DIR$/Utils.cpp" />
         <option value="$PROJECT_DIR$/Contouring.h" />
         <option value="$PROJECT_DIR$/Contouring.cpp" />
         <option value="$PROJECT_DIR$/Utils.h" />
-        <option value="$PROJECT_DIR$/octree.cpp" />
         <option value="$PROJECT_DIR$/main.cpp" />
+        <option value="$PROJECT_DIR$/Utils.cpp" />
         <option value="$PROJECT_DIR$/octree.h" />
+        <option value="$PROJECT_DIR$/octree.cpp" />
         <option value="$PROJECT_DIR$/Reconstruction.cpp" />
       </list>
     </option>
@@ -473,16 +471,16 @@
       <workItem from="1473683025943" duration="12285000" />
       <workItem from="1475526559597" duration="6143000" />
       <workItem from="1475588742597" duration="10077000" />
-      <workItem from="1475669909693" duration="12579000" />
+      <workItem from="1475669909693" duration="15379000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="102097000" />
+    <option name="totallyTimeSpent" value="104897000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15277778" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -491,7 +489,7 @@
       <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32977587" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28216505" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24267292" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24267292" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -551,9 +549,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="915">
           <caret line="61" column="105" selection-start-line="61" selection-start-column="105" selection-end-line="61" selection-end-column="105" />
-          <folding>
-            <element signature="e#0#19#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -567,7 +563,6 @@
             <element signature="e#3942#4788#0" expanded="false" />
             <element signature="e#4874#5409#0" expanded="false" />
             <element signature="e#5495#5617#0" expanded="false" />
-            <element signature="e#5703#6015#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -590,9 +585,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="11" column="38" selection-start-line="11" selection-start-column="38" selection-end-line="11" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#19#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -792,31 +785,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1113">
-          <caret line="570" column="19" selection-start-line="570" selection-start-column="19" selection-end-line="570" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#16#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Reconstruction.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="11" column="130" selection-start-line="11" selection-start-column="130" selection-end-line="11" selection-end-column="130" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="61" column="102" selection-start-line="61" selection-start-column="102" selection-end-line="61" selection-end-column="102" />
-          <folding>
-            <element signature="e#0#19#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -878,6 +851,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="63" column="29" selection-start-line="63" selection-start-column="29" selection-end-line="63" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Utils.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="453">
@@ -888,35 +869,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/octree.cpp">
+    <entry file="file://$PROJECT_DIR$/Utils.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="464">
-          <caret line="254" column="52" selection-start-line="254" selection-start-column="52" selection-end-line="254" selection-end-column="52" />
-          <folding>
-            <element signature="e#787#805#0" expanded="true" />
-            <element signature="e#1271#3856#0" expanded="false" />
-            <element signature="e#3942#4788#0" expanded="false" />
-            <element signature="e#4874#5409#0" expanded="false" />
-            <element signature="e#5495#5617#0" expanded="false" />
-            <element signature="e#5703#6015#0" expanded="false" />
-          </folding>
+        <state relative-caret-position="588">
+          <caret line="581" column="68" selection-start-line="572" selection-start-column="2" selection-end-line="581" selection-end-column="68" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/octree.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="172" column="1" selection-start-line="172" selection-start-column="1" selection-end-line="172" selection-end-column="1" />
+        <state relative-caret-position="498">
+          <caret line="174" column="47" selection-start-line="174" selection-start-column="47" selection-end-line="174" selection-end-column="47" />
           <folding>
             <element signature="e#861#878#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/octree.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="214" column="22" selection-start-line="214" selection-start-column="17" selection-end-line="214" selection-end-column="22" />
+          <folding>
+            <element signature="e#787#805#0" expanded="true" />
+            <element signature="e#1271#3856#0" expanded="false" />
+            <element signature="e#3942#4788#0" expanded="false" />
+            <element signature="e#4874#5409#0" expanded="false" />
+            <element signature="e#5495#5617#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Reconstruction.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-780">
-          <caret line="164" column="0" selection-start-line="164" selection-start-column="0" selection-end-line="164" selection-end-column="0" />
+        <state relative-caret-position="491">
+          <caret line="100" column="32" selection-start-line="100" selection-start-column="32" selection-end-line="100" selection-end-column="32" />
           <folding>
             <element signature="e#52#79#0" expanded="true" />
           </folding>

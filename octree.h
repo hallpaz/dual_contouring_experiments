@@ -154,7 +154,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 
 // ----------------------------------------------------------------------------
 
-inline bool construct_children(OctreeNode* node, DefaultMesh &mesh)
+inline bool construct_children(OctreeNode* node, const DefaultMesh &mesh)
 {
     const float childSize = node->size / 2;
     const int childHeight = node->height - 1;
@@ -170,6 +170,13 @@ inline bool construct_children(OctreeNode* node, DefaultMesh &mesh)
         hasChildren |= (node->children[i] != nullptr);
     }
     return hasChildren;
+}
+
+inline OctreeNode* clean_node(OctreeNode* node)
+{
+    node->innerFaces.clear();
+    node->crossingFaces.clear();
+    return node;
 }
 
 // ----------------------------------------------------------------------------

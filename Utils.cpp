@@ -569,3 +569,14 @@ glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
 //                        }
 //                    }
 //                }
+
+//// DEBUG ------------------------------------------------------
+//if (node->innerFaces.size() > 0)
+//{
+//std::cout << "On Height Size: " << node->height << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
+//}
+//if (node->crossingFaces.size() > 0)
+//{
+//std::cout << "On Height: " << node->height << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
+//}
+//// DEBUG ------------------------------------------------------ //
