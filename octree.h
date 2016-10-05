@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "glm/glm.hpp"
 #include "DataStructures.h"
+#include "Constants.h"
 
 // ----------------------------------------------------------------------------
 
@@ -151,7 +152,25 @@ OctreeNode *ConstructOctreeNodesFromOpenMesh(OctreeNode *pNode, const DefaultMes
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh);
 OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 
+// ----------------------------------------------------------------------------
 
+inline bool construct_children(OctreeNode* node, DefaultMesh &mesh)
+{
+    const float childSize = node->size / 2;
+    const int childHeight = node->height - 1;
+    bool hasChildren = false;
+    for (int i = 0; i < 8; i++)
+    {
+        OctreeNode* child = new OctreeNode(NODE_INTERNAL,
+                                           node->min + (CHILD_MIN_OFFSETS[i] * childSize),
+                                           childSize,
+                                           childHeight,
+                                           node);
+        node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
+        hasChildren |= (node->children[i] != nullptr);
+    }
+    return hasChildren;
+}
 
 // ----------------------------------------------------------------------------
 
