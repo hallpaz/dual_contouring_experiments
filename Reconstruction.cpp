@@ -15,6 +15,7 @@ namespace Fusion
 {
 
     OctreeNode *update_leaf(OctreeNode *leaf, const DefaultMesh &mesh);
+    inline bool update_children(OctreeNode* node, const DefaultMesh &mesh);
 
 
     OctreeNode* update_octree(OctreeNode *node, const DefaultMesh &mesh)
@@ -35,13 +36,28 @@ namespace Fusion
             return clean_node(node);
         }
 
-        const float childSize = node->size / 2;
-        const int childHeight = node->height - 1;
         bool hasChildren = false;
         if (node->type == NODE_LEAF)
         {
+//            if (node->height > 0 && ! node->parent->innerFaces.empty())
+//            {
+//                hasChildren = construct_children(node, mesh);
+//                if (hasChildren)
+//                {
+//                    node->type = NODE_INTERNAL;
+//                }
+//                return clean_node(node);
+//            }
+//            else
+//            {
+//                if (node->parent->innerFaces.empty() || !crossing_is_empty)
+//                {
+//                    return update_leaf(node, mesh);
+//                }
+//                return clean_node(node);
+//            }
             // case 3
-            if (crossing_is_empty && !inner_is_empty) {
+            if (crossing_is_empty) {
                 if (node->height > 0)
                 {
                     hasChildren = construct_children(node, mesh);
@@ -54,19 +70,18 @@ namespace Fusion
             }
             //case 4
             if (!crossing_is_empty && inner_is_empty) {
-                if (node->parent->innerFaces.empty() || node->height <= 0)
+                if (node->height > 0 && ! node->parent->innerFaces.empty())
                 {
-                    return update_leaf(node, mesh);
+                    hasChildren = construct_children(node, mesh);
+                    if (hasChildren)
+                    {
+                        node->type = NODE_INTERNAL;
+                    }
+                    //clear memory used for inner and crossing faces
+                    return clean_node(node);
                 }
-                hasChildren = construct_children(node, mesh);
-                if (hasChildren)
-                {
-                    node->type = NODE_INTERNAL;
-                }
-                //clear memory used for inner and crossing faces
-                return clean_node(node);
+                return update_leaf(node, mesh);
             }
-
             //case 6
             if (!crossing_is_empty && !inner_is_empty) {
                 if (node->height > 0) {
@@ -82,22 +97,7 @@ namespace Fusion
             }
         }
         //case 1
-        for (int i = 0; i < 8; ++i)
-        {
-            if (node->children[i] == nullptr)
-            {
-                OctreeNode* child = new OctreeNode(NODE_INTERNAL,
-                                                   node->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                   childSize, childHeight, node);
-                node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-            }
-            else
-            {
-                node->children[i] = update_octree(node->children[i], mesh);
-            }
-            hasChildren |= (node->children[i] != nullptr);
-        }
-        //clear memory used for inner and crossing faces
+        update_children(node, mesh);
         return clean_node(node);
     }
 
@@ -113,7 +113,12 @@ namespace Fusion
         vec3 averageNormal(0.f);
         svd::QefSolver qef;
         bool hasIntersection = false;
+        //int corners = leaf->drawInfo->corners;
         int corners = 0;
+        //int vecsigns[8];
+        /*for (int j = 0; j < 8; ++j) { //we'll begin from the already known corner
+            vecsigns[j] = (corners >> j) & 1;
+        }*/
         //vertices classification
         //TODO: first we'll try to "merge" both signs using logical operations. if it doens't work, we'll have to figure out a way to update sign by sign
         int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
@@ -174,10 +179,10 @@ namespace Fusion
                     vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
                     face_normals.push_back(face_normal);
 
-                    if (vecsigns[c1] != MATERIAL_SOLID/*vecsigns[c1] == MATERIAL_UNKNOWN*/){
+                    if (vecsigns[c1] != MATERIAL_SOLID){
                         vecsigns[c1] = computeSideOfPoint(p1, intersection, face_normal);
                     }
-                    if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
+                    if (vecsigns[c2] != MATERIAL_SOLID){
                         vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                     }
                 }
@@ -190,19 +195,7 @@ namespace Fusion
                     const int childHeight = leaf->height - 1;
                     leaf->type = NODE_INTERNAL;
                     std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
-                    bool hasChildren = false;
-
-                    for (int i = 0; i < 8; i++)
-                    {
-                        OctreeNode* child = new OctreeNode(NODE_INTERNAL,
-                                                           leaf->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                                           childSize,
-                                                           childHeight,
-                                                           leaf);
-                        leaf->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
-                        hasChildren |= (leaf->children[i] != nullptr);
-                    }
-
+                    bool hasChildren = construct_children(leaf, mesh);
                     if (!hasChildren)
                     {
                         delete leaf;
@@ -240,14 +233,12 @@ namespace Fusion
         }
 
         if (!hasIntersection)
-        {   // can't delet leaf here, because other image constructed it
-            leaf->crossingFaces.clear();
-            leaf->innerFaces.clear();
-            return leaf;
+        {   // can't delete leaf here, because other image constructed it
+            return clean_node(leaf);
         }
         updateSignsArray(vecsigns, 8);
 
-        for (size_t i = 0; i < 8; i++)
+        for (size_t i = 0; i < 8; ++i)
         {   //encode the signs to the corners variable to save memory
             corners |= (vecsigns[i] << i);
             updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
@@ -255,11 +246,10 @@ namespace Fusion
 
         leaf->drawInfo->averageNormal += averageNormal;
         leaf->drawInfo->corners |= corners;
+        //leaf->drawInfo->corners = corners;
         leaf->drawInfo->qef.add(qef.getData());
 
-        leaf->crossingFaces.clear();
-        leaf->innerFaces.clear();
-        return leaf;
+        return clean_node(leaf);
     }
 
     OctreeNode* octree_from_samples(const glm::vec3 &min, const float size, const int height, std::vector<string> meshfiles)
@@ -290,6 +280,29 @@ namespace Fusion
         }
 
         return root;
+    }
+
+    inline bool update_children(OctreeNode* node, const DefaultMesh &mesh)
+    {
+        const float childSize = node->size / 2;
+        const int childHeight = node->height - 1;
+        bool hasChildren = false;
+        for (int i = 0; i < 8; ++i)
+        {
+            if (node->children[i] == nullptr)
+            {
+                OctreeNode* child = new OctreeNode(NODE_INTERNAL,
+                                                   node->min + (CHILD_MIN_OFFSETS[i] * childSize),
+                                                   childSize, childHeight, node);
+                node->children[i] = ConstructOctreeNodesFromOpenMesh(child, mesh);
+            }
+            else
+            {
+                node->children[i] = update_octree(node->children[i], mesh);
+            }
+            hasChildren |= (node->children[i] != nullptr);
+        }
+        return hasChildren;
     }
 
 }
