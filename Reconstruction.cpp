@@ -2,6 +2,7 @@
 // Created by Hallison da Paz on 03/10/2016.
 //
 
+#include <fstream>
 #include "Reconstruction.h"
 #include "Utils.h"
 #include "Constants.h"
@@ -185,6 +186,8 @@ namespace Fusion
                     if (vecsigns[c2] != MATERIAL_SOLID){
                         vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                     }
+                    vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                    vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
             }
             if (intersection_points.size() > 1) {
@@ -242,6 +245,24 @@ namespace Fusion
         {   //encode the signs to the corners variable to save memory
             corners |= (vecsigns[i] << i);
             updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
+        }
+
+        if (leaf->drawInfo->corners != corners){
+            std::ofstream signfile("../signs_bug.txt");
+            if (signfile.is_open()){
+                for (int i = 0; i < 8; ++i) {
+                    signfile << ((leaf->drawInfo->corners >> i) & 1);
+                }
+                signfile << " ";
+                for (int i = 0; i < 8; ++i) {
+                    signfile << ((corners >> i) & 1);
+                }
+                signfile << std::endl;
+            }
+            else {
+                std::cout << "XABU SIGNFILE" << std::endl;
+            }
+            signfile.close();
         }
 
         leaf->drawInfo->averageNormal += averageNormal;

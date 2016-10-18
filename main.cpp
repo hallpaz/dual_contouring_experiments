@@ -59,8 +59,8 @@ int main(int argc, char** argv)
 //    root = BuildOctreeFromMesh(minPoint, octreeSize, height, simpthreshold, testVertices, testIndices);
 //    root = BuildOctreeFromOpenMesh(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
-    std::vector<string> filenames { "../models/divided/esfera3.off", "../models/divided/esfera0.off", "../models/divided/esfera2.off", "../models/divided/esfera1.off"};
-//    std::vector<string> filenames {"../models/divided/sp4_right.off"};
+//    std::vector<string> filenames { "../models/divided/esfera3.off", "../models/divided/esfera0.off", "../models/divided/esfera2.off", "../models/divided/esfera1.off"};
+    std::vector<string> filenames {"../models/divided/sphere8.off"};
 //    std::vector<string> filenames {"../models/divided/sp4_left.off", "../models/divided/sp4_right.off"};
     root = Fusion::octree_from_samples(glm::vec3(bb_min[0], bb_min[1], bb_min[2]) - vec3(0.1), octreeSize+0.2/**1.1*/, height, filenames);
 

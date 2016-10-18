@@ -315,6 +315,9 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
+
+                vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
             }
         }
         if (intersection_points.size() > 1) {
