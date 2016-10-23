@@ -186,8 +186,8 @@ namespace Fusion
                     if (vecsigns[c2] != MATERIAL_SOLID){
                         vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                     }
-                    vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
-                    vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                    /*vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                    vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;*/
                 }
             }
             if (intersection_points.size() > 1) {
@@ -214,12 +214,21 @@ namespace Fusion
                     // they are on the opposite side of the surface
                     int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
                     nearindex = glm::distance(p1, intersection_points[nearindex]) < glm::distance(p1, intersection_points[2]) ? nearindex : 2;
-                    vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
+
+                    //vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
                     // they are on the same side of the surface. We must ignore the intersection
-                    vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                    //vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                     std::cout << "CHEGA MAIS" << std::endl;
                 }
             }
+
+
+            for (int j = 0; j < 8; ++j) {
+                const vec3 cube_vertex = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[j]);
+                vecsigns[j] = glm::length(cube_vertex) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+            }
+
+
             // if we consider that an intersection happened.
             if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2]))
             {   // we'll consider only the first intersection for now
@@ -239,12 +248,12 @@ namespace Fusion
         {   // can't delete leaf here, because other image constructed it
             return clean_node(leaf);
         }
-        updateSignsArray(vecsigns, 8);
+//        updateSignsArray(vecsigns, 8);
 
         for (size_t i = 0; i < 8; ++i)
         {   //encode the signs to the corners variable to save memory
             corners |= (vecsigns[i] << i);
-            updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
+  //          updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
         }
 
         if (leaf->drawInfo->corners != corners){
@@ -284,8 +293,10 @@ namespace Fusion
 
         OctreeNode* root = BuildOctreeFromOpenMesh(min, size, height, mesh);
         //root = SimplifyOctree(root, size/10);
+        float simpthreshold = size/100;
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
+            //root = SimplifyOctree(root, simpthreshold);
             DefaultMesh mesh;
             OpenMesh::IO::read_mesh(mesh, *s_it);
             mesh.request_vertex_status();

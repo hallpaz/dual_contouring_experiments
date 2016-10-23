@@ -316,8 +316,8 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                     vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
                 }
 
-                vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
-                vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                /*vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+                vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;*/
             }
         }
         if (intersection_points.size() > 1) {
@@ -349,6 +349,14 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 std::cout << "CHEGA MAIS" << std::endl;
             }
         }
+
+
+        for (int j = 0; j < 8; ++j) {
+            const vec3 cube_vertex = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[j]);
+            vecsigns[j] = glm::length(cube_vertex) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+        }
+
+
         // if we consider that an intersection happened.
         if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2]))
         {   // we'll consider only the first intersection for now
@@ -368,7 +376,9 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         delete leaf;
         return nullptr;
     }
-    updateSignsArray(vecsigns, 8);
+    //updateSignsArray(vecsigns, 8);
+
+
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
         corners |= (vecsigns[i] << i);
@@ -522,7 +532,8 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold)
         node->children[i] = nullptr;
     }
 
-    node->type = NODE_PSEUDO;
+    //node->type = NODE_PSEUDO;
+    node->type = NODE_LEAF;
     node->drawInfo = drawInfo;
 
     return node;
