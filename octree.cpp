@@ -215,7 +215,6 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
     select_inner_crossing_faces(node, mesh);
     if (node->innerFaces.empty() && node->crossingFaces.empty())
     {   //Empty space, no triangles crossing or inside this cell
-            //std::cout << "Empty space HERE!!" << std::endl;
         delete node;
         return nullptr;
     }
@@ -234,6 +233,14 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
     delete node;
     return nullptr;
 }
+
+
+int compute_test_sign(vec3 cube_vertex)
+{
+    int sign = glm::length(cube_vertex) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+    return sign;
+}
+
 
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh) {
     if (!leaf)
@@ -256,33 +263,19 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
         const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
         const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
 
-        //computes hash for edge
-        std::string edgehash = hashedge(p1, p2);
-        HermiteData edgedata;
-        if (OctreeNode::edgepool.count(edgehash) != 0){
-            // if edge data already exists, retrieve the data
-            edgedata = OctreeNode::edgepool[edgehash];
-            if (edgedata.hasIntersection()){
-//                averageNormal += edgedata.normal;
-//                qef.add(edgedata.intersection.x, edgedata.intersection.y, edgedata.intersection.z,
-//                        edgedata.normal.x, edgedata.normal.y, edgedata.normal.z);
-//                hasIntersection = true;
-                vecsigns[c1] = OctreeNode::vertexpool[hashvertex(p1)];
-                vecsigns[c2] = OctreeNode::vertexpool[hashvertex(p2)];
-                if (vecsigns[c1] == MATERIAL_UNKNOWN || vecsigns[c2] == MATERIAL_UNKNOWN)
-                {
-                    std::cout << "SIGNAL INCONSISTENCY FOR VERTICES IN INTERSECTION" << std::endl;
-                }
-//                vecsigns[c1] = computeSideOfPoint(p1, edgedata.intersection, edgedata.normal);
-//                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-            }
-            //continue;
+
+        int sign1 = compute_test_sign(p1);
+        int sign2 = compute_test_sign(p2);
+
+        vecsigns[c1] = sign1; vecsigns[c2] = sign2;
+
+        if (sign1 == sign2)
+        {
+            continue;
         }
 
         vec3 intersection;
-        std::vector<vec3> intersection_points;
-        std::vector<vec3> normals;
-        std::vector<vec3> face_normals;
+        std::vector<vec3> intersection_points, normals, face_normals;
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
             auto fv_it = mesh.cfv_iter(*face);
@@ -308,54 +301,14 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
                 normals.push_back(normal_at_intersection);
                 vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
                 face_normals.push_back(face_normal);
-
-                if (vecsigns[c1] != MATERIAL_SOLID/*vecsigns[c1] == MATERIAL_UNKNOWN*/){
-                    vecsigns[c1] = computeSideOfPoint(p1, intersection, face_normal);
-                }
-                if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
-                    vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-                }
-
-                /*vecsigns[c1] = glm::length(p1) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
-                vecsigns[c2] = glm::length(p2) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;*/
-            }
-        }
-        if (intersection_points.size() > 1) {
-//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
-            if (intersection_points.size()%2 == 0){
-//                int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
-//                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
-//                // they are on the same side of the surface. We must ignore the intersection
-//                vecsigns[c2] = vecsigns[c1];
-//                const float childSize = leaf->size / 2;
-//                const int childHeight = leaf->height - 1;
-//                std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
-
-                if (construct_children(leaf, mesh))
-                {
-                    leaf->type = NODE_INTERNAL;
-                    return clean_node(leaf);
-                }
-                delete leaf;
-                return nullptr;
-            }
-            else
-            {   // they are on the opposite side of the surface
-                int nearindex = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
-                nearindex = glm::distance(p1, intersection_points[nearindex]) < glm::distance(p1, intersection_points[2]) ? nearindex : 2;
-                vecsigns[c1] = computeSideOfPoint(p1, intersection_points[nearindex], face_normals[nearindex]);
-                // they are on the same side of the surface. We must ignore the intersection
-                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-                std::cout << "CHEGA MAIS" << std::endl;
             }
         }
 
-
+        //compute all signs
         for (int j = 0; j < 8; ++j) {
             const vec3 cube_vertex = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[j]);
-            vecsigns[j] = glm::length(cube_vertex) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
+            vecsigns[j] = compute_test_sign(cube_vertex);//glm::length(cube_vertex) < 8.0f ? MATERIAL_SOLID : MATERIAL_AIR;
         }
-
 
         // if we consider that an intersection happened.
         if ((intersection_points.size() > 0) && (vecsigns[c1] != vecsigns[c2]))
@@ -365,24 +318,29 @@ OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *leaf, const DefaultMesh &mesh)
             qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
             averageNormal += n;
             hasIntersection = true;
-            edgedata.intersection = intersection_points[0];
-            edgedata.normal = normals[0];
         }
-        OctreeNode::edgepool[edgehash] = edgedata;
     }
-
-    if (!hasIntersection)
-    {   // voxel is full inside or outside the volume
-        delete leaf;
-        return nullptr;
-    }
-    //updateSignsArray(vecsigns, 8);
-
 
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
         corners |= (vecsigns[i] << i);
-        updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
+        //updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
+    }
+
+    if (!hasIntersection)
+    {   // voxel is full inside or outside the volume
+        if (corners != 0 && corners != 255){
+            trace("should have intersected");
+            auto p = leaf->min + vec3(leaf->size/2, leaf->size/2, leaf->size/2);
+            auto n = vec3(0, 0, 1);
+            qef.add(p.x, p.y, p.z, n.x, n.y, n.z);
+            averageNormal = n;
+            hasIntersection = true;
+        }
+        else {
+            delete leaf;
+            return nullptr;
+        }
     }
 
     // DEBUG --------------------------------------------------------------------
