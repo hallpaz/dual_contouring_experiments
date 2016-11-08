@@ -12,10 +12,93 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0f209f5e-4a36-4e0a-9caf-e9262c60b0ba" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/all00.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/all_teddy.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/bitorus6_simplifyed.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/bitorus8_nosimpplification.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc3_cow_nosimp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4_cow_nosimp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4_cylinder.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4_teapot.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4_teddy_simplified.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4_vase10K.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc4sphre4_no_simplification.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc5_cow_nosimp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc5_teapot.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc5_teddy_simplified.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc5_vase7K.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc5sphere4_no_simplification.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc6_teddy.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc6_teddy_nosimp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc6teddysimp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/dc_cube.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/original00.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/reconstruído_sem_simplificação.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/sphere_poly512.08985.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/sphere_poly514_cracked.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/experiments/todos00.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/images/Screenshot from 2016-06-09 10:23:06.png" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/FlexPod1k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/abajour10k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/abajour_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/armchair.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/center.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/center_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/chair.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/chair_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/cylinder.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/cylinder_pg.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/demi_cylinder.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/far.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/far_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/fragment_sofa.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/full_sofa.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/mixed.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/newsofa.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/noise.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/normalizada8.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/notebook.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/shelf.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/shelf5k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/shelf_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa10k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa10ku.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa5k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa_better.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa_better_remeshed.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa_remeshed.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sofa_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere1.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere16_hard_simplif.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere2.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere4.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere8.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/sphere_piece.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/table.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/teapot.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/teapot_simp.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/terrain.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/tudo.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/unitsphere2.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/vase10k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/vase3k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/vase7k.off" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/models/vase_mesh_simp.off" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/filter_unique_signs.py" afterPath="$PROJECT_DIR$/scripts/filter_unique_signs.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/fixply.py" afterPath="$PROJECT_DIR$/scripts/fixply.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/bunny.off" afterPath="$PROJECT_DIR$/models/closed/bunny.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/cow.off" afterPath="$PROJECT_DIR$/models/closed/cow.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/cube.off" afterPath="$PROJECT_DIR$/models/analytic/cube.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/manequin.off" afterPath="$PROJECT_DIR$/models/closed/manequin.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/original/abajour.off" afterPath="$PROJECT_DIR$/models/dense/abajour.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/original/vase_mesh.off" afterPath="$PROJECT_DIR$/models/dense/vase_mesh.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/taubin.off" afterPath="$PROJECT_DIR$/models/border/taubin.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/teddy1596.off" afterPath="$PROJECT_DIR$/models/closed/teddy.off" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/models/wall.off" afterPath="$PROJECT_DIR$/models/border/wall.off" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Reconstruction.cpp" afterPath="$PROJECT_DIR$/Reconstruction.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/octree.cpp" afterPath="$PROJECT_DIR$/octree.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Tests.cpp" afterPath="$PROJECT_DIR$/Tests.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Tests.h" afterPath="$PROJECT_DIR$/Tests.h" />
     </list>
     <ignored path="dual_contouring_experiments.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -60,7 +143,7 @@
       <file leaf-file-name="Reconstruction.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Reconstruction.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-924">
+            <state relative-caret-position="3525">
               <caret line="235" column="39" selection-start-line="235" selection-start-column="39" selection-end-line="235" selection-end-column="39" />
               <folding>
                 <element signature="e#52#70#0" expanded="true" />
@@ -72,9 +155,33 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="70" column="161" selection-start-line="70" selection-start-column="161" selection-end-line="70" selection-end-column="161" />
+            <state relative-caret-position="255">
+              <caret line="25" column="32" selection-start-line="25" selection-start-column="32" selection-end-line="25" selection-end-column="32" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Tests.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Tests.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="225">
+              <caret line="15" column="143" selection-start-line="15" selection-start-column="143" selection-end-line="15" selection-end-column="143" />
+              <folding>
+                <element signature="e#141#165#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Tests.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Tests.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1485">
+              <caret line="102" column="23" selection-start-line="102" selection-start-column="23" selection-end-line="102" selection-end-column="23" />
+              <folding>
+                <element signature="e#52#70#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -87,26 +194,6 @@
               <folding>
                 <element signature="e#861#878#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="qef.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/qef.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="28" column="18" selection-start-line="28" selection-start-column="18" selection-end-line="28" selection-end-column="18" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="density.cpp" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/density.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1080">
-              <caret line="72" column="70" selection-start-line="72" selection-start-column="70" selection-end-line="72" selection-end-column="70" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -124,7 +211,7 @@
       <file leaf-file-name="octree.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/octree.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1389">
+            <state relative-caret-position="795">
               <caret line="326" column="62" selection-start-line="326" selection-start-column="62" selection-end-line="326" selection-end-column="62" />
               <folding>
                 <element signature="e#787#805#0" expanded="true" />
@@ -167,8 +254,6 @@
         <option value="$PROJECT_DIR$/DataStructures.h" />
         <option value="$PROJECT_DIR$/Constants.h" />
         <option value="$PROJECT_DIR$/qef.cpp" />
-        <option value="$PROJECT_DIR$/Tests.h" />
-        <option value="$PROJECT_DIR$/Tests.cpp" />
         <option value="$PROJECT_DIR$/Reconstruction.h" />
         <option value="$PROJECT_DIR$/Contouring.h" />
         <option value="$PROJECT_DIR$/Utils.h" />
@@ -178,6 +263,8 @@
         <option value="$PROJECT_DIR$/octree.cpp" />
         <option value="$PROJECT_DIR$/Reconstruction.cpp" />
         <option value="$PROJECT_DIR$/main.cpp" />
+        <option value="$PROJECT_DIR$/Tests.cpp" />
+        <option value="$PROJECT_DIR$/Tests.h" />
       </list>
     </option>
   </component>
@@ -475,35 +562,36 @@
       <workItem from="1476796979195" duration="5938000" />
       <workItem from="1477077684680" duration="10762000" />
       <workItem from="1477502272005" duration="3032000" />
+      <workItem from="1478533722362" duration="2406000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="129995000" />
+    <option name="totallyTimeSpent" value="132401000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.175" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38218054" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32919255" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32977587" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28216505" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25674093" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38218054" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25674093" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3270809" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -727,21 +815,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tests.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="13" column="88" selection-start-line="13" selection-start-column="88" selection-end-line="13" selection-end-column="88" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Tests.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="52" column="88" selection-start-line="52" selection-start-column="88" selection-end-line="52" selection-end-column="88" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/svd.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-975">
@@ -860,7 +933,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Reconstruction.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-924">
+        <state relative-caret-position="3525">
           <caret line="235" column="39" selection-start-line="235" selection-start-column="39" selection-end-line="235" selection-end-column="39" />
           <folding>
             <element signature="e#52#70#0" expanded="true" />
@@ -878,7 +951,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/octree.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1389">
+        <state relative-caret-position="795">
           <caret line="326" column="62" selection-start-line="326" selection-start-column="62" selection-end-line="326" selection-end-column="62" />
           <folding>
             <element signature="e#787#805#0" expanded="true" />
@@ -889,10 +962,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Tests.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1485">
+          <caret line="102" column="23" selection-start-line="102" selection-start-column="23" selection-end-line="102" selection-end-column="23" />
+          <folding>
+            <element signature="e#52#70#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Tests.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" column="143" selection-start-line="15" selection-start-column="143" selection-end-line="15" selection-end-column="143" />
+          <folding>
+            <element signature="e#141#165#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="70" column="161" selection-start-line="70" selection-start-column="161" selection-end-line="70" selection-end-column="161" />
+        <state relative-caret-position="255">
+          <caret line="25" column="32" selection-start-line="25" selection-start-column="32" selection-end-line="25" selection-end-column="32" />
           <folding />
         </state>
       </provider>
