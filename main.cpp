@@ -5,7 +5,7 @@
 #include "old/octree.h"
 
 #include "old/NormalsEstimator.h"
-#include "old/Reconstruction.h"
+#include "Reconstruction.h"
 #include "Contouring.h"
 #include "Octree.h"
 
@@ -33,6 +33,7 @@ int main(int argc, char** argv)
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
 
+    OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_low2.off");
     Octree sphere_octree(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
     VertexBuffer vertices;

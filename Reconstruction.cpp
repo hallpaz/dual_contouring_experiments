@@ -3,14 +3,14 @@
 //
 
 #include "Reconstruction.h"
-#include "../Utils.h"
-#include "../Constants.h"
-#include "NormalsEstimator.h"
+#include "Utils.h"
+#include "Constants.h"
+#include "old/NormalsEstimator.h"
 
 using glm::vec3;
 
 using std::string;
-/*
+
 namespace Fusion
 {
 
@@ -18,7 +18,7 @@ namespace Fusion
     inline bool update_children(OctreeNode* node, const DefaultMesh &mesh);
 
 
-    OctreeNode* update_octree(OctreeNode *node, const DefaultMesh &mesh)
+    OctreeNode* update_octree(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh)
     {
         //std::cout << "update_octree" << std::endl;
         if (!node)
@@ -58,9 +58,9 @@ namespace Fusion
 //            }
             // case 3
             if (crossing_is_empty) {
-                if (node->depth > 0)
+                if (node->depth < max_depth)
                 {
-                    hasChildren = construct_children(node, mesh);
+                    hasChildren = node->construct_children(max_depth, mesh);
                     if (hasChildren)
                     {
                         node->type = NODE_INTERNAL;
@@ -72,7 +72,7 @@ namespace Fusion
             if (!crossing_is_empty && inner_is_empty) {
                 if (node->depth > 0 && ! node->parent->innerFaces.empty())
                 {
-                    hasChildren = construct_children(node, mesh);
+                    hasChildren = node->construct_children(max_depth, mesh);
                     if (hasChildren)
                     {
                         node->type = NODE_INTERNAL;
@@ -85,7 +85,7 @@ namespace Fusion
             //case 6
             if (!crossing_is_empty && !inner_is_empty) {
                 if (node->depth > 0) {
-                    hasChildren = construct_children(node, mesh);
+                    hasChildren = node->construct_children(max_depth, mesh);
                     if (hasChildren)
                     {
                         node->type = NODE_INTERNAL;
@@ -108,22 +108,13 @@ namespace Fusion
             return nullptr;
         }
         trace("update_leaf");
-        //std::cout << "Leaf depth: " << leaf->depth << std::endl;
         // otherwise the voxel contains the surface, so find the edge intersections
         vec3 averageNormal(0.f);
         svd::QefSolver qef;
         bool hasIntersection = false;
         //int corners = leaf->drawInfo->corners;
         int corners = 0;
-        //int vecsigns[8];
-        /*for (int j = 0; j < 8; ++j) { //we'll begin from the already known corner
-            vecsigns[j] = (corners >> j) & 1;
-        }*/
-        //vertices classification
-        //TODO: first we'll try to "merge" both signs using logical operations. if it doens't work, we'll have to figure out a way to update sign by sign
-        /*int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
-                           MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-
+        
         for (int i = 0; i < 12; ++i) //for each edge
         {
             const int c1 = edgevmap[i][0];
@@ -306,5 +297,3 @@ namespace Fusion
     }
 
 }
-
-*/

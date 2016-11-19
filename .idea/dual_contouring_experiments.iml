@@ -16,13 +16,13 @@
       <sourceFolder url="file://$MODULE_DIR$/old/qef.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/Tests.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/octree.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/old/Reconstruction.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Reconstruction.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/svd.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/Tests.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/svd.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/octree.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/NormalsEstimator.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/old/Reconstruction.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Reconstruction.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/old/qef.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Octree.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/density.cpp" isTestSource="false" />

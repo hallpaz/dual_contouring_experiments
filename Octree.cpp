@@ -37,7 +37,7 @@ Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &me
 {
     root = new OctreeNode(NODE_INTERNAL, min, size, 0);
     BuildMeshHierarchy(root, max_depth, mesh);
-    vec3 cam_origin(0, 0, -8);
+    vec3 cam_origin(0, -8, 0);
     classify_leaves_vertices(cam_origin, this->root, mesh);
 }
 
@@ -84,6 +84,7 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
         std::ofstream interiorfile, exteriorfile;
         interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
         exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
+        node->drawInfo = new OctreeDrawInfo();
         for (int i = 0; i < NUM_CHILDREN; ++i)
         {
             vec3 cell_vertex = node->get_vertex(i);
@@ -108,7 +109,6 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
                     exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
                 }
             }
-            node->drawInfo = new OctreeDrawInfo();
             node->drawInfo->corners |= (leafvertexpool[vertex_hash] << i);
         }
         interiorfile.close();
