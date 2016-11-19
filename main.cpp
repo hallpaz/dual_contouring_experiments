@@ -35,9 +35,13 @@ int main(int argc, char** argv)
 
     Octree sphere_octree(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize*1.1, height, myMesh);
 
+    VertexBuffer vertices;
+    IndexBuffer indices;
+    GenerateMeshFromOctree(sphere_octree.root, vertices, indices);
+
     std::stringstream filepath;
     filepath << folder_name << outputfilename << height << ".off";
-    //write_OFF(filepath.str(), vertices, indices);
+    write_OFF(filepath.str(), vertices, indices);
     return EXIT_SUCCESS;
 }
 

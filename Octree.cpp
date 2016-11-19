@@ -167,25 +167,29 @@ bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real siz
 }
 
 
-int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh, std::list<DefaultMesh::FaceHandle> &facelist)
+int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh,
+                           std::list<DefaultMesh::FaceHandle> &facelist, std::unordered_map<int, bool> &visited_triangles)
 {
     int num_intersections = 0;
     std::vector<vec3> intersections;
     for (std::list<DefaultMesh::FaceHandle>::iterator face = facelist.begin(); face != facelist.end(); ++face){
-        auto fv_it = mesh.cfv_iter(*face);
-        DefaultMesh::VertexHandle a = *fv_it;
-        DefaultMesh::VertexHandle b = *(++fv_it);
-        DefaultMesh::VertexHandle c = *(++fv_it);
+        if (visited_triangles.count(face->idx()) == 0){
+            auto fv_it = mesh.cfv_iter(*face);
+            DefaultMesh::VertexHandle a = *fv_it;
+            DefaultMesh::VertexHandle b = *(++fv_it);
+            DefaultMesh::VertexHandle c = *(++fv_it);
 
-        vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-        Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
 
-        vec3 intersection;
+            vec3 intersection;
 
-        if (moller_triangle_intersection(origin, dest, vertices, intersection)) {
-            //keeps the intersection here
-            intersections.push_back(intersection);
-            ++num_intersections;
+            if (moller_triangle_intersection(origin, dest, vertices, intersection)) {
+                //keeps the intersection here
+                intersections.push_back(intersection);
+                ++num_intersections;
+            }
+            visited_triangles[face->idx()] = true;
         }
     }
     /*if (num_intersections > 1){
@@ -197,7 +201,7 @@ int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, Default
     return num_intersections;
 }
 
-int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh)
+int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh, std::unordered_map<int, bool> &visited_triangles)
 {
     if (root == nullptr){
         return 0;
@@ -208,14 +212,14 @@ int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* ro
     if (intersectRayBox(cam_origin, vertex, root->min, root->size, t, intersection)){
         if (root->type == NODE_LEAF)
         {
-            //num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->crossingFaces);
-            num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->innerFaces);
+            num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->crossingFaces, visited_triangles);
+            num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->innerFaces, visited_triangles);
         }
         else
         {
             for (int i = 0; i < NUM_CHILDREN; ++i)
             {
-                num_intersections += ray_mesh_intersection(cam_origin, vertex, root->children[i], mesh);
+                num_intersections += ray_mesh_intersection(cam_origin, vertex, root->children[i], mesh, visited_triangles);
             }
         }
     }
@@ -224,7 +228,8 @@ int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* ro
 
 int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh)
 {
-    int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh);
+    std::unordered_map<int, bool> visited_triangles;
+    int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
     if (num_intersections > 2){
         std::cout << "intersections: " << num_intersections << std::endl;
     }

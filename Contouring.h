@@ -5,10 +5,10 @@
 #ifndef DUAL_CONTOURING_EXPERIMENTS_CONTOURING_H
 #define DUAL_CONTOURING_EXPERIMENTS_CONTOURING_H
 
-#include "old/octree.h"
+#include "Octree.h"
 
 
-//void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
+void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
 
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_CONTOURING_H
