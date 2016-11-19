@@ -55,6 +55,8 @@ glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec);
 
 int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal);
 
+int ray_mesh_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh);
+
 void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
 
 void updateSignsArray(int *vecsigns, int size);

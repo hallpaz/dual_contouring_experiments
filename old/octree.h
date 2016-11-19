@@ -29,9 +29,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "qef.h"
 
-#include "glm/glm.hpp"
-#include "DataStructures.h"
-#include "Constants.h"
+#include "../glm/glm.hpp"
+#include "../DataStructures.h"
+#include "../Constants.h"
 
 // ----------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ struct OctreeDrawInfo
     svd::QefData qef;
 };
 
-struct HermiteData
+/*struct HermiteData
 {
     glm::vec3 intersection;
     glm::vec3 normal;
@@ -84,7 +84,7 @@ public:
             : type(type)
             , min(min)
             , size(size)
-            , height(height)
+            , depth(height)
             , drawInfo(nullptr)
             , parent(parent)
     {
@@ -98,7 +98,7 @@ public:
             : type(NODE_NONE)
             , min(0, 0, 0)
             , size(0)
-            , height(0)
+            , depth(0)
             , drawInfo(nullptr)
             , parent(nullptr)
     {
@@ -112,7 +112,7 @@ public:
             : type(_type)
             , min(0, 0, 0)
             , size(0)
-            , height(0)
+            , depth(0)
             , drawInfo(nullptr)
             , parent(nullptr)
     {
@@ -127,7 +127,7 @@ public:
     OctreeNodeType	type;
     glm::vec3		min;
     float			size;
-    int             height;
+    int             depth;
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
@@ -147,7 +147,7 @@ public:
 OctreeNode* BuildOctree(const glm::vec3& min, const float size, const int height, const float threshold);
 OctreeNode* BuildOctreeFromOpenMesh(const glm::vec3& min, const float size, const int height, const DefaultMesh &mesh);
 
-/* OPENMESH */
+/* OPENMESH
 OctreeNode *ConstructOctreeNodesFromOpenMesh(OctreeNode *pNode, const DefaultMesh &mesh);
 OctreeNode *ConstructLeafFromOpenMesh(OctreeNode *node, const DefaultMesh &mesh);
 OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
@@ -157,7 +157,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 inline bool construct_children(OctreeNode* node, const DefaultMesh &mesh)
 {
     const float childSize = node->size / 2;
-    const int childHeight = node->height - 1;
+    const int childHeight = node->depth - 1;
     bool hasChildren = false;
     for (int i = 0; i < 8; i++)
     {
@@ -177,7 +177,7 @@ inline OctreeNode* clean_node(OctreeNode* node)
     node->innerFaces.clear();
     node->crossingFaces.clear();
     return node;
-}
+}*/
 
 // ----------------------------------------------------------------------------
 

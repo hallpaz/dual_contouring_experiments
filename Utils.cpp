@@ -11,7 +11,7 @@
 #include "glm/ext.hpp"
 
 #include "density.h"
-#include "octree.h"
+#include "Octree.h"
 
 using glm::vec3;
 
@@ -20,6 +20,7 @@ using glm::vec3;
 
 void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh)
 {
+    //trace("divide face by location");
     auto f_it = facesList.begin();
     //parent's inner triangles
     while(f_it != facesList.end())
@@ -33,12 +34,12 @@ void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> 
         switch (triangleRelativePosition(mesh, *f_it, node->min, node->size))
         {
             case INSIDE:
-                node->innerFaces.push_back(*f_it);
+                node/*->meshInfo*/->innerFaces.push_back(*f_it);
                 /*If the triangle is located inside the cell, we remove it from the cell's parent list*/
                 f_it = facesList.erase(f_it);
                 break;
             case CROSSING:
-                node->crossingFaces.push_back(*f_it);
+                node/*->meshInfo*/->crossingFaces.push_back(*f_it);
                 /*If the triangle might cross the cell, we can't remove it from the cell's parent list
                  * because it might cross other cells as well*/
                 ++f_it;
@@ -53,16 +54,17 @@ void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> 
 
 void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
 {
+    //trace("select inner crossing");
     if (node->parent != nullptr)
     {
-        divideFacesByLocation(node, node->parent->innerFaces, mesh); //parent's inner triangles
-        divideFacesByLocation(node, node->parent->crossingFaces, mesh); //parent's crossing triangles
+        divideFacesByLocation(node, node->parent/*->meshInfo*/->innerFaces, mesh); //parent's inner triangles
+        divideFacesByLocation(node, node->parent/*->meshInfo*/->crossingFaces, mesh); //parent's crossing triangles
     }
     else
     {   //initializes the parent list with all triangles
         for (auto f_it = mesh.faces_begin(); f_it != mesh.faces_end(); ++f_it)
         {
-            node->innerFaces.push_back(*f_it);
+            node/*->meshInfo*/->innerFaces.push_back(*f_it);
         }
     }
 }
@@ -373,6 +375,7 @@ vec3 CalculateSurfaceNormal(const vec3& p)
 }
 // ----------------------------------------------------------------------------
 RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle, glm::vec3 min, float size) {
+    //trace("triangle relative position");
     vec3 max = min + size*CHILD_MIN_OFFSETS[7];
 
     DefaultMesh::FaceVertexIter fv_it = mesh.cfv_iter(faceHandle);
@@ -420,9 +423,11 @@ RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const Default
 // -------------------------------------------------------------------------------
 RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle, glm::vec3 min, float size) {
     /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
-    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
 
+    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
+    //trace("vertex relative position");
     DefaultMesh::Point vertex = mesh.point(vertexHandle);
+    //trace("xabu?");
     if ((vertex[0] > min.x) && (vertex[0] < maxvertex.x)
         && (vertex[1] > min.y) && (vertex[1] < maxvertex.y)
         && (vertex[2] > min.z) && (vertex[2] < maxvertex.z)) {
@@ -497,86 +502,20 @@ glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
     return glm::make_vec3(&om_vec[0]);
 }
 
+// -------------------------------------------------------------------------------
 
-/*if (mesh.is_boundary(*face))
-                {
-                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-                    {
-                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
-                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-                        DefaultMesh::Normal planeNormal;
-                        if (mesh.is_boundary(*fh_iter))
-                        {
-                            planeNormal =  edge % faceNormal;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-                        if (mesh.is_boundary(opposite_halfedge))
-                        {
-                            planeNormal = faceNormal % edge;
-                            //planeNormal.normalize();
-                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                        }
-                    }
-                }
-
-                for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-                {
-                    DefaultMesh::Normal faceNormal;
-                    DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-                    DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-                    DefaultMesh::Normal planeNormal;
-                    float dihedral_angle = mesh.calc_dihedral_angle(*fh_iter);
-                    if (!mesh.is_boundary(*fh_iter) && dihedral_angle > 2*M_PI/3)
-                    {
-                        faceNormal = mesh.normal(*face);
-                        planeNormal =  edge % faceNormal;
-                        //planeNormal.normalize();
-                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                    }
-                    DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-                    if (!mesh.is_boundary(opposite_halfedge) && dihedral_angle > 2*M_PI/3)
-                    {
-                        faceNormal = mesh.normal(mesh.face_handle(opposite_halfedge));
-                        planeNormal = faceNormal % edge;
-                        //planeNormal.normalize();
-                        featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-                    }
-                }*/
-
-//                if (mesh.is_boundary(*face))
-//                {
-//                    for (auto fh_iter = mesh.cfh_iter(*face); fh_iter.is_valid(); ++fh_iter)
-//                    {
-//                        DefaultMesh::Normal faceNormal = mesh.normal(*face);
-//                        DefaultMesh::Point middle_point = (mesh.point(mesh.to_vertex_handle(*fh_iter)) + mesh.point(mesh.from_vertex_handle((*fh_iter))))/2;;
-//                        DefaultMesh::Point edge = mesh.point(mesh.to_vertex_handle(*fh_iter)) - mesh.point(mesh.from_vertex_handle((*fh_iter)));
-//                        DefaultMesh::Normal planeNormal;
-//                        if (mesh.is_boundary(*fh_iter))
-//                        {
-//                            planeNormal =  edge % faceNormal;
-//                            //planeNormal.normalize();
-//                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                        }
-//                        DefaultMesh::HalfedgeHandle opposite_halfedge = mesh.opposite_halfedge_handle(*fh_iter);
-//                        if (mesh.is_boundary(opposite_halfedge))
-//                        {
-//                            planeNormal = faceNormal % edge;
-//                            //planeNormal.normalize();
-//                            featureQef.add(middle_point[0], middle_point[1], middle_point[2], planeNormal[0], planeNormal[1], planeNormal[2]);
-//                        }
-//                    }
-//                }
+bool ray_box_overlap(const glm::vec3 origin, const glm::vec3 dest, const glm::vec3 min, const float size){
+    //TODO: implement
+    return true;
+}
 
 //// DEBUG ------------------------------------------------------
 //if (node->innerFaces.size() > 0)
 //{
-//std::cout << "On Height Size: " << node->height << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
+//std::cout << "On Height Size: " << node->depth << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
 //}
 //if (node->crossingFaces.size() > 0)
 //{
-//std::cout << "On Height: " << node->height << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
+//std::cout << "On Height: " << node->depth << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
 //}
 //// DEBUG ------------------------------------------------------ //

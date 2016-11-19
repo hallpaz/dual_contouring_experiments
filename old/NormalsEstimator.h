@@ -5,7 +5,7 @@
 #ifndef DUAL_CONTOURING_EXPERIMENTS_NORMALSESTIMATOR_H
 #define DUAL_CONTOURING_EXPERIMENTS_NORMALSESTIMATOR_H
 
-#include "DataStructures.h"
+#include "../DataStructures.h"
 // -------------------------------------------
 
 #include <string>

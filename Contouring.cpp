@@ -6,7 +6,7 @@
 #include "Constants.h"
 
 #include "glm/glm.hpp"
-
+/*
 using glm::vec3;
 
 
@@ -60,7 +60,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         }
 
         d->index = vertexBuffer.size();
-        d->averageNormal = glm::normalize(d->averageNormal);
+        /*d->averageNormal = glm::normalize(d->averageNormal);
         svd::Vec3 qefPosition;
         svd::QefSolver qef;
         qef.setData(d->qef);
@@ -75,7 +75,10 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         {
             const auto& mp = qef.getMassPoint();
             d->position = vec3(mp.x, mp.y, mp.z);
-        }
+        }*/
+        //EVERY POINT IN THE MIDDLE OF THE CELL
+        /*d->position = vec3(node->min + vec3(node->size/2));
+        // ----------------------------------------------
         vertexBuffer.push_back(Vertex(d->position));
     }
 }
@@ -159,7 +162,7 @@ void ContourEdgeProc(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 
             for (int j = 0; j < 4; j++)
             {
-                if (node[j]->type != NODE_INTERNAL/*node[j]->type == NODE_LEAF || node[j]->type == NODE_PSEUDO*/)
+                if (node[j]->type != NODE_INTERNAL/*node[j]->type == NODE_LEAF || node[j]->type == NODE_PSEUDO*//*)
                 {
                     edgeNodes[j] = node[j];
                 }
@@ -229,7 +232,7 @@ void ContourFaceProc(OctreeNode* node[2], int dir, IndexBuffer& indexBuffer)
             const int* order = orders[faceProcEdgeMask[dir][i][0]];
             for (int j = 0; j < 4; j++)
             {
-                if (node[order[j]]->type != NODE_INTERNAL/*node[order[j]]->type == NODE_LEAF || node[order[j]]->type == NODE_PSEUDO*/)
+                if (node[order[j]]->type != NODE_INTERNAL/*node[order[j]]->type == NODE_LEAF || node[order[j]]->type == NODE_PSEUDO*//*)
                 {
                     edgeNodes[j] = node[order[j]];
                 }
@@ -290,4 +293,4 @@ void ContourCellProc(OctreeNode* node, IndexBuffer& indexBuffer)
             ContourEdgeProc(edgeNodes, cellProcEdgeMask[i][4], indexBuffer);
         }
     }
-}
+}*/

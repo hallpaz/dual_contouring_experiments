@@ -25,11 +25,15 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include "glm/glm.hpp"
 
+
+typedef float Real;
 // ----------------------------------------------------------------------------
 
 const int MATERIAL_AIR = 0;
 const int MATERIAL_SOLID = 1;
 const int MATERIAL_UNKNOWN = -1;
+const unsigned short NUM_CHILDREN = 8;
+const Real EPSILON = 1e-5f;
 
 const float QEF_ERROR = 1e-6f;
 const int QEF_SWEEPS = 4;

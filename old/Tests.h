@@ -8,11 +8,11 @@
 #include <unordered_map>
 #include "octree.h"
 
-class Tests {
+/*class Tests {
 public:
     static bool validate_cells_signs(OctreeNode *node, std::unordered_map<std::string, int> &vertexpool, int &num_incorrect);
     static bool validate_vertices_map(std::unordered_map<std::string, int> &vertexpool);
-};
+};*/
 
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_TESTS_H

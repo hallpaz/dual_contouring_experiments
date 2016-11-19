@@ -3,14 +3,14 @@
 //
 
 #include "Reconstruction.h"
-#include "Utils.h"
-#include "Constants.h"
+#include "../Utils.h"
+#include "../Constants.h"
 #include "NormalsEstimator.h"
 
 using glm::vec3;
 
 using std::string;
-
+/*
 namespace Fusion
 {
 
@@ -39,7 +39,7 @@ namespace Fusion
         bool hasChildren = false;
         if (node->type == NODE_LEAF)
         {
-//            if (node->height > 0 && ! node->parent->innerFaces.empty())
+//            if (node->depth > 0 && ! node->parent->innerFaces.empty())
 //            {
 //                hasChildren = construct_children(node, mesh);
 //                if (hasChildren)
@@ -58,7 +58,7 @@ namespace Fusion
 //            }
             // case 3
             if (crossing_is_empty) {
-                if (node->height > 0)
+                if (node->depth > 0)
                 {
                     hasChildren = construct_children(node, mesh);
                     if (hasChildren)
@@ -70,7 +70,7 @@ namespace Fusion
             }
             //case 4
             if (!crossing_is_empty && inner_is_empty) {
-                if (node->height > 0 && ! node->parent->innerFaces.empty())
+                if (node->depth > 0 && ! node->parent->innerFaces.empty())
                 {
                     hasChildren = construct_children(node, mesh);
                     if (hasChildren)
@@ -84,7 +84,7 @@ namespace Fusion
             }
             //case 6
             if (!crossing_is_empty && !inner_is_empty) {
-                if (node->height > 0) {
+                if (node->depth > 0) {
                     hasChildren = construct_children(node, mesh);
                     if (hasChildren)
                     {
@@ -108,7 +108,7 @@ namespace Fusion
             return nullptr;
         }
         trace("update_leaf");
-        //std::cout << "Leaf height: " << leaf->height << std::endl;
+        //std::cout << "Leaf depth: " << leaf->depth << std::endl;
         // otherwise the voxel contains the surface, so find the edge intersections
         vec3 averageNormal(0.f);
         svd::QefSolver qef;
@@ -121,7 +121,7 @@ namespace Fusion
         }*/
         //vertices classification
         //TODO: first we'll try to "merge" both signs using logical operations. if it doens't work, we'll have to figure out a way to update sign by sign
-        int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+        /*int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                            MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
 
         for (int i = 0; i < 12; ++i) //for each edge
@@ -192,7 +192,7 @@ namespace Fusion
                 if (intersection_points.size()%2 == 0)
                 {
                     const float childSize = leaf->size / 2;
-                    const int childHeight = leaf->height - 1;
+                    const int childHeight = leaf->depth - 1;
                     leaf->type = NODE_INTERNAL;
                     std::cout << intersection_points.size() << " Child Height: " << childHeight << " Child Size: " << childSize << std:: endl;
                     bool hasChildren = construct_children(leaf, mesh);
@@ -285,7 +285,7 @@ namespace Fusion
     inline bool update_children(OctreeNode* node, const DefaultMesh &mesh)
     {
         const float childSize = node->size / 2;
-        const int childHeight = node->height - 1;
+        const int childHeight = node->depth - 1;
         bool hasChildren = false;
         for (int i = 0; i < 8; ++i)
         {
@@ -307,3 +307,4 @@ namespace Fusion
 
 }
 
+*/

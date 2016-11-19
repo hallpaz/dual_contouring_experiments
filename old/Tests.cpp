@@ -3,13 +3,13 @@
 //
 
 #include "Tests.h"
-#include "Constants.h"
-#include "Utils.h"
-#include "glm/glm.hpp"
+#include "../Constants.h"
+#include "../Utils.h"
+#include "../glm/glm.hpp"
 
 using glm::vec3;
 using std::string;
-
+/*
 bool Tests::validate_cells_signs(OctreeNode *node, std::unordered_map<std::string, int> &vertexpool, int &num_incorrect)
 {
     if (node == nullptr)
@@ -75,4 +75,4 @@ bool Tests::validate_vertices_map(std::unordered_map<std::string, int> &vertexpo
     std::cout << "Total Signs: " << vertexpool.size() << "| Number of Invalid Signs: " << invalids << std::endl;
     if (invalids == 0) return true;
     return false;
-}
+}*/
