@@ -33,11 +33,10 @@ bool OctreeNode::construct_children(unsigned int max_depth, const DefaultMesh &m
     return hasChildren;
 }
 
-Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh)
+Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, vec3 cam_origin)
 {
     root = new OctreeNode(NODE_INTERNAL, min, size, 0);
     BuildMeshHierarchy(root, max_depth, mesh);
-    vec3 cam_origin(0, -8, 0);
     classify_leaves_vertices(cam_origin, this->root, mesh);
 }
 
@@ -84,7 +83,10 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
         std::ofstream interiorfile, exteriorfile;
         interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
         exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
-        node->drawInfo = new OctreeDrawInfo();
+        if (node->drawInfo == nullptr){
+            node->drawInfo = new OctreeDrawInfo();
+        }
+        int corners = 0;
         for (int i = 0; i < NUM_CHILDREN; ++i)
         {
             vec3 cell_vertex = node->get_vertex(i);
@@ -109,10 +111,11 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
                     exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
                 }
             }
-            node->drawInfo->corners |= (leafvertexpool[vertex_hash] << i);
+            corners |= (leafvertexpool[vertex_hash] << i);
         }
         interiorfile.close();
         exteriorfile.close();
+        node->drawInfo->corners &= corners;
         // DEBUG --------------------------------------------------------------------//
     }
     else
@@ -230,10 +233,10 @@ int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, De
 {
     std::unordered_map<int, bool> visited_triangles;
     int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
-    if (num_intersections > 2){
+    if (num_intersections >= 2){
         std::cout << "intersections: " << num_intersections << std::endl;
     }
-    if (num_intersections%2 == 1)
+    if (/*num_intersections%2 == 1*/num_intersections > 0)
     {
         return MATERIAL_SOLID;
     }

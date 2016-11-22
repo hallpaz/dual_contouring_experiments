@@ -55,6 +55,7 @@ void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> 
 void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
 {
     //trace("select inner crossing");
+    node->clean();
     if (node->parent != nullptr)
     {
         divideFacesByLocation(node, node->parent/*->meshInfo*/->innerFaces, mesh); //parent's inner triangles

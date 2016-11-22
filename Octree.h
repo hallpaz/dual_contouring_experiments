@@ -55,6 +55,8 @@ public:
 
     void clean()
     {
+        crossingFaces.clear();
+        innerFaces.clear();
         /*delete meshInfo;
         meshInfo = nullptr;*/
     }
@@ -99,7 +101,7 @@ class Octree {
 public:
 
     OctreeNode *root;
-    Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh);
+    Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, glm::vec3 cam_origin);
     void classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh);
     static OctreeNode *BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
 

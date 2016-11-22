@@ -77,7 +77,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             d->position = vec3(mp.x, mp.y, mp.z);
         }*/
         //EVERY POINT IN THE MIDDLE OF THE CELL
-        d->position = vec3(node->min + vec3(node->size/2));
+        d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
         // ----------------------------------------------
         vertexBuffer.push_back(Vertex(d->position));
     }

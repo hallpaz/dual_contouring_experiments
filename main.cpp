@@ -21,6 +21,7 @@ Real compute_boundingbox(DefaultMesh &mesh, DefaultMesh::Point &bb_min);
 int main(int argc, char** argv)
 {
     const int height = 9;
+    const int dist = 8;
 
     string folder_name = "../";
     string inputfilename, outputfilename;
@@ -33,12 +34,18 @@ int main(int argc, char** argv)
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
 
-    OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_low2.off");
-    Octree sphere_octree(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize*1.1, height, myMesh);
+    //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_low2.off");
+    //Octree sphere_octree(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize*1.1, height, myMesh);
+    std::vector<std::string> filenames = {"../models/analytic/sphere_lowPZ.off", "../models/analytic/sphere_lowPX.off",
+                                          "../models/analytic/sphere_lowMX.off", "../models/analytic/sphere_lowMZ.off"};
+    std::vector<vec3> cameras = {vec3(0, 0, dist), vec3(dist, 0, 0), vec3(-dist, 0, 0), vec3(0, 0, -dist)};
+    //std::vector<std::string> filenames = { "../models/analytic/sphere_lowpoly.off"};
+    OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize * 1.1, height,
+                                                   filenames, cameras);
 
     VertexBuffer vertices;
     IndexBuffer indices;
-    GenerateMeshFromOctree(sphere_octree.root, vertices, indices);
+    GenerateMeshFromOctree(/*sphere_octree.*/root, vertices, indices);
 
     std::stringstream filepath;
     filepath << folder_name << outputfilename << height << ".off";
