@@ -49,7 +49,7 @@ struct OctreeDrawInfo
 {
     OctreeDrawInfo()
             : index(-1)
-            , corners(255)
+            , corners(0)
     {
     }
 

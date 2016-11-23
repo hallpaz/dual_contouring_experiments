@@ -80,9 +80,7 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
     if (node->type == NODE_LEAF)
     {
         //trace("leaf");
-        std::ofstream interiorfile, exteriorfile;
-        interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
-        exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
+
         if (node->drawInfo == nullptr){
             node->drawInfo = new OctreeDrawInfo();
         }
@@ -96,27 +94,11 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
                 //trace("updating pool");
                 int sign = classify_vertex(cam_origin, cell_vertex, this->root, mesh);
                 leafvertexpool[vertex_hash] = sign;
-                // DEBUG --------------------------------------------------------------------
-                const vec3 cornerPos = node->min + CHILD_MIN_OFFSETS[i]*node->size;
-                if (sign == MATERIAL_SOLID) {
-                    interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
-                }
 
-                if (sign == MATERIAL_AIR) {
-                    exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
-                }
-
-                if (sign == MATERIAL_UNKNOWN) {
-                    interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
-                    exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
-                }
             }
             corners |= (leafvertexpool[vertex_hash] << i);
         }
-        interiorfile.close();
-        exteriorfile.close();
-        node->drawInfo->corners &= corners;
-        // DEBUG --------------------------------------------------------------------//
+        node->drawInfo->corners |= corners;
     }
     else
     {

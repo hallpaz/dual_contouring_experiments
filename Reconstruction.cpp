@@ -37,7 +37,7 @@ namespace Fusion
         const float childSize = node->size / 2;
         const int childDepth = node->depth + 1;
         bool hasChildren = false;
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < NUM_CHILDREN; ++i)
         {
             if (node->children[i] == nullptr)
             {
@@ -76,6 +76,11 @@ namespace Fusion
             else {
                 return node;
             }*/
+            for (int i = 0; i < NUM_CHILDREN; ++i) {
+                std::string vertex_hash = hashvertex(node->get_vertex(i));
+                if (Octree::leafvertexpool.count(vertex_hash) == 0)
+                    Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
+            }
             return node;
         }
 

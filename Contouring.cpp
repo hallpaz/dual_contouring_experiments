@@ -2,6 +2,7 @@
 // Created by Hallison da Paz on 02/09/2016.
 //
 
+#include <fstream>
 #include "Contouring.h"
 #include "Constants.h"
 
@@ -77,9 +78,36 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             d->position = vec3(mp.x, mp.y, mp.z);
         }*/
         //EVERY POINT IN THE MIDDLE OF THE CELL
-        d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
+        d->position = vec3(node->min + vec3(node->size/2));
+        //d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
         // ----------------------------------------------
         vertexBuffer.push_back(Vertex(d->position));
+
+        // DEBUG --------------------------------------------------------------------
+        std::ofstream interiorfile, exteriorfile;
+        interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
+        exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
+        for (int i = 0; i < 8; ++i) {
+            const vec3 cornerPos = node->get_vertex(i);
+            int sign = (node->drawInfo->corners >> i) & 1;
+            if (sign == MATERIAL_SOLID) {
+                interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+            }
+
+            if (sign == MATERIAL_AIR) {
+                exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+            }
+
+            if (sign == MATERIAL_UNKNOWN) {
+                interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+                exteriorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+            }
+
+        }
+        interiorfile.close();
+        exteriorfile.close();
+        // DEBUG --------------------------------------------------------------------//
+
     }
 }
 
