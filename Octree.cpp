@@ -27,6 +27,8 @@ bool OctreeNode::construct_children(unsigned int max_depth, const DefaultMesh &m
                                            childSize,
                                            childHeight,
                                            this);
+        //TODO: check if this is error prone. Seems to not be
+        //child->drawInfo = this->drawInfo;
         this->children[i] = Octree::BuildMeshHierarchy(child, max_depth, mesh);
         hasChildren |= (this->children[i] != nullptr);
     }
@@ -55,13 +57,13 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
     }
     if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
     {
-        node->type = NODE_LEAF;
+        /*node->type = NODE_LEAF;
         for (int i = 0; i < NUM_CHILDREN; ++i) {
             std::string vertex_hash = hashvertex(node->get_vertex(i));
             if (leafvertexpool.count(vertex_hash) == 0)
                 leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-        }
-        return node;
+        }*/
+        return ConstructLeaf(node, max_depth, mesh);
     }
     if (node->construct_children(max_depth, mesh))
     {
@@ -70,6 +72,104 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
 
     delete node;
     return nullptr;
+}
+
+OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh) {
+    if (!leaf)
+    {
+        std::cout << "Trying to construct a leaf in the middle" << std::endl;
+        return nullptr;
+    }
+
+    // otherwise the voxel contains the surface, so find the edge intersections
+    vec3 averageNormal(0.f);
+    svd::QefSolver qef;
+    bool hasIntersection = false;
+    //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
+    for (int i = 0; i < 12; ++i) //for each edge
+    {
+        const int c1 = edgevmap[i][0];
+        const int c2 = edgevmap[i][1];
+        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
+        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+
+        vec3 intersection;
+        std::vector<vec3> intersection_points, normals;//, face_normals;
+        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
+        {
+            auto fv_it = mesh.cfv_iter(*face);
+            DefaultMesh::VertexHandle a = *fv_it;
+            DefaultMesh::VertexHandle b = *(++fv_it);
+            DefaultMesh::VertexHandle c = *(++fv_it);
+
+            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+            //trace("intersection");
+            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+                //keeps the intersection here
+                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
+                    continue;
+                }
+                intersection_points.push_back(intersection);
+
+                float u, v, w;
+                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
+                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
+                normal_at_intersection =  glm::normalize(normal_at_intersection);
+                normals.push_back(normal_at_intersection);
+                //vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
+                //face_normals.push_back(face_normal);
+                //hasIntersection = true;
+            }
+        }
+        if (intersection_points.size() > 1) {
+//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
+            if (leaf->depth < max_depth){
+                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
+
+                //leaf->type = NODE_INTERNAL;
+                if(leaf->construct_children(max_depth, mesh))
+                {
+                    leaf->type = NODE_INTERNAL;
+                    return leaf;
+                }
+                std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
+                delete leaf;
+                return nullptr;
+            }
+        }
+        // if we consider that an intersection happened.
+        // we'll consider only the first intersection for now
+        if (intersection_points.size() > 0)
+        {
+            vec3 &n = normals[0];
+            vec3 &v = intersection_points[0];
+            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
+            averageNormal += n;
+            hasIntersection = true;
+        }
+    }
+
+    if (!hasIntersection)
+    {   // voxel is full inside or outside the volume
+        delete leaf;
+        return nullptr;
+    }
+
+    if (leaf->drawInfo == nullptr){
+        leaf->drawInfo = new OctreeDrawInfo();
+    }
+    leaf->drawInfo->qef = qef.getData();
+    leaf->drawInfo->averageNormal += averageNormal;
+    //leaf->drawInfo = drawInfo;
+    leaf->type = NODE_LEAF;
+    for (int i = 0; i < NUM_CHILDREN; ++i) {
+        std::string vertex_hash = hashvertex(leaf->get_vertex(i));
+        if (leafvertexpool.count(vertex_hash) == 0)
+            leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
+    }
+    //return clean_node(leaf);
+    return leaf;
 }
 
 void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh)
@@ -216,11 +316,130 @@ int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, De
     std::unordered_map<int, bool> visited_triangles;
     int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
     if (num_intersections >= 2){
-        std::cout << "intersections: " << num_intersections << std::endl;
+        //std::cout << "intersections: " << num_intersections << std::endl;
     }
     if (/*num_intersections%2 == 1*/num_intersections > 0)
     {
         return MATERIAL_SOLID;
     }
     return MATERIAL_AIR;
+}
+
+// -------------------------------------------------------------------------------
+
+OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const float threshold)
+{
+    if (!node)
+    {
+        //std::cout << "Empty node" << std::endl;
+        return nullptr;
+    }
+
+    if (node->type != NODE_INTERNAL)
+    {
+        // can't simplify!
+        return node;
+    }
+    //std::cout << "Simplifying at level: " << node->depth << std::endl;
+    svd::QefSolver qef;
+
+    int signs[8] = { MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+                     MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN };
+    int midsign = MATERIAL_UNKNOWN;
+    int edgeCount = 0;
+    bool isCollapsible = true;
+
+    for (int i = 0; i < 8; ++i)
+    {
+        node->children[i] = SimplifyOctree(node->children[i], threshold);
+        if (node->children[i])
+        {
+            OctreeNode* child = node->children[i];
+            if (child->type == NODE_INTERNAL)
+            {
+                isCollapsible = false;
+            }
+            else
+            {
+                qef.add(child->drawInfo->qef);
+
+                midsign = (child->drawInfo->corners >> (7 - i)) & 1;
+                signs[i] = (child->drawInfo->corners >> i) & 1;
+
+                edgeCount++;
+            }
+        }
+    }
+
+    if (!isCollapsible)
+    {
+        // at least one child is an internal node, can't collapse
+        return node;
+    }
+
+    svd::Vec3 qefPosition;
+    qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
+    float error = qef.getError();
+
+    // convert to glm vec3 for ease of use
+    vec3 position(qefPosition.x, qefPosition.y, qefPosition.z);
+
+    // at this point the masspoint will actually be a sum, so divide to make it the average
+    if (error > threshold)
+    {
+        // this collapse breaches the threshold
+        return node;
+    }
+
+    if ((position.x < node->min.x) || (position.x > (node->min.x + node->size)) ||
+        (position.y < node->min.y) || (position.y > (node->min.y + node->size)) ||
+        (position.z < node->min.z) || (position.z > (node->min.z + node->size)))
+    {
+        const auto& mp = qef.getMassPoint();
+        position = vec3(mp.x, mp.y, mp.z);
+    }
+
+    // change the node from an internal node to a 'pseudo leaf' node
+    OctreeDrawInfo* drawInfo = new OctreeDrawInfo;
+
+    for (int i = 0; i < 8; i++)
+    {
+        if (signs[i] == MATERIAL_UNKNOWN)
+        {
+            // Undetermined, use centre sign instead
+            drawInfo->corners |= (midsign << i);
+        }
+        else
+        {
+            drawInfo->corners |= (signs[i] << i);
+        }
+    }
+
+    drawInfo->averageNormal = vec3(0.f);
+    for (int i = 0; i < 8; ++i)
+    {
+        if (node->children[i])
+        {
+            OctreeNode* child = node->children[i];
+            if (child->type != NODE_INTERNAL)
+            {
+                drawInfo->averageNormal += child->drawInfo->averageNormal;
+            }
+        }
+    }
+
+    drawInfo->averageNormal = glm::normalize(drawInfo->averageNormal);
+    drawInfo->position = position;
+    drawInfo->qef = qef.getData();
+
+    for (int i = 0; i < 8; i++)
+    {
+        delete node->children[i];
+        node->children[i] = nullptr;
+    }
+
+    node->type = NODE_PSEUDO;
+    node->drawInfo = drawInfo;
+
+    return node;
 }

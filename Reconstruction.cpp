@@ -14,7 +14,7 @@ using std::string;
 namespace Fusion
 {
 
-    OctreeNode *update_leaf(OctreeNode *leaf, const DefaultMesh &mesh);
+    OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
     bool update_children(OctreeNode* node, unsigned int max_depth, const DefaultMesh &mesh);
     OctreeNode* UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
     void clean_nodes(OctreeNode* node);
@@ -28,7 +28,6 @@ namespace Fusion
                 clean_nodes(node->children[i]);
             }
         }
-
     }
 
 
@@ -68,24 +67,109 @@ namespace Fusion
 
         if (node->type == NODE_LEAF)
         {
-            //won't descend for now, let's see the result in a coarse level
-            /*if (node->depth < max_depth && !node->parent->innerEmpty())
+            if (node->depth < max_depth && !node->parent->innerEmpty())
             {
                 node->type = NODE_INTERNAL;
+                node->construct_children(max_depth, mesh);
             }
             else {
-                return node;
-            }*/
-            for (int i = 0; i < NUM_CHILDREN; ++i) {
+                node = update_leaf(node, max_depth, mesh);
+            }
+            /*for (int i = 0; i < NUM_CHILDREN; ++i) {
                 std::string vertex_hash = hashvertex(node->get_vertex(i));
                 if (Octree::leafvertexpool.count(vertex_hash) == 0)
                     Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-            }
+            }*/
             return node;
         }
 
         update_children(node, max_depth, mesh);
         return node;
+    }
+
+    OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh)
+    {
+        // otherwise the voxel contains the surface, so find the edge intersections
+        vec3 averageNormal(0.f);
+        svd::QefSolver qef;
+        bool hasIntersection = false;
+        //std::cout << "So far, so good" << std::endl;
+        //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
+        for (int i = 0; i < NUM_EDGES; ++i) //for each edge
+        {
+            const int c1 = edgevmap[i][0];
+            const int c2 = edgevmap[i][1];
+            const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
+            const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+
+            vec3 intersection;
+            std::vector<vec3> intersection_points, normals;//, face_normals;
+            for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
+            {
+                auto fv_it = mesh.cfv_iter(*face);
+                DefaultMesh::VertexHandle a = *fv_it;
+                DefaultMesh::VertexHandle b = *(++fv_it);
+                DefaultMesh::VertexHandle c = *(++fv_it);
+
+                vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+                Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+                //trace("intersection");
+                if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+                    //keeps the intersection here
+                    if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
+                        continue;
+                    }
+                    intersection_points.push_back(intersection);
+
+                    float u, v, w;
+                    barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
+                    vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
+                    normal_at_intersection =  glm::normalize(normal_at_intersection);
+                    normals.push_back(normal_at_intersection);
+                    //vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
+                    //face_normals.push_back(face_normal);
+                    //hasIntersection = true;
+                }
+            }
+            if (intersection_points.size() > 1) {
+//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
+                if (leaf->depth < max_depth){
+                    std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
+
+                    //leaf->type = NODE_INTERNAL;
+                    if(leaf->construct_children(max_depth, mesh))
+                    {
+                        leaf->type = NODE_INTERNAL;
+                        return leaf;
+                    }
+                    std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
+                    return leaf;
+                }
+            }
+            // if we consider that an intersection happened.
+            // we'll consider only the first intersection for now
+            if (intersection_points.size() > 0)
+            {
+                vec3 &n = normals[0];
+                vec3 &v = intersection_points[0];
+                qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
+                averageNormal += n;
+                hasIntersection = true;
+            }
+        }
+
+        //TODO: pass drawinfo data from parent to child when descending
+        leaf->drawInfo->qef = leaf->drawInfo->qef + qef.getData();
+        leaf->drawInfo->averageNormal += averageNormal;
+
+        leaf->type = NODE_LEAF;
+        for (int i = 0; i < NUM_CHILDREN; ++i) {
+            std::string vertex_hash = hashvertex(leaf->get_vertex(i));
+            if (Octree::leafvertexpool.count(vertex_hash) == 0)
+                Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
+        }
+        //return clean_node(leaf);
+        return leaf;
     }
 
 
@@ -95,24 +179,25 @@ namespace Fusion
         DefaultMesh mesh;
         OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
         int i = 0;
-        /*mesh.request_vertex_status();
+        mesh.request_vertex_status();
         mesh.request_edge_status();
         mesh.request_face_status();
-        NormalsEstimator::compute_better_normals(mesh);*/
+        NormalsEstimator::compute_better_normals(mesh);
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
 
+        std::cout << "The first is OK" << std::endl;
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             Octree::leafvertexpool.clear();
             clean_nodes(demi_octree.root);
             DefaultMesh mesh;
             OpenMesh::IO::read_mesh(mesh, *s_it);
-            /*mesh.request_vertex_status();
+            mesh.request_vertex_status();
             mesh.request_edge_status();
             mesh.request_face_status();
             NormalsEstimator::compute_better_normals(mesh);
-            std::cout << "Opening " << *s_it << std::endl;*/
+            /*std::cout << "Opening " << *s_it << std::endl;*/
             UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
             demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
         }

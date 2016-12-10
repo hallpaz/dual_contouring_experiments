@@ -33,6 +33,7 @@ const int MATERIAL_AIR = 1;
 const int MATERIAL_SOLID = 0;
 const int MATERIAL_UNKNOWN = -1;
 const unsigned short NUM_CHILDREN = 8;
+const unsigned short NUM_EDGES = 12;
 const Real EPSILON = 1e-5f;
 
 const float QEF_ERROR = 1e-6f;

@@ -27,7 +27,7 @@ public:
     OctreeNode(OctreeNodeType type, glm::vec3 min, float size, int height, OctreeNode* parent = nullptr)
             : type(type), min(min), size(size), depth(height), drawInfo(nullptr), parent(parent)
     {
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < NUM_CHILDREN; ++i)
         {
             children[i] = nullptr;
         }
@@ -104,10 +104,13 @@ public:
     Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, glm::vec3 cam_origin);
     void classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh);
     static OctreeNode *BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
+    static OctreeNode *ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
 
 
     static std::unordered_map<std::string, int> leafvertexpool;
     //static std::unordered_map<std::string, HermiteData> edgepool;
+
+    static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 };
 
 
