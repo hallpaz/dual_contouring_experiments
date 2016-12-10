@@ -93,9 +93,9 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
             DefaultMesh::VertexHandle b = *(++fv_it);
             DefaultMesh::VertexHandle c = *(++fv_it);
 
-            Vertex face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            //Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-            if (moller_triangle_intersection(p1, p2, face_vertices, intersection)) {
+            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 //keeps the intersection here
                 if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
                     continue;
@@ -103,7 +103,7 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
                 intersection_points.push_back(intersection);
 
                 float u, v, w;
-                barycentric(intersection, face_vertices->position, face_vertices->position, face_vertices->position, u, v, w);
+                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
                 vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
                 normals.push_back(glm::normalize(normal_at_intersection));
             }
