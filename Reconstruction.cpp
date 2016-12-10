@@ -75,11 +75,6 @@ namespace Fusion
             else {
                 node = update_leaf(node, max_depth, mesh);
             }
-            /*for (int i = 0; i < NUM_CHILDREN; ++i) {
-                std::string vertex_hash = hashvertex(node->get_vertex(i));
-                if (Octree::leafvertexpool.count(vertex_hash) == 0)
-                    Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-            }*/
             return node;
         }
 
@@ -97,10 +92,8 @@ namespace Fusion
         //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
         for (int i = 0; i < NUM_EDGES; ++i) //for each edge
         {
-            const int c1 = edgevmap[i][0];
-            const int c2 = edgevmap[i][1];
-            const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-            const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+            const vec3 p1 = leaf->get_vertex(edgevmap[i][0]);
+            const vec3 p2 = leaf->get_vertex(edgevmap[i][1]);
 
             vec3 intersection;
             std::vector<vec3> intersection_points, normals;//, face_normals;
@@ -111,10 +104,9 @@ namespace Fusion
                 DefaultMesh::VertexHandle b = *(++fv_it);
                 DefaultMesh::VertexHandle c = *(++fv_it);
 
-                vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-                Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-                //trace("intersection");
-                if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+                Vertex face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+                //Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+                if (moller_triangle_intersection(p1, p2, face_vertices, intersection)) {
                     //keeps the intersection here
                     if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
                         continue;
@@ -122,21 +114,15 @@ namespace Fusion
                     intersection_points.push_back(intersection);
 
                     float u, v, w;
-                    barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
+                    barycentric(intersection, face_vertices[0].position, face_vertices[1].position, face_vertices[2].position, u, v, w);
                     vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                    normal_at_intersection =  glm::normalize(normal_at_intersection);
-                    normals.push_back(normal_at_intersection);
-                    //vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                    //face_normals.push_back(face_normal);
-                    //hasIntersection = true;
+                    normals.push_back(glm::normalize(normal_at_intersection));
                 }
             }
             if (intersection_points.size() > 1) {
-//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
                 if (leaf->depth < max_depth){
                     std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
-                    //leaf->type = NODE_INTERNAL;
                     if(leaf->construct_children(max_depth, mesh))
                     {
                         leaf->type = NODE_INTERNAL;
@@ -146,8 +132,7 @@ namespace Fusion
                     return leaf;
                 }
             }
-            // if we consider that an intersection happened.
-            // we'll consider only the first intersection for now
+            // if we consider that an intersection happened, we'll consider only the first intersection for now
             if (intersection_points.size() > 0)
             {
                 vec3 &n = normals[0];
@@ -168,7 +153,6 @@ namespace Fusion
             if (Octree::leafvertexpool.count(vertex_hash) == 0)
                 Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
         }
-        //return clean_node(leaf);
         return leaf;
     }
 

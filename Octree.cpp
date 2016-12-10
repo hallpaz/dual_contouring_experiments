@@ -45,26 +45,19 @@ Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &me
 OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh)
 {
     if (!node) return nullptr;
-    //trace("begin");
-    /*if (node->meshInfo == nullptr)
-        node->meshInfo = new OctreeMeshInfo();*/
+
     select_inner_crossing_faces(node, mesh);
-    //trace("hop");
     if (node->innerEmpty() && node->crossingEmpty())
     {   //Empty space, no triangles crossing or inside this cell
         delete node;
         return nullptr;
     }
+
     if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
     {
-        /*node->type = NODE_LEAF;
-        for (int i = 0; i < NUM_CHILDREN; ++i) {
-            std::string vertex_hash = hashvertex(node->get_vertex(i));
-            if (leafvertexpool.count(vertex_hash) == 0)
-                leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-        }*/
         return ConstructLeaf(node, max_depth, mesh);
     }
+
     if (node->construct_children(max_depth, mesh))
     {
         return node;
@@ -86,15 +79,13 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
     svd::QefSolver qef;
     bool hasIntersection = false;
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
-    for (int i = 0; i < 12; ++i) //for each edge
+    for (int i = 0; i < NUM_EDGES; ++i) //for each edge
     {
-        const int c1 = edgevmap[i][0];
-        const int c2 = edgevmap[i][1];
-        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
+        const vec3 p1 = leaf->get_vertex(edgevmap[i][0]);
+        const vec3 p2 = leaf->get_vertex(edgevmap[i][1]);
 
         vec3 intersection;
-        std::vector<vec3> intersection_points, normals;//, face_normals;
+        std::vector<vec3> intersection_points, normals;
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
             auto fv_it = mesh.cfv_iter(*face);
@@ -102,10 +93,9 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
             DefaultMesh::VertexHandle b = *(++fv_it);
             DefaultMesh::VertexHandle c = *(++fv_it);
 
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-            //trace("intersection");
-            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
+            Vertex face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            //Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
+            if (moller_triangle_intersection(p1, p2, face_vertices, intersection)) {
                 //keeps the intersection here
                 if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
                     continue;
@@ -113,13 +103,9 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
                 intersection_points.push_back(intersection);
 
                 float u, v, w;
-                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
+                barycentric(intersection, face_vertices->position, face_vertices->position, face_vertices->position, u, v, w);
                 vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                normal_at_intersection =  glm::normalize(normal_at_intersection);
-                normals.push_back(normal_at_intersection);
-                //vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                //face_normals.push_back(face_normal);
-                //hasIntersection = true;
+                normals.push_back(glm::normalize(normal_at_intersection));
             }
         }
         if (intersection_points.size() > 1) {
@@ -127,7 +113,6 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
             if (leaf->depth < max_depth){
                 std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
-                //leaf->type = NODE_INTERNAL;
                 if(leaf->construct_children(max_depth, mesh))
                 {
                     leaf->type = NODE_INTERNAL;
@@ -138,8 +123,7 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
                 return nullptr;
             }
         }
-        // if we consider that an intersection happened.
-        // we'll consider only the first intersection for now
+        // if we consider that an intersection happened, we'll consider only the first intersection for now
         if (intersection_points.size() > 0)
         {
             vec3 &n = normals[0];
@@ -161,7 +145,6 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
     }
     leaf->drawInfo->qef = qef.getData();
     leaf->drawInfo->averageNormal += averageNormal;
-    //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
     for (int i = 0; i < NUM_CHILDREN; ++i) {
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
@@ -179,8 +162,6 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
 
     if (node->type == NODE_LEAF)
     {
-        //trace("leaf");
-
         if (node->drawInfo == nullptr){
             node->drawInfo = new OctreeDrawInfo();
         }
@@ -191,10 +172,8 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
             std::string vertex_hash = hashvertex(cell_vertex);
             if (leafvertexpool[vertex_hash] == MATERIAL_UNKNOWN)
             {
-                //trace("updating pool");
                 int sign = classify_vertex(cam_origin, cell_vertex, this->root, mesh);
                 leafvertexpool[vertex_hash] = sign;
-
             }
             corners |= (leafvertexpool[vertex_hash] << i);
         }
@@ -202,7 +181,6 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
     }
     else
     {
-        //trace("INTERNAL");
         for (int i = 0; i < NUM_CHILDREN; ++i) {
             classify_leaves_vertices(cam_origin, node->children[i], mesh);
         }
@@ -277,12 +255,6 @@ int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, Default
             visited_triangles[face->idx()] = true;
         }
     }
-    /*if (num_intersections > 1){
-        for (int i = 0; i < intersections.size(); ++i) {
-            std::cout << intersections[i].x << " " <<  intersections[i].y << " " <<  intersections[i].z << std::endl;
-        }
-        exit(67);
-    }*/
     return num_intersections;
 }
 
@@ -315,10 +287,7 @@ int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, De
 {
     std::unordered_map<int, bool> visited_triangles;
     int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
-    if (num_intersections >= 2){
-        //std::cout << "intersections: " << num_intersections << std::endl;
-    }
-    if (/*num_intersections%2 == 1*/num_intersections > 0)
+    if (num_intersections > 0)
     {
         return MATERIAL_SOLID;
     }

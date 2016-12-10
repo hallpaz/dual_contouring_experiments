@@ -72,64 +72,6 @@ void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
 
 // ----------------------------------------------------------------------------
 
-int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal)
-{
-    return glm::dot(point - intersection, face_normal) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
-}
-
-// ----------------------------------------------------------------------------
-void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
-{
-    if(sign == MATERIAL_UNKNOWN)
-    {
-        std::cout << "TENTA OUTRA NEGAO!!" << std::endl;
-        exit(98);
-    }
-    std::string vertexhash = hashvertex(vertex);
-    if (pool.count(vertexhash) == 0)
-    {
-        pool[vertexhash] = sign;
-    }
-    else
-    {
-        if (pool[vertexhash] == MATERIAL_SOLID)
-        {   // if it was marked as interior anytime
-            sign = pool[vertexhash];
-        }
-        else
-        {
-            pool[vertexhash] = sign;
-        }
-    }
-    if (sign != MATERIAL_UNKNOWN && pool[vertexhash] == MATERIAL_UNKNOWN){
-        std::cout << "LEFTING UNKNOWN!!!!!!!" << std::endl;
-        exit(98);
-    }
-}
-
-// ----------------------------------------------------------------------------
-void updateSignsArray(int *vecsigns, int size)
-{
-    bool checksigns = true;
-    while(checksigns) {
-        checksigns = false;
-        for (size_t i = 0; i < size; ++i) {
-            if (vecsigns[i] == MATERIAL_UNKNOWN) {
-                checksigns = true;
-                for (int j = 0; j < 3; ++j) {
-                    int n = vneighbors[i][j];
-                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
-                        vecsigns[i] = vecsigns[n];
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ----------------------------------------------------------------------------
-
 void write_Ply(std::vector<glm::vec3> &vertices, std::vector<int> &faces, std::string filename)
 {
     std::ofstream outfile;
@@ -510,13 +452,60 @@ bool ray_box_overlap(const glm::vec3 origin, const glm::vec3 dest, const glm::ve
     return true;
 }
 
-//// DEBUG ------------------------------------------------------
-//if (node->innerFaces.size() > 0)
-//{
-//std::cout << "On Height Size: " << node->depth << " " << node->size << " Inner Before: " << node->innerFaces.size() << std::endl;
-//}
-//if (node->crossingFaces.size() > 0)
-//{
-//std::cout << "On Height: " << node->depth << " " << node->size << " Crossing Before: " << node->crossingFaces.size() << std::endl;
-//}
-//// DEBUG ------------------------------------------------------ //
+// ----------------------------------------------------------------------------
+
+int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal)
+{
+    return glm::dot(point - intersection, face_normal) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
+}
+
+// ----------------------------------------------------------------------------
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
+{
+    if(sign == MATERIAL_UNKNOWN)
+    {
+        std::cout << "TENTA OUTRA NEGAO!!" << std::endl;
+        exit(98);
+    }
+    std::string vertexhash = hashvertex(vertex);
+    if (pool.count(vertexhash) == 0)
+    {
+        pool[vertexhash] = sign;
+    }
+    else
+    {
+        if (pool[vertexhash] == MATERIAL_SOLID)
+        {   // if it was marked as interior anytime
+            sign = pool[vertexhash];
+        }
+        else
+        {
+            pool[vertexhash] = sign;
+        }
+    }
+    if (sign != MATERIAL_UNKNOWN && pool[vertexhash] == MATERIAL_UNKNOWN){
+        std::cout << "LEFTING UNKNOWN!!!!!!!" << std::endl;
+        exit(98);
+    }
+}
+
+// ----------------------------------------------------------------------------
+void updateSignsArray(int *vecsigns, int size)
+{
+    bool checksigns = true;
+    while(checksigns) {
+        checksigns = false;
+        for (size_t i = 0; i < size; ++i) {
+            if (vecsigns[i] == MATERIAL_UNKNOWN) {
+                checksigns = true;
+                for (int j = 0; j < 3; ++j) {
+                    int n = vneighbors[i][j];
+                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                        vecsigns[i] = vecsigns[n];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}

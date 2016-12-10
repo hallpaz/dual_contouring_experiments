@@ -45,7 +45,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 
     if (node->type != NODE_LEAF)
     {
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < NUM_CHILDREN; i++)
         {
             GenerateVertexIndices(node->children[i], vertexBuffer);
         }
@@ -56,7 +56,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         OctreeDrawInfo* d = node->drawInfo;
         if (!d)
         {
-            std::cout << "Error! Could not add vertex!" << std::endl;
+            std::cout << "Error! Could not add vertex! DrawInfo is not available" << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -87,7 +87,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         std::ofstream interiorfile, exteriorfile;
         interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
         exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < NUM_CHILDREN; ++i) {
             const vec3 cornerPos = node->get_vertex(i);
             int sign = (node->drawInfo->corners >> i) & 1;
             if (sign == MATERIAL_SOLID) {
@@ -107,7 +107,6 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         interiorfile.close();
         exteriorfile.close();
         // DEBUG --------------------------------------------------------------------//
-
     }
 }
 
@@ -146,15 +145,18 @@ void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 
     if (signChange[minIndex])
     {
-        if (!flip)
+        if (indices[0] != indices[3])
         {
-            indexBuffer.push_back(Triangle{indices[0], indices[1], indices[3]});
-            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[2]});
-        }
-        else
-        {
-            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[1]});
-            indexBuffer.push_back(Triangle{indices[0], indices[2], indices[3]});
+            if (!flip)
+            {
+                indexBuffer.push_back(Triangle{indices[0], indices[1], indices[3]});
+                indexBuffer.push_back(Triangle{indices[0], indices[3], indices[2]});
+            }
+            else
+            {
+                indexBuffer.push_back(Triangle{indices[0], indices[3], indices[1]});
+                indexBuffer.push_back(Triangle{indices[0], indices[2], indices[3]});
+            }
         }
     }
 }

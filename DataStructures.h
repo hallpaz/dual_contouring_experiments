@@ -9,6 +9,7 @@
 #include "glm/glm.hpp"
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include <list>
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
 
@@ -32,6 +33,12 @@ struct Triangle{
     int a;
     int b;
     int c;
+};
+
+struct OctreeMeshInfo {
+// ---------------------------------------------------------------------------- OPENMESH
+    std::list<DefaultMesh::FaceHandle> innerFaces;
+    std::list<DefaultMesh::FaceHandle> crossingFaces;
 };
 
 typedef std::vector<Vertex> VertexBuffer;

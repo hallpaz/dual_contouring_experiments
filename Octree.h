@@ -13,12 +13,6 @@
 #include "old/octree.h"
 
 
-struct OctreeMeshInfo {
-// ---------------------------------------------------------------------------- OPENMESH
-    std::list<DefaultMesh::FaceHandle> innerFaces;
-    std::list<DefaultMesh::FaceHandle> crossingFaces;
-};
-
 class OctreeNode
 {
     friend class Octree;
@@ -35,7 +29,7 @@ public:
 
     OctreeNode() : type(NODE_NONE), min(0, 0, 0), size(0), depth(0), drawInfo(nullptr), parent(nullptr)
     {
-        for (int i = 0; i < 8; ++i)
+        for (int i = 0; i < NUM_CHILDREN; ++i)
         {
             children[i] = nullptr;
         }
