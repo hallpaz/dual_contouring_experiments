@@ -45,7 +45,7 @@ public:
         //delete meshInfo;
     }
 
-    bool construct_children(unsigned int max_depth, const DefaultMesh &mesh);
+    bool construct_or_update_children(unsigned int max_depth, const DefaultMesh &mesh);
 
     void clean()
     {
@@ -98,7 +98,9 @@ public:
     Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, glm::vec3 cam_origin);
     void classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh);
     static OctreeNode *BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
-    static OctreeNode *ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
+    static OctreeNode *UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
+    static OctreeNode *construct_or_update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh,
+                                                bool update = false);
 
 
     static std::unordered_map<std::string, int> leafvertexpool;

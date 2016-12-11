@@ -137,7 +137,7 @@ OctreeNode* ConstructOctreeNodes(OctreeNode* node)
 
     if (node->depth == 0)
     {
-        return ConstructLeaf(node);
+        return construct_or_update_leaf(node);
     }
 
     const float childSize = node->size / 2;
@@ -223,7 +223,7 @@ OctreeNode* ConstructOctreeNodesFromOpenMesh(OctreeNode *node, const DefaultMesh
         return ConstructLeafFromOpenMesh(node, mesh);
     }
 
-    bool has_children = construct_children(node, mesh);
+    bool has_children = construct_or_update_children(node, mesh);
     if (has_children)
     {
         //clear memory used for inner and crossing faces

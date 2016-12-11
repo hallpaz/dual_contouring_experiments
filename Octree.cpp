@@ -15,21 +15,31 @@ int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, De
 // ----------------------------------------------------------------------------
 
 
-bool OctreeNode::construct_children(unsigned int max_depth, const DefaultMesh &mesh)
+bool OctreeNode::construct_or_update_children(unsigned int max_depth, const DefaultMesh &mesh)
 {
     const float childSize = this->size / 2;
     const int childHeight = this->depth + 1;
     bool hasChildren = false;
     for (int i = 0; i < NUM_CHILDREN; i++)
     {
-        OctreeNode* child = new OctreeNode(NODE_INTERNAL,
-                                           this->min + (CHILD_MIN_OFFSETS[i] * childSize),
-                                           childSize,
-                                           childHeight,
-                                           this);
-        //TODO: check if this is error prone. Seems to not be
-        //child->drawInfo = this->drawInfo;
-        this->children[i] = Octree::BuildMeshHierarchy(child, max_depth, mesh);
+        if (this->children[i] == nullptr){
+            OctreeNode* child = new OctreeNode(NODE_INTERNAL,
+                                               this->min + (CHILD_MIN_OFFSETS[i] * childSize),
+                                               childSize,
+                                               childHeight,
+                                               this);
+            if (this->drawInfo)
+            {
+                child->drawInfo = new OctreeDrawInfo();
+                child->drawInfo->qef = child->drawInfo->qef + this->drawInfo->qef;
+                child->drawInfo->averageNormal += this->drawInfo->averageNormal;
+            }
+            this->children[i] = Octree::BuildMeshHierarchy(child, max_depth, mesh);
+        }
+        else
+        {
+            this->children[i] = Octree::UpdateMeshHierarchy(this->children[i], max_depth, mesh);
+        }
         hasChildren |= (this->children[i] != nullptr);
     }
     return hasChildren;
@@ -55,10 +65,10 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
 
     if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
     {
-        return ConstructLeaf(node, max_depth, mesh);
+        return construct_or_update_leaf(node, max_depth, mesh);
     }
 
-    if (node->construct_children(max_depth, mesh))
+    if (node->construct_or_update_children(max_depth, mesh))
     {
         return node;
     }
@@ -67,7 +77,35 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
     return nullptr;
 }
 
-OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh) {
+OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh)
+{
+    if (!node) return nullptr;
+    //node->clean();
+    select_inner_crossing_faces(node, mesh);
+    if (node->innerEmpty() && node->crossingEmpty())
+    {
+        return node;
+    }
+
+    if (node->type == NODE_LEAF)
+    {
+        if (node->depth < max_depth && !node->parent->innerEmpty())
+        {
+            node->type = NODE_INTERNAL;
+            node->construct_or_update_children(max_depth, mesh);
+        }
+        else {
+            node = construct_or_update_leaf(node, max_depth, mesh, true);
+        }
+        return node;
+    }
+
+    node->construct_or_update_children(max_depth, mesh);
+    return node;
+}
+
+OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh,
+                                             bool update) {
     if (!leaf)
     {
         std::cout << "Trying to construct a leaf in the middle" << std::endl;
@@ -113,12 +151,15 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
             if (leaf->depth < max_depth){
                 std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
-                if(leaf->construct_children(max_depth, mesh))
+                if(leaf->construct_or_update_children(max_depth, mesh))
                 {
                     leaf->type = NODE_INTERNAL;
                     return leaf;
                 }
                 std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
+                if (update){
+                    return leaf;
+                }
                 delete leaf;
                 return nullptr;
             }
@@ -136,6 +177,8 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
 
     if (!hasIntersection)
     {   // voxel is full inside or outside the volume
+        if (update)
+            return leaf;
         delete leaf;
         return nullptr;
     }
@@ -143,7 +186,7 @@ OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, cons
     if (leaf->drawInfo == nullptr){
         leaf->drawInfo = new OctreeDrawInfo();
     }
-    leaf->drawInfo->qef = qef.getData();
+    leaf->drawInfo->qef = leaf->drawInfo->qef + qef.getData();
     leaf->drawInfo->averageNormal += averageNormal;
     leaf->type = NODE_LEAF;
     for (int i = 0; i < NUM_CHILDREN; ++i) {

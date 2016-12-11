@@ -14,9 +14,9 @@ using std::string;
 namespace Fusion
 {
 
-    OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
+    /*OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
     bool update_children(OctreeNode* node, unsigned int max_depth, const DefaultMesh &mesh);
-    OctreeNode* UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
+    OctreeNode* UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);*/
     void clean_nodes(OctreeNode* node);
 
     void clean_nodes(OctreeNode* node)
@@ -30,8 +30,40 @@ namespace Fusion
         }
     }
 
+    OctreeNode *octree_from_samples(const glm::vec3 &min, const float size, const unsigned int max_depth,
+                                        std::vector<std::string> meshfiles, std::vector<glm::vec3> cameras)
+    {
+        DefaultMesh mesh;
+        OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
+        int i = 0;
+        mesh.request_vertex_status();
+        mesh.request_edge_status();
+        mesh.request_face_status();
+        NormalsEstimator::compute_better_normals(mesh);
 
-    bool update_children(OctreeNode* node, unsigned int max_depth, const DefaultMesh &mesh)
+        Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
+
+        std::cout << "The first is OK" << std::endl;
+        for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
+        {
+            Octree::leafvertexpool.clear();
+            clean_nodes(demi_octree.root);
+            DefaultMesh mesh;
+            OpenMesh::IO::read_mesh(mesh, *s_it);
+            mesh.request_vertex_status();
+            mesh.request_edge_status();
+            mesh.request_face_status();
+            NormalsEstimator::compute_better_normals(mesh);
+            /*std::cout << "Opening " << *s_it << std::endl;*/
+            Octree::UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
+            demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
+        }
+
+        return demi_octree.root;
+    }
+}
+
+/*bool update_children(OctreeNode* node, unsigned int max_depth, const DefaultMesh &mesh)
     {
         const float childSize = node->size / 2;
         const int childDepth = node->depth + 1;
@@ -70,7 +102,7 @@ namespace Fusion
             if (node->depth < max_depth && !node->parent->innerEmpty())
             {
                 node->type = NODE_INTERNAL;
-                node->construct_children(max_depth, mesh);
+                node->construct_or_update_children(max_depth, mesh);
             }
             else {
                 node = update_leaf(node, max_depth, mesh);
@@ -123,7 +155,7 @@ namespace Fusion
                 if (leaf->depth < max_depth){
                     std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
-                    if(leaf->construct_children(max_depth, mesh))
+                    if(leaf->construct_or_update_children(max_depth, mesh))
                     {
                         leaf->type = NODE_INTERNAL;
                         return leaf;
@@ -155,38 +187,4 @@ namespace Fusion
         }
         return leaf;
     }
-
-
-    OctreeNode *octree_from_samples(const glm::vec3 &min, const float size, const unsigned int max_depth,
-                                        std::vector<std::string> meshfiles, std::vector<glm::vec3> cameras)
-    {
-        DefaultMesh mesh;
-        OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
-        int i = 0;
-        mesh.request_vertex_status();
-        mesh.request_edge_status();
-        mesh.request_face_status();
-        NormalsEstimator::compute_better_normals(mesh);
-
-        Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
-
-        std::cout << "The first is OK" << std::endl;
-        for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
-        {
-            Octree::leafvertexpool.clear();
-            clean_nodes(demi_octree.root);
-            DefaultMesh mesh;
-            OpenMesh::IO::read_mesh(mesh, *s_it);
-            mesh.request_vertex_status();
-            mesh.request_edge_status();
-            mesh.request_face_status();
-            NormalsEstimator::compute_better_normals(mesh);
-            /*std::cout << "Opening " << *s_it << std::endl;*/
-            UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
-            demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
-        }
-
-        return demi_octree.root;
-    }
-
-}
+*/
