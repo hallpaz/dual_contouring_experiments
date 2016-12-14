@@ -56,6 +56,7 @@ namespace Fusion
             NormalsEstimator::compute_better_normals(mesh);
             /*std::cout << "Opening " << *s_it << std::endl;*/
             Octree::UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
+            trace("classifying vertices");
             demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
         }
 

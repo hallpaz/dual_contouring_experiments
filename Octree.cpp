@@ -48,7 +48,9 @@ bool OctreeNode::construct_or_update_children(unsigned int max_depth, const Defa
 Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, vec3 cam_origin)
 {
     root = new OctreeNode(NODE_INTERNAL, min, size, 0);
+    trace("building hierarchy");
     BuildMeshHierarchy(root, max_depth, mesh);
+    trace("classifying vertices");
     classify_leaves_vertices(cam_origin, this->root, mesh);
 }
 
@@ -149,19 +151,22 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         if (intersection_points.size() > 1) {
 //            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
             if (leaf->depth < max_depth){
-                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
+                //std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
                 if(leaf->construct_or_update_children(max_depth, mesh))
                 {
                     leaf->type = NODE_INTERNAL;
                     return leaf;
                 }
-                std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
+               /* std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
                 if (update){
                     return leaf;
                 }
                 delete leaf;
-                return nullptr;
+                return nullptr;*/
+            }
+            else{
+                trace("reached maximum depth");
             }
         }
         // if we consider that an intersection happened, we'll consider only the first intersection for now
@@ -195,6 +200,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
     }
     //return clean_node(leaf);
+    std::cout << "Leaves: " << leafvertexpool.size() << std::endl;
     return leaf;
 }
 

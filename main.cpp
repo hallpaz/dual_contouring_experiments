@@ -28,7 +28,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 15;
+    const int height = 10;
 
     string folder_name = "../";
     string inputfilename, outputfilename;
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
 
-    OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize * 1.1, height,
+    OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min)/* - vec3(0.1)*/, octreeSize * 1.1, height,
                                                    filenames, cameras);
     //root = Octree::SimplifyOctree(root, octreeSize/100.0);
 
