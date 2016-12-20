@@ -10,20 +10,21 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <list>
+#include "Constants.h"
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
 
 struct Vertex {
     // position coordinates
-    glm::vec3 position;
+    vecr position;
     // normal coordinates
-    glm::vec3 normal;
+    vecr normal;
     // texture coordinates
     //glm::vec2 texCoords;
     //color coordinates
     glm::uvec3 color;
 
-    Vertex(glm::vec3 pos):
+    Vertex(vecr pos):
             position(pos),
             normal(0),
             //texCoords(0)

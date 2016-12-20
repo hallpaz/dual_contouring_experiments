@@ -1,0 +1,13 @@
+{
+    "mesh_files": ["../models/taoju/mechanic.off", "../models/taoju/mechanic.off",
+                    "../models/taoju/mechanic.off", "../models/taoju/mechanic.off",
+                    "../models/taoju/mechanic.off", "../models/taoju/mechanic.off"],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 77.0},
+            {"x": 0.0,  "y": 0.0, "z": -77.0},
+            {"x": 77.00,  "y": 0.0, "z": 0.0},
+            {"x": -77.0,  "y": 0.0, "z": 0.0},
+            {"x": 0.00,  "y": 77.0, "z": 0.00},
+            {"x": 0.0,  "y": -77.0, "z": 0.0}
+        ]
+}

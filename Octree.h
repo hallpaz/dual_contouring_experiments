@@ -18,7 +18,7 @@ class OctreeNode
     friend class Octree;
 public:
 
-    OctreeNode(OctreeNodeType type, glm::vec3 min, Real size, int height, OctreeNode* parent = nullptr)
+    OctreeNode(OctreeNodeType type, vecr min, Real size, int height, OctreeNode* parent = nullptr)
             : type(type), min(min), size(size), depth(height), drawInfo(nullptr), parent(parent), is_border(false)
     {
         for (int i = 0; i < NUM_CHILDREN; ++i)
@@ -71,14 +71,14 @@ public:
         return innerFaces.empty();
     }
 
-    glm::vec3 get_vertex(int index)
+    vecr get_vertex(int index)
     {
         assert(index >= 0 && index <= NUM_CHILDREN);
         return min + size * CHILD_MIN_OFFSETS[index];
     }
 
     OctreeNodeType	type;
-    glm::vec3		min;
+    vecr		min;
     Real			size;
     unsigned int    depth;
     bool            is_border;
@@ -96,8 +96,8 @@ class Octree {
 public:
 
     OctreeNode *root;
-    Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, glm::vec3 cam_origin);
-    void classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh);
+    Octree(vecr min, Real size, unsigned int max_depth, DefaultMesh &mesh, vecr cam_origin);
+    void classify_leaves_vertices(vecr cam_origin, OctreeNode* node, DefaultMesh &mesh);
     static OctreeNode *BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *construct_or_update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh,

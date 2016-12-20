@@ -14,7 +14,7 @@
 #include "json.hpp"
 
 using namespace std;
-using glm::vec3;
+//using glm::vecr;
 
 using json = nlohmann::json;
 
@@ -28,7 +28,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 9;
+    const int height = 6;
 
     string folder_name = "../";
     string inputfilename, outputfilename;
@@ -44,21 +44,21 @@ int main(int argc, char** argv)
     }
 
     std::vector<std::string> filenames = object_json[MESH_FILES];
-    std::vector<vec3> cameras;
+    std::vector<vecr> cameras;
     for (json::iterator j_it = object_json[CAM_POS].begin(); j_it != object_json[CAM_POS].end(); ++j_it) {
         json cam_json = j_it.value();
         std::cout << cam_json << std::endl;
-        cameras.push_back(vec3(cam_json["x"], cam_json["y"], cam_json["z"]));
+        cameras.push_back(vecr(cam_json["x"], cam_json["y"], cam_json["z"]));
     }
 
     DefaultMesh myMesh;
-    OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
-    //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    OpenMesh::IO::read_mesh(myMesh, "../models/taoju/mechanic.off");
     // compute bounding box
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
-
-    OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min)/* - vec3(0.1)*/, octreeSize * 1.1, height,
+    std::cout << octreeSize << std::endl;
+    OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min)/* - vecr(0.1)*/, octreeSize * 1.1, height,
                                                    filenames, cameras);
     //root = Octree::SimplifyOctree(root, octreeSize/1000.0);
 
@@ -104,7 +104,7 @@ Real compute_boundingbox(DefaultMesh &mesh, DefaultMesh::Point &bb_min)
 //dist = (int) octreeSize;
 
 //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_low2.off");
-//Octree sphere_octree(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize*1.1, height, myMesh);
+//Octree sphere_octree(openmesh_to_glm(bb_min) - vecr(0.1), octreeSize*1.1, height, myMesh);
 /*std::vector<std::string> filenames = {"../models/analytic/sphere_lowPZ.off", //"../models/analytic/sphere_lowMZ.off",
                                       "../models/analytic/sphere_lowPX.off", "../models/analytic/sphere_lowMX.off",
                                       "../models/analytic/sphere_lowPY.off", "../models/analytic/sphere_lowMY.off"};*/
@@ -113,5 +113,5 @@ Real compute_boundingbox(DefaultMesh &mesh, DefaultMesh::Point &bb_min)
 //                            "../models/divided/vase_antoninaPX.off", "../models/divided/vase_antoninaMX.off",
 //                            "../models/divided/vase_antoninaPY.off", "../models/divided/vase_antoninaMY.off"};
 //std::vector<std::string> filenames = {"../models/divided/trophy.off", /*"../models/divided/vase_holeMX.off"*/};
-//std::vector<vec3> cameras = {vec3(0, 0, dist), /*vec3(0, 0, -dist),*/ vec3(dist, 0, 0), vec3(-dist, 0, 0), vec3(0, dist, 0), vec3(0, -dist, 0)};
+//std::vector<vecr> cameras = {vecr(0, 0, dist), /*vecr(0, 0, -dist),*/ vecr(dist, 0, 0), vecr(-dist, 0, 0), vecr(0, dist, 0), vecr(0, -dist, 0)};
 //    std::vector<std::string> filenames = { "../models/analytic/cylinder_lowpoly.off"};

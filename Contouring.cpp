@@ -8,7 +8,7 @@
 
 #include "glm/glm.hpp"
 
-using glm::vec3;
+//using glm::vec3;
 
 
 // Declarations
@@ -67,16 +67,16 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         svd::QefSolver qef;
         qef.setData(d->qef);
         qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
-        d->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
+        d->position = vecr(qefPosition.x, qefPosition.y, qefPosition.z);
 
-        const vec3 min = vec3(node->min);
-        const vec3 max = vec3(node->min + vec3(node->size));
+        const vecr min = vecr(node->min);
+        const vecr max = vecr(node->min + vecr(node->size));
         if (d->position.x < min.x || d->position.x > max.x ||
             d->position.y < min.y || d->position.y > max.y ||
             d->position.z < min.z || d->position.z > max.z)
         {
             const auto& mp = qef.getMassPoint();
-            d->position = vec3(mp.x, mp.y, mp.z);
+            d->position = vecr(mp.x, mp.y, mp.z);
             vertex.color = glm::uvec3(255, 0, 0);
             if (node->is_border){
                 vertex.color = glm::uvec3(0, 255, 0);
@@ -101,7 +101,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
         exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
         for (int i = 0; i < NUM_CHILDREN; ++i) {
-            const vec3 cornerPos = node->get_vertex(i);
+            const vecr cornerPos = node->get_vertex(i);
             int sign = (node->drawInfo->corners >> i) & 1;
             if (sign == MATERIAL_SOLID) {
                 interiorfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;

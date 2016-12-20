@@ -7,11 +7,11 @@
 #include "Utils.h"
 
 
-using glm::vec3;
+//using vecr;
 // ----------------------------------------------------------------------------
 std::unordered_map<std::string, int> Octree::leafvertexpool;
 // ----------------------------------------------------------------------------
-int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, DefaultMesh &mesh);
+int classify_vertex(vecr vertex, vecr cam_origin, OctreeNode* root, DefaultMesh &mesh);
 // ----------------------------------------------------------------------------
 
 int Octree::no_intersections = 0;
@@ -47,7 +47,7 @@ bool OctreeNode::construct_or_update_children(unsigned int max_depth, const Defa
     return hasChildren;
 }
 
-Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &mesh, vec3 cam_origin)
+Octree::Octree(vecr min, Real size, unsigned int max_depth, DefaultMesh &mesh, vecr cam_origin)
 {
     root = new OctreeNode(NODE_INTERNAL, min, size, 0);
     trace("building hierarchy");
@@ -67,7 +67,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
         return nullptr;
     }
 
-    if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
+    if (/*(node->parent && node->parent->innerEmpty()) ||*/ node->depth == max_depth)
     {
         return construct_or_update_leaf(node, max_depth, mesh);
     }
@@ -93,7 +93,7 @@ OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth
 
     if (node->type == NODE_LEAF)
     {
-        if (node->depth < max_depth && !node->parent->innerEmpty())
+        if (node->depth < max_depth /*&& !node->parent->innerEmpty()*/)
         {
             node->type = NODE_INTERNAL;
             node->construct_or_update_children(max_depth, mesh);
@@ -117,17 +117,17 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
     }
 
     // otherwise the voxel contains the surface, so find the edge intersections
-    vec3 averageNormal(0.f);
+    vecr averageNormal(0.f);
     svd::QefSolver qef;
     bool hasIntersection = false;
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
     for (int i = 0; i < NUM_EDGES; ++i) //for each edge
     {
-        const vec3 p1 = leaf->get_vertex(edgevmap[i][0]);
-        const vec3 p2 = leaf->get_vertex(edgevmap[i][1]);
+        const vecr p1 = leaf->get_vertex(edgevmap[i][0]);
+        const vecr p2 = leaf->get_vertex(edgevmap[i][1]);
 
-        vec3 intersection;
-        std::vector<vec3> intersection_points, normals;
+        vecr intersection;
+        std::vector<vecr> intersection_points, normals;
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
             auto fv_it = mesh.cfv_iter(*face);
@@ -135,7 +135,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             DefaultMesh::VertexHandle b = *(++fv_it);
             DefaultMesh::VertexHandle c = *(++fv_it);
 
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            vecr face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
             Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 //keeps the intersection here
@@ -160,9 +160,9 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
                 Real u, v, w;
                 barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
-                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                //normals.push_back(glm::normalize(normal_at_intersection));
-                normals.push_back(glm::normalize(openmesh_to_glm(mesh.normal(*face))));
+                vecr normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
+                normals.push_back(glm::normalize(normal_at_intersection));
+                //normals.push_back(glm::normalize(openmesh_to_glm(mesh.normal(*face))));
             }
         }
         if (intersection_points.size() > 1) {
@@ -190,8 +190,8 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         if (intersection_points.size() > 0)
         {
             for (int j = 0; j < intersection_points.size(); ++j) {
-                vec3 &n = normals[j];
-                vec3 &v = intersection_points[j];
+                vecr &n = normals[j];
+                vecr &v = intersection_points[j];
                 qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
                 averageNormal += n;
             }
@@ -221,8 +221,8 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             if (seenPoints.count(a.idx()) == 0)
             {
                 seenPoints[a.idx()] = true;
-                vec3 pos = openmesh_to_glm(mesh.point(a));
-                vec3 normal = openmesh_to_glm(mesh.normal(a));
+                vecr pos = openmesh_to_glm(mesh.point(a));
+                vecr normal = openmesh_to_glm(mesh.normal(a));
                 qef.add(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z);
                 averageNormal += normal;
             }
@@ -245,7 +245,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
     return leaf;
 }
 
-void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, DefaultMesh &mesh)
+void Octree::classify_leaves_vertices(vecr cam_origin, OctreeNode* node, DefaultMesh &mesh)
 {
     //trace("classify leaves vertices");
     if (node == nullptr) return;
@@ -258,7 +258,7 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
         int corners = 0;
         for (int i = 0; i < NUM_CHILDREN; ++i)
         {
-            vec3 cell_vertex = node->get_vertex(i);
+            vecr cell_vertex = node->get_vertex(i);
             std::string vertex_hash = hashvertex(cell_vertex);
             if (leafvertexpool[vertex_hash] == MATERIAL_UNKNOWN)
             {
@@ -279,12 +279,12 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
 
 // Intersect ray R(t) = p + t*d against AABB a. When intersecting,
 // return intersection distance tmin and point q of intersection
-bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real size, Real &intersection_distance, vec3 &intersection) {
+bool intersectRayBox(vecr origin, vecr dest, const vecr min, const Real size, Real &intersection_distance, vecr &intersection) {
     intersection_distance = 0.0f; // set to -FLT_MAX to get first hit on line
     Real tmax = FLT_MAX; // set to max distance ray can travel (for segment)
     // For all three slabs
-    vec3 dir = glm::normalize(dest - origin);
-    vec3 max = min + vec3(size);
+    vecr dir = glm::normalize(dest - origin);
+    vecr max = min + vecr(size);
     for (int i = 0; i < 3; i++)
     {
         if (std::abs(dir[i]) < EPSILON)
@@ -320,11 +320,11 @@ bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real siz
 }
 
 
-int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh,
+int ray_faces_intersection(const vecr origin, const vecr dest, DefaultMesh &mesh,
                            std::list<DefaultMesh::FaceHandle> &facelist, std::unordered_map<int, bool> &visited_triangles)
 {
     int num_intersections = 0;
-    std::vector<vec3> intersections;
+    std::vector<vecr> intersections;
     for (std::list<DefaultMesh::FaceHandle>::iterator face = facelist.begin(); face != facelist.end(); ++face){
         if (visited_triangles.count(face->idx()) == 0){
             auto fv_it = mesh.cfv_iter(*face);
@@ -332,10 +332,10 @@ int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, Default
             DefaultMesh::VertexHandle b = *(++fv_it);
             DefaultMesh::VertexHandle c = *(++fv_it);
 
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
+            vecr face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
             Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
 
-            vec3 intersection;
+            vecr intersection;
 
             if (moller_triangle_intersection(origin, dest, vertices, intersection)) {
                 //keeps the intersection here
@@ -348,13 +348,13 @@ int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, Default
     return num_intersections;
 }
 
-int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh, std::unordered_map<int, bool> &visited_triangles)
+int ray_mesh_intersection(vecr cam_origin, vecr vertex, OctreeNode* root, DefaultMesh &mesh, std::unordered_map<int, bool> &visited_triangles)
 {
     if (root == nullptr){
         return 0;
     }
     int num_intersections = 0;
-    vec3 intersection;
+    vecr intersection;
     Real t;
     if (intersectRayBox(cam_origin, vertex, root->min, root->size, t, intersection)){
         if (root->type == NODE_LEAF)
@@ -373,7 +373,7 @@ int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* ro
     return num_intersections;
 }
 
-int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh)
+int classify_vertex(vecr cam_origin, vecr vertex, OctreeNode* root, DefaultMesh &mesh)
 {
     std::unordered_map<int, bool> visited_triangles;
     int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
@@ -440,8 +440,8 @@ OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const Real threshold)
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
     Real error = qef.getError();
 
-    // convert to glm vec3 for ease of use
-    vec3 position(qefPosition.x, qefPosition.y, qefPosition.z);
+    // convert to glm vecr for ease of use
+    vecr position(qefPosition.x, qefPosition.y, qefPosition.z);
 
     // at this point the masspoint will actually be a sum, so divide to make it the average
     if (error > threshold)
@@ -455,7 +455,7 @@ OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const Real threshold)
         (position.z < node->min.z) || (position.z > (node->min.z + node->size)))
     {
         const auto& mp = qef.getMassPoint();
-        position = vec3(mp.x, mp.y, mp.z);
+        position = vecr(mp.x, mp.y, mp.z);
     }
 
     // change the node from an internal node to a 'pseudo leaf' node
@@ -474,7 +474,7 @@ OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const Real threshold)
         }
     }
 
-    drawInfo->averageNormal = vec3(0.f);
+    drawInfo->averageNormal = vecr(0.f);
     for (int i = 0; i < 8; ++i)
     {
         if (node->children[i])

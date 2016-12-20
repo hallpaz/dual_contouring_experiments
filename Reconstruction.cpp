@@ -31,7 +31,7 @@ namespace Fusion
     }
 
     OctreeNode *octree_from_samples(const glm::vec3 &min, const Real size, const unsigned int max_depth,
-                                        std::vector<std::string> meshfiles, std::vector<glm::vec3> cameras)
+                                        std::vector<std::string> meshfiles, std::vector<vecr> cameras)
     {
         DefaultMesh mesh;
         OpenMesh::IO::read_mesh(mesh, meshfiles[0]);

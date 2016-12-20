@@ -26,7 +26,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "glm/glm.hpp"
 
 
-typedef float Real;
+typedef double Real;
+typedef glm::dvec3 vecr;
 // ----------------------------------------------------------------------------
 
 const int MATERIAL_AIR = 1;
@@ -52,17 +53,17 @@ const int vneighbors[8][3] = {
 };
 // ----------------------------------------------------------------------------
 
-const glm::vec3 CHILD_MIN_OFFSETS[] =
+const vecr CHILD_MIN_OFFSETS[] =
         {
                 // needs to match the vertMap from Dual Contouring impl
-                glm::vec3( 0, 0, 0 ),
-                glm::vec3( 0, 0, 1 ),
-                glm::vec3( 0, 1, 0 ),
-                glm::vec3( 0, 1, 1 ),
-                glm::vec3( 1, 0, 0 ),
-                glm::vec3( 1, 0, 1 ),
-                glm::vec3( 1, 1, 0 ),
-                glm::vec3( 1, 1, 1 ),
+                vecr( 0, 0, 0 ),
+                vecr( 0, 0, 1 ),
+                vecr( 0, 1, 0 ),
+                vecr( 0, 1, 1 ),
+                vecr( 1, 0, 0 ),
+                vecr( 1, 0, 1 ),
+                vecr( 1, 1, 0 ),
+                vecr( 1, 1, 1 ),
         };
 
 // ----------------------------------------------------------------------------

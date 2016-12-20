@@ -13,7 +13,7 @@
 #include "density.h"
 #include "Octree.h"
 
-using glm::vec3;
+//using vecr;
 
 
 // ----------------------------------------------------------------------------
@@ -138,7 +138,7 @@ void write_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<
 
 }
 
-Real read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<Triangle> &faces, vec3 &minPoint) {
+Real read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<Triangle> &faces, vecr &minPoint) {
     std::ifstream inputfile;
     inputfile.open(filename.c_str(), std::ios::out);
     const Real BIG = 999999.9;
@@ -161,7 +161,7 @@ Real read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<T
             if (x > maxx) maxx = x;
             if (y > maxy) maxy = y;
             if (z > maxz) maxz = z;
-            vertices.push_back(Vertex(glm::vec3(x, y, z)));
+            vertices.push_back(Vertex(vecr(x, y, z)));
         }
         for (int i = 0; i < numFaces; ++i) {
             int n, a, b, c;
@@ -184,7 +184,7 @@ Real read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<T
     return size;
 }
 
-std::string hashvertex(const vec3& vertex){
+std::string hashvertex(const vecr& vertex){
     int precision = 3;
     std::stringstream rep;
     rep << vertex.x << std::setprecision (precision) << std::fixed
@@ -193,7 +193,7 @@ std::string hashvertex(const vec3& vertex){
     return rep.str();
 }
 
-std::string hashedge(const vec3& v1, const vec3& v2){
+std::string hashedge(const vecr& v1, const vecr& v2){
     Real threshold = 0.0000001;
     if (fabs(v1.x - v2.x) > threshold){
         if (v1.x < v2.x){
@@ -217,9 +217,9 @@ std::string hashedge(const vec3& v1, const vec3& v2){
 // Compute barycentric coordinates (u, v, w) for
 // point p with respect to triangle (a, b, c)
 // Implementation from the book Real Time Collision Detection
-void barycentric(vec3 p, vec3 a, vec3 b, vec3 c, Real &u, Real &v, Real &w)
+void barycentric(vecr p, vecr a, vecr b, vecr c, Real &u, Real &v, Real &w)
 {
-    vec3 v0 = b - a, v1 = c - a, v2 = p - a;
+    vecr v0 = b - a, v1 = c - a, v2 = p - a;
     Real d00 = glm::dot(v0, v0);
     Real d01 = glm::dot(v0, v1);
     Real d11 = glm::dot(v1, v1);
@@ -229,16 +229,19 @@ void barycentric(vec3 p, vec3 a, vec3 b, vec3 c, Real &u, Real &v, Real &w)
     v = (d11 * d20 - d01 * d21) / denom;
     w = (d00 * d21 - d01 * d20) / denom;
     u = 1.0f - v - w;
+    assert(v >= 0 && v <= 1.0);
+    assert(w >= 0 && w <= 1.0);
+    assert(u >= 0 && u <= 1.0);
 }
 
-bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, vec3& intersection_point)
+bool moller_triangle_intersection(vecr v1, vecr v2, Vertex* triangle_vertices, vecr& intersection_point)
 {
     Real EPSILON = 0.000001;
 
-    vec3 e1 = triangle_vertices[1].position - triangle_vertices[0].position;
-    vec3 e2 = triangle_vertices[2].position - triangle_vertices[0].position;
+    vecr e1 = triangle_vertices[1].position - triangle_vertices[0].position;
+    vecr e2 = triangle_vertices[2].position - triangle_vertices[0].position;
 
-    vec3 D = v2 - v1;
+    vecr D = v2 - v1;
     auto P = glm::cross(D, e2);
 
     Real det = glm::dot(e1, P);
@@ -247,14 +250,14 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
     }
 
     Real inv_det = 1.0/det;
-    vec3 T = v1 - triangle_vertices[0].position;
+    vecr T = v1 - triangle_vertices[0].position;
     Real u = glm::dot(T, P) * inv_det;
 
     if(u < 0.0f or u > 1.0f){
         return false;
     }
 
-    vec3 Q = glm::cross(T, e1);
+    vecr Q = glm::cross(T, e1);
     Real v = glm::dot(D, Q) * inv_det;
     if(v < 0.0f or (u + v)  > 1.0f) {
         return false;
@@ -273,7 +276,7 @@ bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, v
 // ----------------------------------------------------------------------------
 /* This function was modified to use a binary search like solution.
  * */
-vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1)
+vecr ApproximateZeroCrossingPosition(const vecr& p0, const vecr& p1)
 {
     const Real tolerance = 0.00001;
     const int maxIterations = 21;
@@ -311,19 +314,19 @@ vec3 ApproximateZeroCrossingPosition(const vec3& p0, const vec3& p1)
 
 // ----------------------------------------------------------------------------
 
-vec3 CalculateSurfaceNormal(const vec3& p)
+vecr CalculateSurfaceNormal(const vecr& p)
 {
     const Real H = 0.001f;
-    const Real dx = Density_Func(p + vec3(H, 0.f, 0.f)) - Density_Func(p - vec3(H, 0.f, 0.f));
-    const Real dy = Density_Func(p + vec3(0.f, H, 0.f)) - Density_Func(p - vec3(0.f, H, 0.f));
-    const Real dz = Density_Func(p + vec3(0.f, 0.f, H)) - Density_Func(p - vec3(0.f, 0.f, H));
+    const Real dx = Density_Func(p + vecr(H, 0.f, 0.f)) - Density_Func(p - vecr(H, 0.f, 0.f));
+    const Real dy = Density_Func(p + vecr(0.f, H, 0.f)) - Density_Func(p - vecr(0.f, H, 0.f));
+    const Real dz = Density_Func(p + vecr(0.f, 0.f, H)) - Density_Func(p - vecr(0.f, 0.f, H));
 
-    return glm::normalize(vec3(dx, dy, dz));
+    return glm::normalize(vecr(dx, dy, dz));
 }
 // ----------------------------------------------------------------------------
-RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle, glm::vec3 min, Real size) {
+RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const DefaultMesh::FaceHandle &faceHandle, vecr min, Real size) {
     //trace("triangle relative position");
-    vec3 max = min + size*CHILD_MIN_OFFSETS[7];
+    vecr max = min + size*CHILD_MIN_OFFSETS[7];
 
     DefaultMesh::FaceVertexIter fv_it = mesh.cfv_iter(faceHandle);
     DefaultMesh::VertexHandle verticesHandle[3];
@@ -368,10 +371,10 @@ RelativePosition triangleRelativePosition(const DefaultMesh &mesh, const Default
 }
 
 // -------------------------------------------------------------------------------
-RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle, glm::vec3 min, Real size) {
+RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMesh::VertexHandle &vertexHandle, vecr min, Real size) {
     /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
 
-    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
+    vecr maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
     //trace("vertex relative position");
     DefaultMesh::Point vertex = mesh.point(vertexHandle);
     //trace("xabu?");
@@ -384,7 +387,7 @@ RelativePosition vertexRelativePosition(const DefaultMesh &mesh, const DefaultMe
 }
 
 // -------------------------------------------------------------------------------
-RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const DefaultMesh::HalfedgeHandle &halfedgeHandle, glm::vec3 min, Real size) {
+RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const DefaultMesh::HalfedgeHandle &halfedgeHandle, vecr min, Real size) {
     int numVerticesInside = 0;
     if (vertexRelativePosition(mesh, mesh.to_vertex_handle(halfedgeHandle), min, size) == INSIDE){
         ++numVerticesInside;
@@ -397,8 +400,8 @@ RelativePosition halfedgeRelativePosition(const DefaultMesh &mesh, const Default
     return CROSSING;
 }
 // -------------------------------------------------------------------------------
-RelativePosition triangleRelativePosition(const Vertex &a, const Vertex &b, const Vertex &c, glm::vec3 min, Real size) {
-    vec3 max = min + size*CHILD_MIN_OFFSETS[7];
+RelativePosition triangleRelativePosition(const Vertex &a, const Vertex &b, const Vertex &c, vecr min, Real size) {
+    vecr max = min + size*CHILD_MIN_OFFSETS[7];
     if (((a.position.x > max.x) && (b.position.x > max.x) && (c.position.x > max.x))
         || ((a.position.x < min.x) && (b.position.x < min.x) && (c.position.x < min.x))){
         return OUTSIDE;
@@ -431,10 +434,10 @@ RelativePosition triangleRelativePosition(const Vertex &a, const Vertex &b, cons
 
 // -------------------------------------------------------------------------------
 
-RelativePosition vertexRelativePosition(const Vertex &vertex, glm::vec3 min, Real size) {
+RelativePosition vertexRelativePosition(const Vertex &vertex, vecr min, Real size) {
     /*We ignore the case when the vertex is exactly on the cell edge (we consider it outside) */
 
-    vec3 maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
+    vecr maxvertex = min + (CHILD_MIN_OFFSETS[7] * size);
     if ((vertex.position.x > min.x) && (vertex.position.x < maxvertex.x)
         && (vertex.position.y > min.y) && (vertex.position.y < maxvertex.y)
         && (vertex.position.z > min.z) && (vertex.position.z < maxvertex.z)) {
@@ -444,27 +447,28 @@ RelativePosition vertexRelativePosition(const Vertex &vertex, glm::vec3 min, Rea
 }
 
 // -------------------------------------------------------------------------------
-glm::vec3 openmesh_to_glm(const OpenMesh::VectorT<Real, 3> om_vec)
+vecr openmesh_to_glm(const OpenMesh::VectorT<float, 3> om_vec)
 {
-    return glm::make_vec3(&om_vec[0]);
+    return vecr(om_vec[0], om_vec[1], om_vec[2]);
+    //return glm::make_vec3(&om_vec[0]);
 }
 
 // -------------------------------------------------------------------------------
 
-bool ray_box_overlap(const glm::vec3 origin, const glm::vec3 dest, const glm::vec3 min, const Real size){
+bool ray_box_overlap(const vecr origin, const vecr dest, const vecr min, const Real size){
     //TODO: implement
     return true;
 }
 
 // ----------------------------------------------------------------------------
 
-int computeSideOfPoint(const glm::vec3 point, const glm::vec3 intersection, const glm::vec3 face_normal)
+int computeSideOfPoint(const vecr point, const vecr intersection, const vecr face_normal)
 {
     return glm::dot(point - intersection, face_normal) < 0.f ? MATERIAL_SOLID : MATERIAL_AIR;
 }
 
 // ----------------------------------------------------------------------------
-void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign)
+void updateVertexpool(std::unordered_map<std::string, int> &pool, const vecr &vertex, int &sign)
 {
     if(sign == MATERIAL_UNKNOWN)
     {
