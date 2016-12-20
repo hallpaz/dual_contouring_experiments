@@ -18,7 +18,7 @@ class OctreeNode
     friend class Octree;
 public:
 
-    OctreeNode(OctreeNodeType type, glm::vec3 min, float size, int height, OctreeNode* parent = nullptr)
+    OctreeNode(OctreeNodeType type, glm::vec3 min, Real size, int height, OctreeNode* parent = nullptr)
             : type(type), min(min), size(size), depth(height), drawInfo(nullptr), parent(parent), is_border(false)
     {
         for (int i = 0; i < NUM_CHILDREN; ++i)
@@ -108,7 +108,7 @@ public:
     //static std::unordered_map<std::string, HermiteData> edgepool;
     static int no_intersections;
 
-    static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
+    static OctreeNode* SimplifyOctree(OctreeNode* node, const Real threshold);
 };
 
 

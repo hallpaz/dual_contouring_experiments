@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
-#include <vector>
 #include <fstream>
+#include <vector>
 #include "Utils.h"
 #include "old/octree.h"
 
@@ -28,7 +28,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 7;
+    const int height = 9;
 
     string folder_name = "../";
     string inputfilename, outputfilename;

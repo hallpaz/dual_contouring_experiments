@@ -35,9 +35,9 @@ namespace svd
         this->clear();
     }
 
-    Mat3::Mat3(const float m00, const float m01, const float m02,
-               const float m10, const float m11, const float m12,
-               const float m20, const float m21, const float m22)
+    Mat3::Mat3(const Real m00, const Real m01, const Real m02,
+               const Real m10, const Real m11, const Real m12,
+               const Real m20, const Real m21, const Real m22)
     {
         this->set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
     }
@@ -52,9 +52,9 @@ namespace svd
         this->set(0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
-    void Mat3::set(const float m00, const float m01, const float m02,
-                   const float m10, const float m11, const float m12,
-                   const float m20, const float m21, const float m22)
+    void Mat3::set(const Real m00, const Real m01, const Real m02,
+                   const Real m10, const Real m11, const Real m12,
+                   const Real m20, const Real m21, const Real m22)
     {
         this->m00 = m00;
         this->m01 = m01;
@@ -78,8 +78,8 @@ namespace svd
         this->setSymmetric(rhs.m00, rhs.m01, rhs.m02, rhs.m11, rhs.m12, rhs.m22);
     }
 
-    void Mat3::setSymmetric(const float a00, const float a01, const float a02,
-                            const float a11, const float a12, const float a22)
+    void Mat3::setSymmetric(const Real a00, const Real a01, const Real a02,
+                            const Real a11, const Real a12, const Real a22)
     {
         this->set(a00, a01, a02, a01, a11, a12, a02, a12, a22);
     }
@@ -89,8 +89,8 @@ namespace svd
         this->clear();
     }
 
-    SMat3::SMat3(const float m00, const float m01, const float m02,
-                 const float m11, const float m12, const float m22)
+    SMat3::SMat3(const Real m00, const Real m01, const Real m02,
+                 const Real m11, const Real m12, const Real m22)
     {
         this->setSymmetric(m00, m01, m02, m11, m12, m22);
     }
@@ -110,8 +110,8 @@ namespace svd
         this->setSymmetric(rhs.m00, rhs.m01, rhs.m02, rhs.m11, rhs.m12, rhs.m22);
     }
 
-    void SMat3::setSymmetric(const float a00, const float a01, const float a02,
-                             const float a11, const float a12, const float a22)
+    void SMat3::setSymmetric(const Real a00, const Real a01, const Real a02,
+                             const Real a11, const Real a12, const Real a22)
     {
         this->m00 = a00;
         this->m01 = a01;
@@ -128,7 +128,7 @@ namespace svd
         this->set(rhs);
     }
 
-    Vec3::Vec3(const float x, const float y, const float z)// : Vec3()
+    Vec3::Vec3(const Real x, const Real y, const Real z)// : Vec3()
     {
         this->set(x, y, z);
     }
@@ -138,7 +138,7 @@ namespace svd
         this->set(0, 0, 0);
     }
 
-    void Vec3::set(const float x, const float y, const float z)
+    void Vec3::set(const Real x, const Real y, const Real z)
     {
         this->x = x;
         this->y = y;
@@ -178,27 +178,27 @@ namespace svd
     }
 #endif
 
-    float MatUtils::fnorm(const Mat3 &a)
+    Real MatUtils::fnorm(const Mat3 &a)
     {
         return sqrt((a.m00 * a.m00) + (a.m01 * a.m01) + (a.m02 * a.m02)
                     + (a.m10 * a.m10) + (a.m11 * a.m11) + (a.m12 * a.m12)
                     + (a.m20 * a.m20) + (a.m21 * a.m21) + (a.m22 * a.m22));
     }
 
-    float MatUtils::fnorm(const SMat3 &a)
+    Real MatUtils::fnorm(const SMat3 &a)
     {
         return sqrt((a.m00 * a.m00) + (a.m01 * a.m01) + (a.m02 * a.m02)
                     + (a.m01 * a.m01) + (a.m11 * a.m11) + (a.m12 * a.m12)
                     + (a.m02 * a.m02) + (a.m12 * a.m12) + (a.m22 * a.m22));
     }
 
-    float MatUtils::off(const Mat3 &a)
+    Real MatUtils::off(const Mat3 &a)
     {
         return sqrt((a.m01 * a.m01) + (a.m02 * a.m02) + (a.m10 * a.m10)
                     + (a.m12 * a.m12) + (a.m20 * a.m20) + (a.m21 * a.m21));
     }
 
-    float MatUtils::off(const SMat3 &a)
+    Real MatUtils::off(const SMat3 &a)
     {
         return sqrt(2 * ((a.m01 * a.m01) + (a.m02 * a.m02) + (a.m12 * a.m12)));
     }
@@ -245,21 +245,21 @@ namespace svd
         out.z = (a.m02 * v.x) + (a.m12 * v.y) + (a.m22 * v.z);
     }
 
-    void VecUtils::addScaled(Vec3 &v, const float s, const Vec3 &rhs)
+    void VecUtils::addScaled(Vec3 &v, const Real s, const Vec3 &rhs)
     {
         v.x += s * rhs.x;
         v.y += s * rhs.y;
         v.z += s * rhs.z;
     }
 
-    float VecUtils::dot(const Vec3 &a, const Vec3 &b)
+    Real VecUtils::dot(const Vec3 &a, const Vec3 &b)
     {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
     void VecUtils::normalize(Vec3 &v)
     {
-        const float len2 = VecUtils::dot(v, v);
+        const Real len2 = VecUtils::dot(v, v);
 
         if (fabs(len2) < 1e-12) {
             v.clear();
@@ -268,7 +268,7 @@ namespace svd
         }
     }
 
-    void VecUtils::scale(Vec3 &v, const float s)
+    void VecUtils::scale(Vec3 &v, const Real s)
     {
         v.x *= s;
         v.y *= s;
@@ -277,40 +277,40 @@ namespace svd
 
     void VecUtils::sub(Vec3 &c, const Vec3 &a, const Vec3 &b)
     {
-        const float v0 = a.x - b.x;
-        const float v1 = a.y - b.y;
-        const float v2 = a.z - b.z;
+        const Real v0 = a.x - b.x;
+        const Real v1 = a.y - b.y;
+        const Real v2 = a.z - b.z;
         c.x = v0;
         c.y = v1;
         c.z = v2;
     }
 
-    void Givens::rot01_post(Mat3 &m, const float c, const float s)
+    void Givens::rot01_post(Mat3 &m, const Real c, const Real s)
     {
-        const float m00 = m.m00, m01 = m.m01, m10 = m.m10, m11 = m.m11, m20 = m.m20,
+        const Real m00 = m.m00, m01 = m.m01, m10 = m.m10, m11 = m.m11, m20 = m.m20,
                 m21 = m.m21;
         m.set(c * m00 - s * m01, s * m00 + c * m01, m.m02, c * m10 - s * m11,
               s * m10 + c * m11, m.m12, c * m20 - s * m21, s * m20 + c * m21, m.m22);
     }
 
-    void Givens::rot02_post(Mat3 &m, const float c, const float s)
+    void Givens::rot02_post(Mat3 &m, const Real c, const Real s)
     {
-        const float m00  = m.m00, m02  = m.m02, m10  = m.m10, m12  = m.m12,
+        const Real m00  = m.m00, m02  = m.m02, m10  = m.m10, m12  = m.m12,
                 m20 = m.m20, m22  = m.m22 ;
         m.set(c * m00 - s * m02, m.m01, s * m00 + c * m02, c * m10 - s * m12, m.m11,
               s * m10 + c * m12, c * m20 - s * m22, m.m21, s * m20 + c * m22);
     }
 
-    void Givens::rot12_post(Mat3 &m, const float c, const float s)
+    void Givens::rot12_post(Mat3 &m, const Real c, const Real s)
     {
-        const float m01  = m.m01, m02  = m.m02, m11  = m.m11, m12  = m.m12,
+        const Real m01  = m.m01, m02  = m.m02, m11  = m.m11, m12  = m.m12,
                 m21  = m.m21, m22  = m.m22;
         m.set(m.m00, c * m01 - s * m02, s * m01 + c * m02, m.m10, c * m11 - s * m12,
               s * m11 + c * m12, m.m20, c * m21 - s * m22, s * m21 + c * m22);
     }
 
-    static void calcSymmetricGivensCoefficients(const float a_pp,
-                                                const float a_pq, const float a_qq, float &c, float &s)
+    static void calcSymmetricGivensCoefficients(const Real a_pp,
+                                                const Real a_pq, const Real a_qq, Real &c, Real &s)
     {
         if (a_pq == 0) {
             c = 1;
@@ -318,39 +318,39 @@ namespace svd
             return;
         }
 
-        const float tau = (a_qq - a_pp) / (2 * a_pq);
-        const float stt = sqrt(1.0f + tau * tau);
-        const float tan = 1.0f / ((tau >= 0) ? (tau + stt) : (tau - stt));
+        const Real tau = (a_qq - a_pp) / (2 * a_pq);
+        const Real stt = sqrt(1.0f + tau * tau);
+        const Real tan = 1.0f / ((tau >= 0) ? (tau + stt) : (tau - stt));
         c = 1.0f / sqrt(1.f + tan * tan);
         s = tan * c;
     }
 
-    void Schur2::rot01(SMat3 &m, float &c, float &s)
+    void Schur2::rot01(SMat3 &m, Real &c, Real &s)
     {
         svd::calcSymmetricGivensCoefficients(m.m00, m.m01, m.m11, c, s);
-        const float cc = c * c;
-        const float ss = s * s;
-        const float mix = 2 * c * s * m.m01;
+        const Real cc = c * c;
+        const Real ss = s * s;
+        const Real mix = 2 * c * s * m.m01;
         m.setSymmetric(cc * m.m00 - mix + ss * m.m11, 0, c * m.m02 - s * m.m12,
                        ss * m.m00 + mix + cc * m.m11, s * m.m02 + c * m.m12, m.m22);
     }
 
-    void Schur2::rot02(SMat3 &m, float &c, float &s)
+    void Schur2::rot02(SMat3 &m, Real &c, Real &s)
     {
         svd::calcSymmetricGivensCoefficients(m.m00, m.m02, m.m22, c, s);
-        const float cc = c * c;
-        const float ss = s * s;
-        const float mix = 2 * c * s * m.m02;
+        const Real cc = c * c;
+        const Real ss = s * s;
+        const Real mix = 2 * c * s * m.m02;
         m.setSymmetric(cc * m.m00 - mix + ss * m.m22, c * m.m01 - s * m.m12, 0,
                        m.m11, s * m.m01 + c * m.m12, ss * m.m00 + mix + cc * m.m22);
     }
 
-    void Schur2::rot12(SMat3 &m, float &c, float &s)
+    void Schur2::rot12(SMat3 &m, Real &c, Real &s)
     {
         svd::calcSymmetricGivensCoefficients(m.m11, m.m12, m.m22, c, s);
-        const float cc = c * c;
-        const float ss = s * s;
-        const float mix = 2 * c * s * m.m12;
+        const Real cc = c * c;
+        const Real ss = s * s;
+        const Real mix = 2 * c * s * m.m12;
         m.setSymmetric(m.m00, c * m.m01 - s * m.m02, s * m.m01 + c * m.m02,
                        cc * m.m11 - mix + ss * m.m22, 0, ss * m.m11 + mix + cc * m.m22);
     }
@@ -361,7 +361,7 @@ namespace svd
             return;
         }
 
-        float c, s;
+        Real c, s;
         Schur2::rot01(vtav, c, s);
         Givens::rot01_post(v, c, s);
     }
@@ -372,7 +372,7 @@ namespace svd
             return;
         }
 
-        float c, s;
+        Real c, s;
         Schur2::rot02(vtav, c, s);
         Givens::rot02_post(v, c, s);
     }
@@ -383,18 +383,18 @@ namespace svd
             return;
         }
 
-        float c, s;
+        Real c, s;
         Schur2::rot12(vtav, c, s);
         Givens::rot12_post(v, c, s);
     }
 
     void Svd::getSymmetricSvd(const SMat3 &a, SMat3 &vtav, Mat3 &v,
-                              const float tol,
+                              const Real tol,
                               const int max_sweeps)
     {
         vtav.setSymmetric(a);
         v.set(1, 0, 0, 0, 1, 0, 0, 0, 1);
-        const float delta = tol * MatUtils::fnorm(vtav);
+        const Real delta = tol * MatUtils::fnorm(vtav);
 
         for (int i = 0; i < max_sweeps
                         && MatUtils::off(vtav) > delta; ++i) {
@@ -404,7 +404,7 @@ namespace svd
         }
     }
 
-    static float calcError(const Mat3 &A, const Vec3 &x,
+    static Real calcError(const Mat3 &A, const Vec3 &x,
                            const Vec3 &b)
     {
         Vec3 vtmp;
@@ -413,7 +413,7 @@ namespace svd
         return VecUtils::dot(vtmp, vtmp);
     }
 
-    static float calcError(const SMat3 &origA, const Vec3 &x,
+    static Real calcError(const SMat3 &origA, const Vec3 &x,
                            const Vec3 &b)
     {
         Mat3 A;
@@ -424,15 +424,15 @@ namespace svd
         return VecUtils::dot(vtmp, vtmp);
     }
 
-    static float pinv(const float x, const float tol)
+    static Real pinv(const Real x, const Real tol)
     {
         return (fabs(x) < tol || fabs(1 / x) < tol) ? 0 : (1 / x);
     }
 
     void Svd::pseudoinverse(Mat3 &out, const SMat3 &d, const Mat3 &v,
-                            const float tol)
+                            const Real tol)
     {
-        const float d0 = pinv(d.m00, tol), d1 = pinv(d.m11, tol), d2 = pinv(d.m22,
+        const Real d0 = pinv(d.m00, tol), d1 = pinv(d.m11, tol), d2 = pinv(d.m22,
                                                                             tol);
         out.set(v.m00 * d0 * v.m00 + v.m01 * d1 * v.m01 + v.m02 * d2 * v.m02,
                 v.m00 * d0 * v.m10 + v.m01 * d1 * v.m11 + v.m02 * d2 * v.m12,
@@ -445,8 +445,8 @@ namespace svd
                 v.m20 * d0 * v.m20 + v.m21 * d1 * v.m21 + v.m22 * d2 * v.m22);
     }
 
-    float Svd::solveSymmetric(const SMat3 &A, const Vec3 &b, Vec3 &x,
-                              const float svd_tol, const int svd_sweeps, const float pinv_tol)
+    Real Svd::solveSymmetric(const SMat3 &A, const Vec3 &b, Vec3 &x,
+                              const Real svd_tol, const int svd_sweeps, const Real pinv_tol)
     {
         Mat3 mtmp, pinv, V;
         SMat3 VTAV;
@@ -456,9 +456,9 @@ namespace svd
         return svd::calcError(A, x, b);
     }
 
-    float
+    Real
     LeastSquares::solveLeastSquares(const Mat3 &a, const Vec3 &b, Vec3 &x,
-                                    const float svd_tol, const int svd_sweeps, const float pinv_tol)
+                                    const Real svd_tol, const int svd_sweeps, const Real pinv_tol)
     {
         Mat3 at;
         SMat3 ata;

@@ -30,20 +30,22 @@
 #include <iostream>
 #endif
 
+#include "../Constants.h"
+
 namespace svd
 {
     class SMat3
     {
     public:
-        float m00, m01, m02, m11, m12, m22;
+        Real m00, m01, m02, m11, m12, m22;
     public:
         SMat3();
-        SMat3(const float m00, const float m01, const float m02,
-              const float m11, const float m12, const float m22);
+        SMat3(const Real m00, const Real m01, const Real m02,
+              const Real m11, const Real m12, const Real m22);
         void clear() ;
-        void setSymmetric(const float m00, const float m01, const float m02,
-                          const float m11,
-                          const float m12, const float m22) ;
+        void setSymmetric(const Real m00, const Real m01, const Real m02,
+                          const Real m11,
+                          const Real m12, const Real m22) ;
         void setSymmetric(const SMat3 &rhs) ;
     private:
         SMat3(const SMat3 &rhs);
@@ -52,19 +54,19 @@ namespace svd
     class Mat3
     {
     public:
-        float m00, m01, m02, m10, m11, m12, m20, m21, m22;
+        Real m00, m01, m02, m10, m11, m12, m20, m21, m22;
     public:
         Mat3();
-        Mat3(const float m00, const float m01, const float m02,
-             const float m10, const float m11, const float m12,
-             const float m20, const float m21, const float m22);
+        Mat3(const Real m00, const Real m01, const Real m02,
+             const Real m10, const Real m11, const Real m12,
+             const Real m20, const Real m21, const Real m22);
         void clear() ;
-        void set(const float m00, const float m01, const float m02,
-                 const float m10, const float m11, const float m12,
-                 const float m20, const float m21, const float m22) ;
+        void set(const Real m00, const Real m01, const Real m02,
+                 const Real m10, const Real m11, const Real m12,
+                 const Real m20, const Real m21, const Real m22) ;
         void set(const Mat3 &rhs) ;
-        void setSymmetric(const float a00, const float a01, const float a02,
-                          const float a11, const float a12, const float a22) ;
+        void setSymmetric(const Real a00, const Real a01, const Real a02,
+                          const Real a11, const Real a12, const Real a22) ;
         void setSymmetric(const SMat3 &rhs);
     private:
         Mat3(const Mat3 &rhs);
@@ -73,12 +75,12 @@ namespace svd
     class Vec3
     {
     public:
-        float x, y, z;
+        Real x, y, z;
     public:
         Vec3();
-        Vec3(const float x, const float y, const float z);
+        Vec3(const Real x, const Real y, const Real z);
         void clear();
-        void set(const float x, const float y, const float z);
+        void set(const Real x, const Real y, const Real z);
         void set(const Vec3 &rhs);
     private:
         Vec3(const Vec3 &rhs);
@@ -92,10 +94,10 @@ namespace svd
     class MatUtils
     {
     public:
-        static float fnorm(const Mat3 &a) ;
-        static float fnorm(const SMat3 &a) ;
-        static float off(const Mat3 &a) ;
-        static float off(const SMat3 &a) ;
+        static Real fnorm(const Mat3 &a) ;
+        static Real fnorm(const SMat3 &a) ;
+        static Real off(const Mat3 &a) ;
+        static Real off(const SMat3 &a) ;
 
     public:
         static void mmul(Mat3 &out, const Mat3 &a, const Mat3 &b) ;
@@ -107,41 +109,41 @@ namespace svd
     class VecUtils
     {
     public:
-        static void addScaled(Vec3 &v, const float s, const Vec3 &rhs) ;
-        static float dot(const Vec3 &a, const Vec3 &b) ;
+        static void addScaled(Vec3 &v, const Real s, const Vec3 &rhs) ;
+        static Real dot(const Vec3 &a, const Vec3 &b) ;
         static void normalize(Vec3 &v) ;
-        static void scale(Vec3 &v, const float s) ;
+        static void scale(Vec3 &v, const Real s) ;
         static void sub(Vec3 &c, const Vec3 &a, const Vec3 &b) ;
     };
     class Givens
     {
     public:
-        static void rot01_post(Mat3 &m, const float c, const float s);
-        static void rot02_post(Mat3 &m, const float c, const float s);
-        static void rot12_post(Mat3 &m, const float c, const float s);
+        static void rot01_post(Mat3 &m, const Real c, const Real s);
+        static void rot02_post(Mat3 &m, const Real c, const Real s);
+        static void rot12_post(Mat3 &m, const Real c, const Real s);
     };
     class Schur2
     {
     public:
-        static void rot01(SMat3 &out, float &c, float &s) ;
-        static void rot02(SMat3 &out, float &c, float &s) ;
-        static void rot12(SMat3 &out, float &c, float &s) ;
+        static void rot01(SMat3 &out, Real &c, Real &s) ;
+        static void rot02(SMat3 &out, Real &c, Real &s) ;
+        static void rot12(SMat3 &out, Real &c, Real &s) ;
     };
     class Svd
     {
     public:
         static void getSymmetricSvd(const SMat3 &a, SMat3 &vtav, Mat3 &v,
-                                    const float tol, const int max_sweeps);
+                                    const Real tol, const int max_sweeps);
         static void pseudoinverse(Mat3 &out, const SMat3 &d, const Mat3 &v,
-                                  const float tol);
-        static float solveSymmetric(const SMat3 &A, const Vec3 &b, Vec3 &x,
-                                    const float svd_tol, const int svd_sweeps, const float pinv_tol);
+                                  const Real tol);
+        static Real solveSymmetric(const SMat3 &A, const Vec3 &b, Vec3 &x,
+                                    const Real svd_tol, const int svd_sweeps, const Real pinv_tol);
     };
     class LeastSquares
     {
     public:
-        static float solveLeastSquares(const Mat3 &a, const Vec3 &b, Vec3 &x,
-                                       const float svd_tol, const int svd_sweeps, const float pinv_tol) ;
+        static Real solveLeastSquares(const Mat3 &a, const Vec3 &b, Vec3 &x,
+                                       const Real svd_tol, const int svd_sweeps, const Real pinv_tol) ;
     };
 };
 #endif

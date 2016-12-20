@@ -34,11 +34,11 @@ namespace svd
         this->clear();
     }
 
-    QefData::QefData(const float ata_00, const float ata_01,
-                     const float ata_02, const float ata_11, const float ata_12,
-                     const float ata_22, const float atb_x, const float atb_y,
-                     const float atb_z, const float btb, const float massPoint_x,
-                     const float massPoint_y, const float massPoint_z,
+    QefData::QefData(const Real ata_00, const Real ata_01,
+                     const Real ata_02, const Real ata_11, const Real ata_12,
+                     const Real ata_22, const Real atb_x, const Real atb_y,
+                     const Real atb_z, const Real btb, const Real massPoint_x,
+                     const Real massPoint_y, const Real massPoint_z,
                      const int numPoints)
     {
         this->set(ata_00, ata_01, ata_02, ata_11, ata_12, ata_22, atb_x, atb_y,
@@ -79,11 +79,11 @@ namespace svd
         this->set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 
-    void QefData::set(const float ata_00, const float ata_01,
-                      const float ata_02, const float ata_11, const float ata_12,
-                      const float ata_22, const float atb_x, const float atb_y,
-                      const float atb_z, const float btb, const float massPoint_x,
-                      const float massPoint_y, const float massPoint_z,
+    void QefData::set(const Real ata_00, const Real ata_01,
+                      const Real ata_02, const Real ata_11, const Real ata_12,
+                      const Real ata_22, const Real atb_x, const Real atb_y,
+                      const Real atb_z, const Real btb, const Real massPoint_x,
+                      const Real massPoint_y, const Real massPoint_z,
                       const int numPoints)
     {
         this->ata_00 = ata_00;
@@ -110,7 +110,7 @@ namespace svd
                   rhs.numPoints);
     }
 
-    QefData QefData::operator*(const float &number)
+    QefData QefData::operator*(const Real &number)
     {
         return QefData(this->ata_00 * number, this->ata_01 * number, this->ata_02 * number,
                        this->ata_11 * number, this->ata_12 * number, this->ata_22 * number,
@@ -118,7 +118,7 @@ namespace svd
                        this->btb * number, this->massPoint_x, this->massPoint_y,
                        this->massPoint_z, this->numPoints);
     }
-    QefData operator*(const float &number, QefData &qefData)
+    QefData operator*(const Real &number, QefData &qefData)
     {
         return qefData * number;
     }
@@ -158,7 +158,7 @@ namespace svd
     QefSolver::QefSolver() : data(), ata(), atb(), massPoint(), x(),
                              hasSolution(false) {}
 
-    static void normalize(float &nx, float &ny, float &nz)
+    static void normalize(Real &nx, Real &ny, Real &nz)
     {
         Vec3 tmpv(nx, ny, nz);
         VecUtils::normalize(tmpv);
@@ -167,8 +167,8 @@ namespace svd
         nz = tmpv.z;
     }
 
-    void QefSolver::add(const float px, const float py, const float pz,
-                        float nx, float ny, float nz)
+    void QefSolver::add(const Real px, const Real py, const Real pz,
+                        Real nx, Real ny, Real nz)
     {
         this->hasSolution = false;
         normalize(nx, ny, nz);
@@ -178,7 +178,7 @@ namespace svd
         this->data.ata_11 += ny * ny;
         this->data.ata_12 += ny * nz;
         this->data.ata_22 += nz * nz;
-        const float dot = nx * px + ny * py + nz * pz;
+        const Real dot = nx * px + ny * py + nz * pz;
         this->data.atb_x += dot * nx;
         this->data.atb_y += dot * ny;
         this->data.atb_z += dot * nz;
@@ -205,7 +205,7 @@ namespace svd
         return data;
     }
 
-    float QefSolver::getError()
+    Real QefSolver::getError()
     {
         if (!this->hasSolution) {
             throw std::runtime_error("illegal state");
@@ -214,7 +214,7 @@ namespace svd
         return this->getError(this->x);
     }
 
-    float QefSolver::getError(const Vec3 &pos)
+    Real QefSolver::getError(const Vec3 &pos)
     {
         if (!this->hasSolution) {
             this->setAta();
@@ -245,8 +245,8 @@ namespace svd
         this->atb.set(this->data.atb_x, this->data.atb_y, this->data.atb_z);
     }
 
-    float QefSolver::solve(Vec3 &outx, const float svd_tol,
-                           const int svd_sweeps, const float pinv_tol)
+    Real QefSolver::solve(Vec3 &outx, const Real svd_tol,
+                           const int svd_sweeps, const Real pinv_tol)
     {
         if (this->data.numPoints == 0) {
             throw std::invalid_argument("...");
@@ -261,7 +261,7 @@ namespace svd
         MatUtils::vmul_symmetric(tmpv, this->ata, this->massPoint);
         VecUtils::sub(this->atb, this->atb, tmpv);
         this->x.clear();
-        const float result = Svd::solveSymmetric(this->ata, this->atb,
+        const Real result = Svd::solveSymmetric(this->ata, this->atb,
                                                  this->x, svd_tol, svd_sweeps, pinv_tol);
         VecUtils::addScaled(this->x, 1, this->massPoint);
         this->setAtb();

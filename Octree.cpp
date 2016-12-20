@@ -19,7 +19,7 @@ int Octree::no_intersections = 0;
 
 bool OctreeNode::construct_or_update_children(unsigned int max_depth, const DefaultMesh &mesh)
 {
-    const float childSize = this->size / 2;
+    const Real childSize = this->size / 2;
     const int childHeight = this->depth + 1;
     bool hasChildren = false;
     for (int i = 0; i < NUM_CHILDREN; i++)
@@ -67,7 +67,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
         return nullptr;
     }
 
-    if (/*(node->parent && node->parent->innerEmpty()) || */node->depth == max_depth)
+    if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
     {
         return construct_or_update_leaf(node, max_depth, mesh);
     }
@@ -158,7 +158,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
                 }*/
                 intersection_points.push_back(intersection);
 
-                float u, v, w;
+                Real u, v, w;
                 barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
                 vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
                 //normals.push_back(glm::normalize(normal_at_intersection));
@@ -281,7 +281,7 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
 // return intersection distance tmin and point q of intersection
 bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real size, Real &intersection_distance, vec3 &intersection) {
     intersection_distance = 0.0f; // set to -FLT_MAX to get first hit on line
-    float tmax = FLT_MAX; // set to max distance ray can travel (for segment)
+    Real tmax = FLT_MAX; // set to max distance ray can travel (for segment)
     // For all three slabs
     vec3 dir = glm::normalize(dest - origin);
     vec3 max = min + vec3(size);
@@ -296,9 +296,9 @@ bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real siz
         else
         {
             // Compute intersection t value of ray with near and far plane of slab
-            float ood = 1.0f / dir[i];
-            float t1 = (min[i] - origin[i]) * ood;
-            float t2 = (max[i] - origin[i]) * ood;
+            Real ood = 1.0f / dir[i];
+            Real t1 = (min[i] - origin[i]) * ood;
+            Real t2 = (max[i] - origin[i]) * ood;
             // Make t1 be intersection with near plane, t2 with far plane
             if (t1 > t2)
             {
@@ -386,7 +386,7 @@ int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, De
 
 // -------------------------------------------------------------------------------
 
-OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const float threshold)
+OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const Real threshold)
 {
     if (!node)
     {
@@ -438,7 +438,7 @@ OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const float threshold)
 
     svd::Vec3 qefPosition;
     qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
-    float error = qef.getError();
+    Real error = qef.getError();
 
     // convert to glm vec3 for ease of use
     vec3 position(qefPosition.x, qefPosition.y, qefPosition.z);

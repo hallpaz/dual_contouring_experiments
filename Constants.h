@@ -37,7 +37,7 @@ const unsigned short NUM_CHILDREN = 8;
 const unsigned short NUM_EDGES = 12;
 const Real EPSILON = 1e-5f;
 
-const float QEF_ERROR = 1e-6f;
+const Real QEF_ERROR = 1e-6f;
 const int QEF_SWEEPS = 4;
 // ----------------------------------------------------------------------------
 const int vneighbors[8][3] = {
@@ -116,5 +116,5 @@ const int processEdgeMask[3][4] = {{3,2,1,0},{7,5,6,4},{11,10,9,8}} ;
 // -------------------------------------------------------------------------------
 
 
-const float POINT_DISTANCE_THRESHOLD = 0.000001f;
+const Real POINT_DISTANCE_THRESHOLD = 0.000001f;
 #endif //DUAL_CONTOURING_EXPERIMENTS_CONSTANTS_H

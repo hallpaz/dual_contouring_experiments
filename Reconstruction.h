@@ -9,7 +9,7 @@
 
 namespace Fusion
 {
-    OctreeNode *octree_from_samples(const glm::vec3 &min, const float size, const unsigned int max_depth,
+    OctreeNode *octree_from_samples(const glm::vec3 &min, const Real size, const unsigned int max_depth,
                                         std::vector<std::string> meshfiles, std::vector<glm::vec3> cameras);
 }
 

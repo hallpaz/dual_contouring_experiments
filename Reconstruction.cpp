@@ -30,7 +30,7 @@ namespace Fusion
         }
     }
 
-    OctreeNode *octree_from_samples(const glm::vec3 &min, const float size, const unsigned int max_depth,
+    OctreeNode *octree_from_samples(const glm::vec3 &min, const Real size, const unsigned int max_depth,
                                         std::vector<std::string> meshfiles, std::vector<glm::vec3> cameras)
     {
         DefaultMesh mesh;
@@ -66,7 +66,7 @@ namespace Fusion
 
 /*bool update_children(OctreeNode* node, unsigned int max_depth, const DefaultMesh &mesh)
     {
-        const float childSize = node->size / 2;
+        const Real childSize = node->size / 2;
         const int childDepth = node->depth + 1;
         bool hasChildren = false;
         for (int i = 0; i < NUM_CHILDREN; ++i)
@@ -146,7 +146,7 @@ namespace Fusion
                     }
                     intersection_points.push_back(intersection);
 
-                    float u, v, w;
+                    Real u, v, w;
                     barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
                     vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
                     normals.push_back(glm::normalize(normal_at_intersection));

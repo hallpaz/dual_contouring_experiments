@@ -127,7 +127,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 
 void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
 {
-    float minSize = 1000000.f;		// arbitrary big number
+    Real minSize = 1000000.f;		// arbitrary big number
     int minIndex = 0;
     int indices[4] = { -1, -1, -1, -1 };
     bool flip = false;
