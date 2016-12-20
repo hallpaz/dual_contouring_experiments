@@ -19,7 +19,7 @@ class OctreeNode
 public:
 
     OctreeNode(OctreeNodeType type, glm::vec3 min, float size, int height, OctreeNode* parent = nullptr)
-            : type(type), min(min), size(size), depth(height), drawInfo(nullptr), parent(parent)
+            : type(type), min(min), size(size), depth(height), drawInfo(nullptr), parent(parent), is_border(false)
     {
         for (int i = 0; i < NUM_CHILDREN; ++i)
         {
@@ -27,7 +27,7 @@ public:
         }
     }
 
-    OctreeNode() : type(NODE_NONE), min(0, 0, 0), size(0), depth(0), drawInfo(nullptr), parent(nullptr)
+    OctreeNode() : type(NODE_NONE), min(0, 0, 0), size(0), depth(0), drawInfo(nullptr), parent(nullptr), is_border(false)
     {
         for (int i = 0; i < NUM_CHILDREN; ++i)
         {
@@ -81,6 +81,7 @@ public:
     glm::vec3		min;
     Real			size;
     unsigned int    depth;
+    bool            is_border;
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
@@ -105,6 +106,7 @@ public:
 
     static std::unordered_map<std::string, int> leafvertexpool;
     //static std::unordered_map<std::string, HermiteData> edgepool;
+    static int no_intersections;
 
     static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 };

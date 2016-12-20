@@ -14,6 +14,8 @@ std::unordered_map<std::string, int> Octree::leafvertexpool;
 int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, DefaultMesh &mesh);
 // ----------------------------------------------------------------------------
 
+int Octree::no_intersections = 0;
+
 
 bool OctreeNode::construct_or_update_children(unsigned int max_depth, const DefaultMesh &mesh)
 {
@@ -65,7 +67,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
         return nullptr;
     }
 
-    if ((node->parent && node->parent->innerEmpty()) || node->depth == max_depth)
+    if (/*(node->parent && node->parent->innerEmpty()) || */node->depth == max_depth)
     {
         return construct_or_update_leaf(node, max_depth, mesh);
     }
@@ -140,12 +142,27 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
                 if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
                     continue;
                 }
+                /*if (mesh.is_boundary(*face)){
+                    if (leaf->depth < max_depth)
+                    {
+                        if (leaf->construct_or_update_children(max_depth, mesh))
+                        {
+                            leaf->type = NODE_INTERNAL;
+                            return leaf;
+                        }
+                    }
+                    else
+                    {
+                        leaf->is_border = true;
+                    }
+                }*/
                 intersection_points.push_back(intersection);
 
                 float u, v, w;
                 barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
                 vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                normals.push_back(glm::normalize(normal_at_intersection));
+                //normals.push_back(glm::normalize(normal_at_intersection));
+                normals.push_back(glm::normalize(openmesh_to_glm(mesh.normal(*face))));
             }
         }
         if (intersection_points.size() > 1) {
@@ -172,21 +189,45 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         // if we consider that an intersection happened, we'll consider only the first intersection for now
         if (intersection_points.size() > 0)
         {
-            vec3 &n = normals[0];
-            vec3 &v = intersection_points[0];
-            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
-            averageNormal += n;
+            for (int j = 0; j < intersection_points.size(); ++j) {
+                vec3 &n = normals[j];
+                vec3 &v = intersection_points[j];
+                qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
+                averageNormal += n;
+            }
+
             hasIntersection = true;
         }
     }
 
-    if (!hasIntersection)
+    if (!hasIntersection && leaf->innerFaces.empty())
     {   // voxel is full inside or outside the volume
         if (update)
             return leaf;
         delete leaf;
+        ++no_intersections;
         return nullptr;
     }
+
+    /*std::unordered_map<int, bool> seenPoints;
+    for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->innerFaces.begin(); face != leaf->innerFaces.end(); ++face) {
+        auto fv_it = mesh.cfv_iter(*face);
+        /*DefaultMesh::VertexHandle a = *fv_it;
+        DefaultMesh::VertexHandle b = *(++fv_it);
+        DefaultMesh::VertexHandle c = *(++fv_it);*/
+        /*for (int i = 0; i < 3; ++i)
+        {
+            DefaultMesh::VertexHandle a = *(fv_it++);
+            if (seenPoints.count(a.idx()) == 0)
+            {
+                seenPoints[a.idx()] = true;
+                vec3 pos = openmesh_to_glm(mesh.point(a));
+                vec3 normal = openmesh_to_glm(mesh.normal(a));
+                qef.add(pos.x, pos.y, pos.z, normal.x, normal.y, normal.z);
+                averageNormal += normal;
+            }
+        }
+    }*/
 
     if (leaf->drawInfo == nullptr){
         leaf->drawInfo = new OctreeDrawInfo();

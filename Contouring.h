@@ -9,6 +9,6 @@
 
 
 void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer);
-
+//void GenerateMeshFromOctree(OctreeNode* node, VertexBuffer& vertexBuffer, IndexBuffer& indexBuffer, PropertyBuffer& propertyBuffer);
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_CONTOURING_H

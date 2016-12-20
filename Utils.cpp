@@ -72,7 +72,7 @@ void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh)
 
 // ----------------------------------------------------------------------------
 
-void write_Ply(std::vector<glm::vec3> &vertices, std::vector<int> &faces, std::string filename)
+void write_Ply(std::string filename, VertexBuffer &vertices, IndexBuffer &faces)
 {
     std::ofstream outfile;
     outfile.open(filename.c_str(), std::ios::out);
@@ -85,15 +85,19 @@ void write_Ply(std::vector<glm::vec3> &vertices, std::vector<int> &faces, std::s
         << "property float x" << std::endl
         << "property float y" << std::endl
         << "property float z" << std::endl
-        << "element face " << faces.size()/3 << std::endl
+        << "property uchar red" << std::endl
+        << "property uchar green" << std::endl
+        << "property uchar blue" << std::endl
+        << "element face " << faces.size() << std::endl
         << "property list uchar int vertex_index" << std::endl
         << "end_header" << std::endl;
-        for ( std::vector<glm::vec3>::iterator v_it = vertices.begin(); v_it != vertices.end(); ++v_it) {
-            outfile << v_it->x << " " << v_it->y << " " << v_it->z << std::endl;
+        for (VertexBuffer::iterator v_it = vertices.begin(); v_it != vertices.end(); ++v_it) {
+            outfile << v_it->position.x << " " << v_it->position.y << " " << v_it->position.z << " "
+                << v_it->color.x << " " << v_it->color.y << " " << v_it->color.z << std::endl;
         }
 
-        for ( std::vector<int>::iterator f_it = faces.begin(); f_it != faces.end(); f_it+=3) {
-            outfile << "3" << " " << *f_it << " " << *(f_it+1) << " " << *(f_it+2) << std::endl;
+        for (IndexBuffer::iterator f_it = faces.begin(); f_it != faces.end(); ++f_it) {
+            outfile << "3" << " " << f_it->a << " " << f_it->b << " " << f_it->c << std::endl;
         }
 
         outfile.flush();

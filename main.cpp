@@ -28,7 +28,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 10;
+    const int height = 7;
 
     string folder_name = "../";
     string inputfilename, outputfilename;
@@ -53,21 +53,34 @@ int main(int argc, char** argv)
 
     DefaultMesh myMesh;
     OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
     // compute bounding box
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
 
     OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min)/* - vec3(0.1)*/, octreeSize * 1.1, height,
                                                    filenames, cameras);
-    //root = Octree::SimplifyOctree(root, octreeSize/100.0);
+    //root = Octree::SimplifyOctree(root, octreeSize/1000.0);
 
     VertexBuffer vertices;
     IndexBuffer indices;
     GenerateMeshFromOctree(root, vertices, indices);
 
+    std::cout << Octree::no_intersections << std::endl;
     std::stringstream filepath;
-    filepath << folder_name << outputfilename << height << ".off";
-    write_OFF(filepath.str(), vertices, indices);
+    filepath << folder_name << outputfilename << height << ".ply";
+
+    //write_OFF(filepath.str(), vertices, indices);
+    write_Ply(filepath.str(), vertices, indices);
+
+
+    /*root = Octree::SimplifyOctree(root, octreeSize/10000.0);
+    GenerateMeshFromOctree(root, vertices, indices);
+
+    std::stringstream filepath2;
+    filepath2 << folder_name << outputfilename << height << "SIMP.off";
+    write_OFF(filepath2.str(), vertices, indices);*/
+
     return EXIT_SUCCESS;
 }
 
