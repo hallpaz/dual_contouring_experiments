@@ -6,6 +6,7 @@
 #define DUAL_CONTOURING_EXPERIMENTS_DATASTRUCTURES_H
 
 #include <vector>
+#include <list>
 #include "glm/glm.hpp"
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
@@ -42,5 +43,10 @@ struct Triangle{
 typedef std::vector<Vertex> VertexBuffer;
 typedef std::vector<Triangle> IndexBuffer;
 
+struct OctreeMeshInfo {
+// ---------------------------------------------------------------------------- OPENMESH
+    std::list<DefaultMesh::FaceHandle> innerFaces;
+    std::list<DefaultMesh::FaceHandle> crossingFaces;
+};
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_DATASTRUCTURES_H

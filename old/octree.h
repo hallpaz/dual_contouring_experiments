@@ -154,7 +154,7 @@ OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
 
 // ----------------------------------------------------------------------------
 
-inline bool construct_children(OctreeNode* node, const DefaultMesh &mesh)
+inline bool construct_or_update_children(OctreeNode* node, const DefaultMesh &mesh)
 {
     const float childSize = node->size / 2;
     const int childHeight = node->depth - 1;

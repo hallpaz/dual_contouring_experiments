@@ -1,0 +1,11 @@
+{
+    "mesh_files": ["../models/divided/vase_antoninaMXo.off", "../models/divided/vase_antoninaPXo.off",
+        "../models/divided/vase_antoninaMYo.off", "../models/divided/vase_antoninaPYo.off"
+                    ],
+    "cam_pos": [
+        {"x": -16.0,  "y": 0.0, "z": 0.0},
+        {"x": 16.0,  "y": 0.0, "z": 0.0},
+        {"x": 0.0,  "y": -16.0, "z": 0.0},
+        {"x": 0.0,  "y": 16.0, "z": 0.0}
+        ]
+}

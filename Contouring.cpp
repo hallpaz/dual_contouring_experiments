@@ -79,6 +79,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             const auto& mp = qef.getMassPoint();
             d->position = vec3(mp.x, mp.y, mp.z);
             vertex.color = glm::uvec3(255, 0, 0);
+            Octree::unoptimized_points++;
         }
         //EVERY POINT IN THE MIDDLE OF THE CELL
         //d->position = vec3(node->min + vec3(node->size/2));
