@@ -1,0 +1,12 @@
+{
+    "mesh_files": ["../models/divided/trophyrPZ.off",
+                    "../models/divided/trophyrPX.off", "../models/divided/trophyrMX.off",
+                    "../models/divided/trophyrPY.off", "../models/divided/trophyrMY.off"],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0},
+            {"x": 16.00,  "y": 0.0, "z": 0.0},
+            {"x": -16.0,  "y": 0.0, "z": 0.0},
+            {"x": 0.00,  "y": 16.0, "z": 0.00},
+            {"x": 0.0,  "y": -16.0, "z": 0.0}
+        ]
+}

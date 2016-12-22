@@ -1,0 +1,13 @@
+{
+    "mesh_files": ["../models/analytic/sphere_lowPZ.off", "../models/analytic/sphere_lowMZ.off",
+                    "../models/analytic/sphere_lowPX.off", "../models/analytic/sphere_lowMX.off",
+                    "../models/analytic/sphere_lowPY.off", "../models/analytic/sphere_lowMY.off"],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0},
+            {"x": 0.0,  "y": 0.0, "z": -16.0},
+            {"x": 16.00,  "y": 0.0, "z": 0.0},
+            {"x": -16.0,  "y": 0.0, "z": 0.0},
+            {"x": 0.00,  "y": 16.0, "z": 0.00},
+            {"x": 0.0,  "y": -16.0, "z": 0.0}
+        ]
+}

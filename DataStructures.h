@@ -18,13 +18,18 @@ struct Vertex {
     // normal coordinates
     glm::vec3 normal;
     // texture coordinates
-    glm::vec2 texCoords;
+    //glm::vec2 texCoords;
+    //color coordinates
+    glm::uvec3 color;
 
     Vertex(glm::vec3 pos):
             position(pos),
             normal(0),
-            texCoords(0){
+            //texCoords(0)
+            color(0){
     }
+
+    Vertex(): position(0), normal(0), color(0){}
 };
 
 struct Triangle{

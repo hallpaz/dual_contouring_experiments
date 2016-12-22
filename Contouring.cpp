@@ -60,6 +60,8 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             exit(EXIT_FAILURE);
         }
 
+        Vertex vertex;
+        vertex.color = glm::uvec3(128, 128, 128);
         d->index = vertexBuffer.size();
         d->averageNormal = glm::normalize(d->averageNormal);
         svd::Vec3 qefPosition;
@@ -76,12 +78,14 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         {
             const auto& mp = qef.getMassPoint();
             d->position = vec3(mp.x, mp.y, mp.z);
+            vertex.color = glm::uvec3(255, 0, 0);
         }
         //EVERY POINT IN THE MIDDLE OF THE CELL
         //d->position = vec3(node->min + vec3(node->size/2));
         //d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
         // ----------------------------------------------
-        vertexBuffer.push_back(Vertex(d->position));
+        vertex.position = d->position;
+        vertexBuffer.push_back(vertex);
 
         // DEBUG --------------------------------------------------------------------
         std::ofstream interiorfile, exteriorfile;

@@ -29,7 +29,7 @@ enum RelativePosition
 class OctreeNode;
 // ----------------------------------------------------------------------------
 
-void write_Ply(std::vector<Vertex> &vertices, std::vector<Triangle> &faces, std::string filename);
+void write_Ply(std::string filename, VertexBuffer &vertices, IndexBuffer &faces);
 void write_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<Triangle> &faces);
 float read_OFF(std::string filename, std::vector<Vertex> &vertices, std::vector<Triangle> &faces, glm::vec3 &min);
 
