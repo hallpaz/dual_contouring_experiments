@@ -10,6 +10,7 @@
 #include "glm/glm.hpp"
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
+#include "old/qef.h"
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
 
@@ -47,6 +48,21 @@ struct OctreeMeshInfo {
 // ---------------------------------------------------------------------------- OPENMESH
     std::list<DefaultMesh::FaceHandle> innerFaces;
     std::list<DefaultMesh::FaceHandle> crossingFaces;
+};
+
+struct OctreeDrawInfo
+{
+    OctreeDrawInfo()
+            : index(-1)
+            , corners(0)
+    {
+    }
+
+    int	index;
+    int	corners;
+    glm::vec3 position;
+    glm::vec3 averageNormal;
+    svd::QefData qef;
 };
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_DATASTRUCTURES_H
