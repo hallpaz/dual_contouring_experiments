@@ -287,6 +287,7 @@ void barycentric(vec3 p, vec3 a, vec3 b, vec3 c, float &u, float &v, float &w)
     v = (d11 * d20 - d01 * d21) / denom;
     w = (d00 * d21 - d01 * d20) / denom;
     u = 1.0f - v - w;
+    if (u < 0) u = 0.0;
 }
 
 bool moller_triangle_intersection(vec3 v1, vec3 v2, Vertex* triangle_vertices, vec3& intersection_point)

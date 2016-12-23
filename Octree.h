@@ -100,11 +100,14 @@ public:
     static OctreeNode *BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode* UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
+    static OctreeNode *ConstructLeafIntersection(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
 
 
     static std::unordered_map<std::string, int> leafvertexpool;
     static int unoptimized_points;
+    static int divergence;
+    static int ambiguous_vertices;
     //static std::unordered_map<std::string, HermiteData> edgepool;
 
     static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
