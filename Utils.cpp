@@ -108,6 +108,30 @@ void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec
 }
 
 // ----------------------------------------------------------------------------
+void mergeSigns(int *vecsigns, OctreeNode* node)
+{
+    for (int i = 0; i < 8; ++i) {
+        if (vecsigns[i] == MATERIAL_UNKNOWN){
+            vec3 vertex = node->get_vertex(i);
+            std::string vertexhash = hashvertex(vertex);
+            if (Octree::leafvertexpool.count(vertexhash) != 0){
+                int storedsign = Octree::leafvertexpool[vertexhash];
+                if (storedsign != MATERIAL_AMBIGUOUS){
+                    vecsigns[i] = storedsign;
+                }
+                else {
+                    vecsigns[i] = 0;
+                }
+            }
+            else{
+                vecsigns[i] = 0;
+            }
+        }
+
+    }
+}
+
+// ----------------------------------------------------------------------------
 void updateSignsArray(int *vecsigns, int size)
 {
     bool checksigns = true;

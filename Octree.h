@@ -102,6 +102,7 @@ public:
     static OctreeNode *ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *ConstructLeafIntersection(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
     static OctreeNode *update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
+    static OctreeNode *update_leaf_intersection(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh);
 
 
     static std::unordered_map<std::string, int> leafvertexpool;

@@ -43,7 +43,9 @@ namespace Fusion
         std::cout << "The first is OK" << std::endl;
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
-            Octree::leafvertexpool.clear();
+            //testing
+            //Octree::leafvertexpool.clear();
+
             clean_nodes(demi_octree.root);
             DefaultMesh mesh;
             OpenMesh::IO::read_mesh(mesh, *s_it);
