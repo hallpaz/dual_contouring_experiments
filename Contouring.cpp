@@ -86,6 +86,10 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         //d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
         // ----------------------------------------------
         vertex.position = d->position;
+        if(node->irregular){
+            vertex.color = glm::uvec3(0, 0, 255);
+            Octree::irregular_cells++;
+        }
         vertexBuffer.push_back(vertex);
 
         // DEBUG --------------------------------------------------------------------

@@ -134,6 +134,9 @@ void mergeSigns(int *vecsigns, OctreeNode* node)
 // ----------------------------------------------------------------------------
 void updateSignsArray(int *vecsigns, int size)
 {
+    /*for (int k = 0; k < 8; ++k) {
+        std::cout << vecsigns[k];
+    }*/
     bool checksigns = true;
     while(checksigns) {
         checksigns = false;
@@ -141,6 +144,30 @@ void updateSignsArray(int *vecsigns, int size)
             if (vecsigns[i] == MATERIAL_UNKNOWN) {
                 checksigns = true;
                 for (int j = 0; j < 3; ++j) {
+                    //DEBUG
+                    bool flag = false;
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (flag) {
+                        std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]] << " "
+                                << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
+                                << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
+                        for (int k = 0; k < 8; ++k) {
+                            std::cout << vecsigns[k];
+                        }
+                        std::cout << std::endl;
+                    }
+                    //DEBUG
                     int n = vneighbors[i][j];
                     if (vecsigns[n] != MATERIAL_UNKNOWN) {
                         vecsigns[i] = vecsigns[n];
@@ -150,6 +177,129 @@ void updateSignsArray(int *vecsigns, int size)
             }
         }
     }
+}
+
+// ----------------------------------------------------------------------------
+void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node)
+{
+    /*for (int k = 0; k < 8; ++k) {
+        std::cout << vecsigns[k];
+    }*/
+
+    for (int i = 0; i < NUM_CHILDREN; ++i) {
+        if (vecsigns[i] == MATERIAL_UNKNOWN) {
+            //checksigns = true;
+            for (int j = 0; j < 3; ++j) {
+                //DEBUG
+                bool flag = false;
+                if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
+                    && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                        vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
+                    && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                        vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
+                    && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN &&
+                        vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (flag) {
+                    std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]] << " "
+                              << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
+                              << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
+                    for (int k = 0; k < 8; ++k) {
+                        std::cout << vecsigns[k];
+                    }
+                    std::cout << " ei:" << edges_intersected << std::endl;
+                    if (edges_intersected > 2) {
+                        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << edges_intersected
+                                  << std::endl;
+                    }
+                    node->irregular = true;
+                    break;
+                }
+                //DEBUG
+                int n = vneighbors[i][j];
+                if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                    vecsigns[i] = vecsigns[n];
+                    break;
+                }
+            }
+        }
+
+        std::string vertex_hash = hashvertex(node->get_vertex(i));
+        if (Octree::leafvertexpool.count(vertex_hash) == 0)
+        {
+            Octree::leafvertexpool[vertex_hash] = vecsigns[i];
+        }
+        else
+        {
+            int stored_sign = Octree::leafvertexpool[vertex_hash];
+            if (stored_sign == MATERIAL_UNKNOWN)
+            {
+                Octree::leafvertexpool[vertex_hash] = vecsigns[i];
+            }
+            else
+            {
+                if (vecsigns[i] != MATERIAL_UNKNOWN && stored_sign != MATERIAL_AMBIGUOUS){
+                    if (stored_sign != vecsigns[i]){
+                        std::cout << "Computed Before: " << stored_sign << " " << " Now: " << vecsigns[i] << std::endl;
+                        Octree::divergence++;
+                        // if we have divergence, we let the camera method classify
+                        Octree::leafvertexpool[vertex_hash] = MATERIAL_AMBIGUOUS;
+                    }
+                }
+            }
+        }
+    }
+/*
+    bool checksigns = true;
+    while(checksigns) {
+        checksigns = false;
+        for (size_t i = 0; i < size; ++i) {
+            if (vecsigns[i] == MATERIAL_UNKNOWN) {
+                checksigns = true;
+                for (int j = 0; j < 3; ++j) {
+                    //DEBUG
+                    bool flag = false;
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        flag = true;
+                    }
+                    if (flag) {
+                        std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]] << " "
+                                  << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
+                                  << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
+                        for (int k = 0; k < 8; ++k) {
+                            std::cout << vecsigns[k];
+                        }
+                        std::cout << " ei:" << edges_intersected << std::endl;
+                        if (edges_intersected > 2){
+                            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << edges_intersected << std::endl;
+                        }
+                        node->irregular = true;
+                    }
+                    //DEBUG
+                    int n = vneighbors[i][j];
+                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                        vecsigns[i] = vecsigns[n];
+                        break;
+                    }
+                }
+            }
+        }*/
 }
 
 // ----------------------------------------------------------------------------

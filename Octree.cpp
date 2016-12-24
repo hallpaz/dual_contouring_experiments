@@ -14,6 +14,7 @@ std::unordered_map<std::string, int> Octree::leafvertexpool;
 int Octree::unoptimized_points = 0;
 int Octree::divergence = 0;
 int Octree::ambiguous_vertices = 0;
+int Octree::irregular_cells = 0;
 // ----------------------------------------------------------------------------
 int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, DefaultMesh &mesh);
 // ----------------------------------------------------------------------------
@@ -56,7 +57,8 @@ Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &me
     BuildMeshHierarchy(root, max_depth, mesh);
     trace("classifying vertices");
 
-    classify_leaves_vertices(cam_origin, this->root, mesh);
+    //classify_leaves_vertices(cam_origin, this->root, mesh);
+
     std::cout << "Divergence: " << Octree::divergence << std::endl;
     std::cout << "Ambiguities solved: " << Octree::ambiguous_vertices << std::endl;
 }
@@ -308,6 +310,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
+    int edges_intersected = 0;
     for (int i = 0; i < NUM_EDGES; ++i) //for each edge
     {
         const int c1 = edgevmap[i][0];
@@ -384,6 +387,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
             /*END VERTEX CLASSIFICATION*/
+            edges_intersected++;
         }
     }
 
@@ -393,12 +397,14 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
 
     int corners = 0;
 
-    updateSignsArray(vecsigns, 8);
+    //updateSignsArray(vecsigns, 8);
+    updateSignsArray(vecsigns, 8, edges_intersected, leaf);
     //mergeSigns(vecsigns, leaf);
 
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
-        corners |= (vecsigns[i] << i);
+        if (vecsigns[i] != MATERIAL_UNKNOWN)
+            corners |= (vecsigns[i] << i);
     }
 
     if (leaf->drawInfo == nullptr){
@@ -411,7 +417,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
     leaf->drawInfo->averageNormal += averageNormal;
     //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
-    for (int i = 0; i < NUM_CHILDREN; ++i) {
+    /*for (int i = 0; i < NUM_CHILDREN; ++i) {
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
         if (leafvertexpool.count(vertex_hash) == 0)
         {
@@ -432,7 +438,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
                 }
             }
         }
-    }
+    }*/
 
     //return clean_node(leaf);
     return leaf;
@@ -453,6 +459,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
+    int edges_intesercted = 0;
     for (int i = 0; i < 12; ++i) //for each edge
     {
         const int c1 = edgevmap[i][0];
@@ -530,6 +537,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
             /*END VERTEX CLASSIFICATION*/
+            edges_intesercted++;
         }
     }
 
@@ -540,12 +548,14 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
     }
 
     int corners = 0;
-    updateSignsArray(vecsigns, 8);
+    //updateSignsArray(vecsigns, 8);
+    updateSignsArray(vecsigns, 8, edges_intesercted, leaf);
     //mergeSigns(vecsigns, leaf);
 
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
-        corners |= (vecsigns[i] << i);
+        if (vecsigns[i] != MATERIAL_UNKNOWN)
+            corners |= (vecsigns[i] << i);
         //updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
     }
 
@@ -559,7 +569,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
     leaf->drawInfo->averageNormal += averageNormal;
     //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
-    for (int i = 0; i < NUM_CHILDREN; ++i) {
+    /*for (int i = 0; i < NUM_CHILDREN; ++i) {
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
         if (leafvertexpool.count(vertex_hash) == 0)
         {
@@ -577,7 +587,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
             if (oldsign == MATERIAL_AMBIGUOUS){
                 std::cout << "AMBIGUITY HERE!!!!!" << std::endl;
                 continue;
-            }*/
+            }
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
                 if (oldsign != vecsigns[i]){
                     std::cout << "Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
@@ -588,7 +598,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
             }
         }
 
-    }
+    }*/
     //return clean_node(leaf);
     return leaf;
 }

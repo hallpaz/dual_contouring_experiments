@@ -60,6 +60,9 @@ int ray_mesh_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultM
 void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec3 &vertex, int &sign);
 
 void updateSignsArray(int *vecsigns, int size);
+//DEBUG
+void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node);
+//DEBUG
 void mergeSigns(int *vecsigns, OctreeNode* node);
 
 void divideFacesByLocation(OctreeNode *node, std::list<DefaultMesh::FaceHandle> &facesList, const DefaultMesh &mesh);

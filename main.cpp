@@ -25,7 +25,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 20;
+    const int height = 25;
 //    int dist = 16;
 
     string folder_name = "../";
@@ -52,6 +52,7 @@ int main(int argc, char** argv)
     DefaultMesh myMesh;
     //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
     OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/bunny.off");
     // compute bounding box
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
@@ -66,6 +67,7 @@ int main(int argc, char** argv)
     GenerateMeshFromOctree(/*sphere_octree.*/root, vertices, indices);
 
     std::cout << "Unoptimized points: " << Octree::unoptimized_points << std::endl;
+    std::cout << "Irregular cells " << Octree::irregular_cells << std::endl;
     std::stringstream filepath;
     filepath << folder_name << outputfilename << height << ".ply";
     write_Ply(filepath.str(), vertices, indices);

@@ -84,6 +84,7 @@ public:
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
+    bool irregular = false; //irregular intersection
     //OctreeMeshInfo* meshInfo;
     std::list<DefaultMesh::FaceHandle> innerFaces;
     std::list<DefaultMesh::FaceHandle> crossingFaces;
@@ -109,6 +110,7 @@ public:
     static int unoptimized_points;
     static int divergence;
     static int ambiguous_vertices;
+    static int irregular_cells;
     //static std::unordered_map<std::string, HermiteData> edgepool;
 
     static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);

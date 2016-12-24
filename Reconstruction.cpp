@@ -44,7 +44,7 @@ namespace Fusion
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             //testing
-            //Octree::leafvertexpool.clear();
+            Octree::leafvertexpool.clear();
 
             clean_nodes(demi_octree.root);
             DefaultMesh mesh;
