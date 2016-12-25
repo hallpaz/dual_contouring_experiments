@@ -7,6 +7,7 @@
 #include "Constants.h"
 
 #include "glm/glm.hpp"
+#include "Utils.h"
 
 using glm::vec3;
 
@@ -59,6 +60,40 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             std::cout << "Error! Could not add vertex!" << std::endl;
             exit(EXIT_FAILURE);
         }
+
+       /* //COMPUTING CORRECT VERTEX CLASSIFICATION
+        int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+                           MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+        bool should_revise_signs = false;
+        for (int j = 0; j < 8; ++j)
+        {
+            vec3 vertex = node->get_vertex(j);
+            std::string vertexhash = hashvertex(vertex);
+            if (Octree::leafvertexpool.count(vertexhash) == 0){
+                std::cout << "XABUZACO!!!!!!!! Contouring" << std::endl;
+            }
+            else{
+                int stored_sign = Octree::leafvertexpool[vertexhash];
+
+                if (stored_sign == MATERIAL_UNKNOWN || stored_sign == MATERIAL_AMBIGUOUS){
+                    should_revise_signs = true;
+                }
+                else
+                {
+                    vecsigns[j] = stored_sign;
+                }
+            }
+        }
+        //TODO: check if i can save the sign in the hash during update to verify the ambiguity ratio
+        if (should_revise_signs)
+        {
+            updateSignsArray(vecsigns, 8, node);
+            //updateSignsArray(vecsigns, 8);
+        }
+        for (int k = 0; k < 8; ++k) {
+            d->corners |= (vecsigns[k] << k);
+        }
+        //COMPUTING CORRECT VERTEX CLASSIFICATION*/
 
         Vertex vertex;
         vertex.color = glm::uvec3(128, 128, 128);

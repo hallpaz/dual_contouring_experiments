@@ -61,6 +61,7 @@ void updateVertexpool(std::unordered_map<std::string, int> &pool, const glm::vec
 
 void updateSignsArray(int *vecsigns, int size);
 //DEBUG
+void updateSignsArray(int *vecsigns, int size, OctreeNode* node);
 void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node);
 //DEBUG
 void mergeSigns(int *vecsigns, OctreeNode* node);

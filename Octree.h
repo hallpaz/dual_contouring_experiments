@@ -114,6 +114,9 @@ public:
     //static std::unordered_map<std::string, HermiteData> edgepool;
 
     static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
+
+    static void classify_leaves_vertices(OctreeNode* node);
+
 };
 
 

@@ -398,12 +398,12 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
     int corners = 0;
 
     //updateSignsArray(vecsigns, 8);
-    updateSignsArray(vecsigns, 8, edges_intersected, leaf);
+    //updateSignsArray(vecsigns, 8, edges_intersected, leaf);
     //mergeSigns(vecsigns, leaf);
 
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
-        if (vecsigns[i] != MATERIAL_UNKNOWN)
+        if (vecsigns[i] == MATERIAL_AIR)
             corners |= (vecsigns[i] << i);
     }
 
@@ -417,7 +417,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
     leaf->drawInfo->averageNormal += averageNormal;
     //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
-    /*for (int i = 0; i < NUM_CHILDREN; ++i) {
+    for (int i = 0; i < NUM_CHILDREN; ++i) {
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
         if (leafvertexpool.count(vertex_hash) == 0)
         {
@@ -427,7 +427,15 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
         else
         {
             int oldsign = leafvertexpool[vertex_hash];
-            assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
+            //assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
+            if (oldsign == MATERIAL_UNKNOWN){
+                leafvertexpool[vertex_hash] = vecsigns[i];
+                continue;
+            }
+            if (oldsign == MATERIAL_AMBIGUOUS){
+                //std::cout << "AMBIGUITY HERE!!!" << std::endl;
+                continue;
+            }
 
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
                 if (oldsign != vecsigns[i]){
@@ -438,7 +446,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
                 }
             }
         }
-    }*/
+    }
 
     //return clean_node(leaf);
     return leaf;
@@ -549,12 +557,14 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
 
     int corners = 0;
     //updateSignsArray(vecsigns, 8);
-    updateSignsArray(vecsigns, 8, edges_intesercted, leaf);
+    //updateSignsArray(vecsigns, 8, edges_intesercted, leaf);
     //mergeSigns(vecsigns, leaf);
 
+    //TODO: if I will reclassify everybody before contouring, I don't need to do this here
     for (size_t i = 0; i < 8; i++)
     {   //encode the signs to the corners variable to save memory
-        if (vecsigns[i] != MATERIAL_UNKNOWN)
+        //if (vecsigns[i] != MATERIAL_UNKNOWN)
+        if(vecsigns[i] == MATERIAL_AIR)
             corners |= (vecsigns[i] << i);
         //updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
     }
@@ -569,7 +579,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
     leaf->drawInfo->averageNormal += averageNormal;
     //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
-    /*for (int i = 0; i < NUM_CHILDREN; ++i) {
+    for (int i = 0; i < NUM_CHILDREN; ++i) {
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
         if (leafvertexpool.count(vertex_hash) == 0)
         {
@@ -579,13 +589,14 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
         else
         {
             int oldsign = leafvertexpool[vertex_hash];
-            assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
-            /*if (oldsign == MATERIAL_UNKNOWN){
+            //assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
+            if (oldsign == MATERIAL_UNKNOWN){
                 leafvertexpool[vertex_hash] = vecsigns[i];
-                std::cout << "XABUZACO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                //std::cout << "XABUZACO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                continue;
             }
             if (oldsign == MATERIAL_AMBIGUOUS){
-                std::cout << "AMBIGUITY HERE!!!!!" << std::endl;
+             //   std::cout << "AMBIGUITY HERE!!!!!" << std::endl;
                 continue;
             }
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
@@ -598,7 +609,7 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
             }
         }
 
-    }*/
+    }
     //return clean_node(leaf);
     return leaf;
 }
@@ -761,7 +772,57 @@ int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, De
 }
 
 // -------------------------------------------------------------------------------
+void Octree::classify_leaves_vertices(OctreeNode* node)
+{
+    if (node == nullptr) return;
 
+    if (node->type == NODE_INTERNAL)
+    {
+        for (int i = 0; i < NUM_CHILDREN; ++i)
+        {
+            classify_leaves_vertices(node->children[i]);
+        }
+    }
+
+    if (node->type == NODE_LEAF)
+    {
+        //COMPUTING CORRECT VERTEX CLASSIFICATION
+        int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
+                           MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+        bool should_revise_signs = false;
+        for (int j = 0; j < 8; ++j)
+        {
+            vec3 vertex = node->get_vertex(j);
+            std::string vertexhash = hashvertex(vertex);
+            if (Octree::leafvertexpool.count(vertexhash) == 0){
+                std::cout << "XABUZACO!!!!!!!! Contouring" << std::endl;
+            }
+            else{
+                int stored_sign = Octree::leafvertexpool[vertexhash];
+
+                if (stored_sign == MATERIAL_UNKNOWN || stored_sign == MATERIAL_AMBIGUOUS){
+                    should_revise_signs = true;
+                }
+                else
+                {
+                    vecsigns[j] = stored_sign;
+                }
+            }
+        }
+        //TODO: check if i can save the sign in the hash during update to verify the ambiguity ratio
+        if (should_revise_signs)
+        {
+            updateSignsArray(vecsigns, 8, node);
+            //updateSignsArray(vecsigns, 8);
+        }
+        for (int k = 0; k < 8; ++k) {
+            node->drawInfo->corners |= (vecsigns[k] << k);
+        }
+        //COMPUTING CORRECT VERTEX CLASSIFICATION
+    }
+}
+
+// -------------------------------------------------------------------------------
 OctreeNode* Octree::SimplifyOctree(OctreeNode* node, const float threshold)
 {
     if (!node)

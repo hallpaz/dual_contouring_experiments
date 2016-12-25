@@ -145,7 +145,7 @@ void updateSignsArray(int *vecsigns, int size)
                 checksigns = true;
                 for (int j = 0; j < 3; ++j) {
                     //DEBUG
-                    bool flag = false;
+                    /*bool flag = false;
                     if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
                         && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)){
                         flag = true;
@@ -166,7 +166,7 @@ void updateSignsArray(int *vecsigns, int size)
                             std::cout << vecsigns[k];
                         }
                         std::cout << std::endl;
-                    }
+                    }*/
                     //DEBUG
                     int n = vneighbors[i][j];
                     if (vecsigns[n] != MATERIAL_UNKNOWN) {
@@ -180,11 +180,8 @@ void updateSignsArray(int *vecsigns, int size)
 }
 
 // ----------------------------------------------------------------------------
-void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node)
+/*void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node)
 {
-    /*for (int k = 0; k < 8; ++k) {
-        std::cout << vecsigns[k];
-    }*/
 
     for (int i = 0; i < NUM_CHILDREN; ++i) {
         if (vecsigns[i] == MATERIAL_UNKNOWN) {
@@ -255,8 +252,8 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
                 }
             }
         }
-    }
-/*
+    }*/
+void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode* node){
     bool checksigns = true;
     while(checksigns) {
         checksigns = false;
@@ -267,27 +264,32 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
                     //DEBUG
                     bool flag = false;
                     if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
-                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)){
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)) {
                         flag = true;
                     }
                     if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
-                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
                         flag = true;
                     }
                     if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
-                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN && vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)){
+                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
                         flag = true;
                     }
                     if (flag) {
-                        std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]] << " "
+                        std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]]
+                                  << " "
                                   << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
                                   << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
                         for (int k = 0; k < 8; ++k) {
                             std::cout << vecsigns[k];
                         }
                         std::cout << " ei:" << edges_intersected << std::endl;
-                        if (edges_intersected > 2){
-                            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << edges_intersected << std::endl;
+                        if (edges_intersected > 2) {
+                            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << edges_intersected
+                                      << std::endl;
                         }
                         node->irregular = true;
                     }
@@ -299,8 +301,59 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
                     }
                 }
             }
-        }*/
+        }
+    }
 }
+// ----------------------------------------------------------------------------
+ void updateSignsArray(int *vecsigns, int size, OctreeNode* node){
+    bool checksigns = true;
+    while(checksigns) {
+        checksigns = false;
+        for (size_t i = 0; i < size; ++i) {
+            if (vecsigns[i] == MATERIAL_UNKNOWN) {
+                checksigns = true;
+                for (int j = 0; j < 3; ++j) {
+                    //DEBUG
+                    bool flag = false;
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)) {
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
+                        flag = true;
+                    }
+                    if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
+                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN &&
+                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
+                        flag = true;
+                    }
+                    if (flag) {
+                        /*std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]]
+                                  << " "
+                                  << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
+                                  << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
+                        for (int k = 0; k < 8; ++k) {
+                            std::cout << vecsigns[k];
+                        }*/
+                        node->irregular = true;
+                        //na duvida coloca como fora??? hipotese...
+                        //vecsigns[i] = MATERIAL_AIR; break;
+                    }
+                    //DEBUG
+                    int n = vneighbors[i][j];
+                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
+                        vecsigns[i] = vecsigns[n];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+ }
+
 
 // ----------------------------------------------------------------------------
 
