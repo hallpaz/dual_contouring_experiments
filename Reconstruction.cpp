@@ -58,9 +58,10 @@ namespace Fusion
             Octree::UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
 
             //demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
-
+#ifdef DEBUG
             std::cout << "Divergence: " << Octree::divergence << std::endl;
             std::cout << "Ambiguities solved: " << Octree::ambiguous_vertices << std::endl;
+#endif
         }
 
         return demi_octree.root;

@@ -6,7 +6,6 @@
 #define DUAL_CONTOURING_EXPERIMENTS_TESTS_H
 
 #include <unordered_map>
-#include "octree.h"
 
 /*class Tests {
 public:

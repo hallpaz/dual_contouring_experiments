@@ -61,42 +61,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
             exit(EXIT_FAILURE);
         }
 
-       /* //COMPUTING CORRECT VERTEX CLASSIFICATION
-        int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
-                           MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-        bool should_revise_signs = false;
-        for (int j = 0; j < 8; ++j)
-        {
-            vec3 vertex = node->get_vertex(j);
-            std::string vertexhash = hashvertex(vertex);
-            if (Octree::leafvertexpool.count(vertexhash) == 0){
-                std::cout << "XABUZACO!!!!!!!! Contouring" << std::endl;
-            }
-            else{
-                int stored_sign = Octree::leafvertexpool[vertexhash];
-
-                if (stored_sign == MATERIAL_UNKNOWN || stored_sign == MATERIAL_AMBIGUOUS){
-                    should_revise_signs = true;
-                }
-                else
-                {
-                    vecsigns[j] = stored_sign;
-                }
-            }
-        }
-        //TODO: check if i can save the sign in the hash during update to verify the ambiguity ratio
-        if (should_revise_signs)
-        {
-            updateSignsArray(vecsigns, 8, node);
-            //updateSignsArray(vecsigns, 8);
-        }
-        for (int k = 0; k < 8; ++k) {
-            d->corners |= (vecsigns[k] << k);
-        }
-        //COMPUTING CORRECT VERTEX CLASSIFICATION*/
-
         Vertex vertex;
-        vertex.color = glm::uvec3(128, 128, 128);
         d->index = vertexBuffer.size();
         d->averageNormal = glm::normalize(d->averageNormal);
         svd::Vec3 qefPosition;
@@ -113,21 +78,21 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         {
             const auto& mp = qef.getMassPoint();
             d->position = vec3(mp.x, mp.y, mp.z);
+#ifdef DEBUG
             vertex.color = glm::uvec3(255, 0, 0);
             Octree::unoptimized_points++;
+#endif
         }
-        //EVERY POINT IN THE MIDDLE OF THE CELL
-        //d->position = vec3(node->min + vec3(node->size/2));
-        //d->position = glm::normalize(vec3(node->min + vec3(node->size/2)))*4.0f;
-        // ----------------------------------------------
         vertex.position = d->position;
+#ifdef DEBUG
         if(node->irregular){
             vertex.color = glm::uvec3(0, 0, 255);
             Octree::irregular_cells++;
         }
+#endif
         vertexBuffer.push_back(vertex);
 
-        // DEBUG --------------------------------------------------------------------
+#ifdef DEBUG // DEBUG --------------------------------------------------------------------
         std::ofstream interiorfile, exteriorfile;
         interiorfile.open("../subproducts/interior_color_updated.ply", std::ios::app);
         exteriorfile.open("../subproducts/exterior_color_updated.ply", std::ios::app);
@@ -150,7 +115,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         }
         interiorfile.close();
         exteriorfile.close();
-        // DEBUG --------------------------------------------------------------------//
+#endif// DEBUG --------------------------------------------------------------------//
 
     }
 }

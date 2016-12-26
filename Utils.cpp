@@ -10,7 +10,7 @@
 #include "Constants.h"
 #include "glm/ext.hpp"
 
-#include "density.h"
+#include "old/density.h"
 #include "Octree.h"
 
 using glm::vec3;

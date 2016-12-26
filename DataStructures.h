@@ -10,28 +10,23 @@
 #include "glm/glm.hpp"
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
-#include "old/qef.h"
+#include "qef.h"
 
 typedef OpenMesh::TriMesh_ArrayKernelT<>  DefaultMesh;
+
+//glm::uvec3 defaultgray = glm::uvec3(128, 128, 128); //middle gray
 
 struct Vertex {
     // position coordinates
     glm::vec3 position;
     // normal coordinates
     glm::vec3 normal;
-    // texture coordinates
-    //glm::vec2 texCoords;
     //color coordinates
     glm::uvec3 color;
 
-    Vertex(glm::vec3 pos):
-            position(pos),
-            normal(0),
-            //texCoords(0)
-            color(0){
-    }
+    Vertex(glm::vec3 pos): position(pos), normal(0), color(glm::uvec3(128, 128, 128)){}
 
-    Vertex(): position(0), normal(0), color(0){}
+    Vertex(): position(0), normal(0), color(glm::uvec3(128, 128, 128)){}
 };
 
 struct Triangle{
@@ -64,5 +59,17 @@ struct OctreeDrawInfo
     glm::vec3 averageNormal;
     svd::QefData qef;
 };
+
+// ----------------------------------------------------------------------------
+
+enum OctreeNodeType
+{
+    NODE_NONE,
+    NODE_INTERNAL,
+    NODE_PSEUDO,
+    NODE_LEAF,
+};
+
+// ----------------------------------------------------------------------------
 
 #endif //DUAL_CONTOURING_EXPERIMENTS_DATASTRUCTURES_H

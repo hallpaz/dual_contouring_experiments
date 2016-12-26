@@ -1,6 +1,6 @@
 #include "density.h"
 
-#include "glm/ext.hpp"
+#include "../glm/ext.hpp"
 using namespace glm;
 
 // ----------------------------------------------------------------------------

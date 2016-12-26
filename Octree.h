@@ -1,16 +1,35 @@
 //
 // Created by Hallison da Paz on 18/11/2016.
 //
+/*
 
+Implementations of Octree member functions.
+
+Copyright (C) 2011  Tao Ju
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+(LGPL) as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #ifndef DUAL_CONTOURING_SANDBOX_OCTREE_H
 #define DUAL_CONTOURING_SANDBOX_OCTREE_H
 
 #include <vector>
+#include <unordered_map>
 #include "glm/vec3.hpp"
 
 #include "Constants.h"
 #include "DataStructures.h"
-#include "old/octree.h"
 
 
 class OctreeNode
@@ -84,6 +103,7 @@ public:
     OctreeNode*		children[8];
     OctreeNode*     parent;
     OctreeDrawInfo*	drawInfo;
+
     bool irregular = false; //irregular intersection
     //OctreeMeshInfo* meshInfo;
     std::list<DefaultMesh::FaceHandle> innerFaces;
@@ -107,15 +127,16 @@ public:
 
 
     static std::unordered_map<std::string, int> leafvertexpool;
+    static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
+
+    static void classify_leaves_vertices(OctreeNode* node);
+
+#ifdef DEBUG
     static int unoptimized_points;
     static int divergence;
     static int ambiguous_vertices;
     static int irregular_cells;
-    //static std::unordered_map<std::string, HermiteData> edgepool;
-
-    static OctreeNode* SimplifyOctree(OctreeNode* node, const float threshold);
-
-    static void classify_leaves_vertices(OctreeNode* node);
+#endif
 
 };
 

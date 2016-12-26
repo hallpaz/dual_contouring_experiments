@@ -1,20 +1,42 @@
 //
 // Created by Hallison da Paz on 18/11/2016.
 //
+/*
 
+Implementations of Octree member functions.
+
+Copyright (C) 2011  Tao Ju
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public License
+(LGPL) as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
 #include <fstream>
 #include "Octree.h"
 #include "Utils.h"
 
-#include "Reconstruction.h"
 
 using glm::vec3;
 // ----------------------------------------------------------------------------
 std::unordered_map<std::string, int> Octree::leafvertexpool;
+
+#ifdef DEBUG
 int Octree::unoptimized_points = 0;
 int Octree::divergence = 0;
 int Octree::ambiguous_vertices = 0;
 int Octree::irregular_cells = 0;
+#endif
+
 // ----------------------------------------------------------------------------
 int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, DefaultMesh &mesh);
 // ----------------------------------------------------------------------------
@@ -55,12 +77,11 @@ Octree::Octree(glm::vec3 min, Real size, unsigned int max_depth, DefaultMesh &me
     root = new OctreeNode(NODE_INTERNAL, min, size, 0);
     trace("building hierarchy");
     BuildMeshHierarchy(root, max_depth, mesh);
-    trace("classifying vertices");
 
-    //classify_leaves_vertices(cam_origin, this->root, mesh);
-
+#ifdef DEBUG
     std::cout << "Divergence: " << Octree::divergence << std::endl;
     std::cout << "Ambiguities solved: " << Octree::ambiguous_vertices << std::endl;
+#endif
 }
 
 OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth, const DefaultMesh &mesh)
@@ -439,8 +460,10 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
 
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
                 if (oldsign != vecsigns[i]){
+#ifdef DEBUG
                     std::cout << "Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
                     Octree::divergence++;
+#endif
                     // if we have divergence, we let the camera method classify
                     leafvertexpool[vertex_hash] = MATERIAL_AMBIGUOUS;
                 }
@@ -601,8 +624,10 @@ OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max
             }
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
                 if (oldsign != vecsigns[i]){
+#ifdef DEBUG
                     std::cout << "Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
                     Octree::divergence++;
+#endif
                     // if we have divergence, we let the camera method classify
                     leafvertexpool[vertex_hash] = MATERIAL_AMBIGUOUS;
                 }
@@ -636,7 +661,9 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
                 //trace("updating pool");
                 int sign = classify_vertex(cam_origin, cell_vertex, this->root, mesh);
                 leafvertexpool[vertex_hash] = sign;
+#ifdef DEBUG
                 Octree::ambiguous_vertices++;
+#endif
 
             }
             corners |= (leafvertexpool[vertex_hash] << i);

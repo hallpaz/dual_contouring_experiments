@@ -3,9 +3,7 @@
 #include <fstream>
 #include <vector>
 #include "Utils.h"
-#include "old/octree.h"
 
-#include "old/NormalsEstimator.h"
 #include "Reconstruction.h"
 #include "Contouring.h"
 #include "Octree.h"
@@ -51,9 +49,9 @@ int main(int argc, char** argv)
 
     DefaultMesh myMesh;
     //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
-    //OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
     //OpenMesh::IO::read_mesh(myMesh, "../models/taoju/mechanic.off");
-    OpenMesh::IO::read_mesh(myMesh, "../models/bunny.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/bunny.off");
     // compute bounding box
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
@@ -62,14 +60,15 @@ int main(int argc, char** argv)
     OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize * 1.1, height,
                                                    filenames, cameras);
     Octree::classify_leaves_vertices(root);
-    root = Octree::SimplifyOctree(root, 0.01/*octreeSize/100000.0*/);
+    //root = Octree::SimplifyOctree(root, 0.01/*octreeSize/100000.0*/);
 
     VertexBuffer vertices;
     IndexBuffer indices;
     GenerateMeshFromOctree(/*sphere_octree.*/root, vertices, indices);
-
+#ifdef DEBUG
     std::cout << "Unoptimized points: " << Octree::unoptimized_points << std::endl;
     std::cout << "Irregular cells " << Octree::irregular_cells << std::endl;
+#endif
     std::stringstream filepath;
     filepath << folder_name << outputfilename << height << ".ply";
     write_Ply(filepath.str(), vertices, indices);
