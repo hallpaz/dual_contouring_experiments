@@ -16,6 +16,7 @@
 
 #include "glm/glm.hpp"
 #include "DataStructures.h"
+#include "Constants.h"
 
 
 // ----------------------------------------------------------------------------
@@ -76,5 +77,11 @@ inline void trace(std::string debug_text)
 
 // ----------------------------------------------------------------------------
 void select_inner_crossing_faces(OctreeNode *node, const DefaultMesh &mesh);
+
+int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh, std::unordered_map<int, bool> &visited_triangles);
+bool intersectRayBox(glm::vec3 origin, glm::vec3 dest, const glm::vec3 min, const Real size, Real &intersection_distance, glm::vec3 &intersection);
+int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh,
+                           std::list<DefaultMesh::FaceHandle> &facelist, std::unordered_map<int, bool> &visited_triangles);
+int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh);
 
 #endif /* Utils_hpp */

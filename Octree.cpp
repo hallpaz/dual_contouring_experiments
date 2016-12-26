@@ -96,8 +96,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
     }
     if (((node->parent && node->parent->innerEmpty()) || node->depth == max_depth) && node->depth > 4)
     {
-        //return ConstructLeaf(node, max_depth, mesh);
-        return ConstructLeafIntersection(node, max_depth, mesh);
+        return construct_or_update_leaf(node, max_depth, mesh);
     }
     if (node->construct_or_update_children(max_depth, mesh))
     {
@@ -127,8 +126,7 @@ OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth
         }
         else
         {
-            //node = update_leaf(node, max_depth, mesh);
-            node = update_leaf_intersection(node, max_depth, mesh);
+            node = construct_or_update_leaf(node, max_depth, mesh);
         }
         return node;
     }
@@ -137,197 +135,14 @@ OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth
     return node;
 }
 
-OctreeNode *Octree::ConstructLeaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh) {
-    if (!leaf)
-    {
-        std::cout << "Trying to construct a leaf in the middle" << std::endl;
-        return nullptr;
-    }
-
-    // otherwise the voxel contains the surface, so find the edge intersections
-    vec3 averageNormal(0.f);
-    svd::QefSolver qef;
-    bool hasIntersection = false;
-    //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
-    for (int i = 0; i < 12; ++i) //for each edge
-    {
-        const int c1 = edgevmap[i][0];
-        const int c2 = edgevmap[i][1];
-        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
-
-        vec3 intersection;
-        std::vector<vec3> intersection_points, normals;//, face_normals;
-        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
-        {
-            auto fv_it = mesh.cfv_iter(*face);
-            DefaultMesh::VertexHandle a = *fv_it;
-            DefaultMesh::VertexHandle b = *(++fv_it);
-            DefaultMesh::VertexHandle c = *(++fv_it);
-
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-            //trace("intersection");
-            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
-                //keeps the intersection here
-                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
-                    continue;
-                }
-                intersection_points.push_back(intersection);
-
-                float u, v, w;
-                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
-                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                normal_at_intersection =  glm::normalize(normal_at_intersection);
-//                normals.push_back(normal_at_intersection);
-                vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                //face_normals.push_back(face_normal);
-                //hasIntersection = true;
-                normals.push_back(face_normal);
-            }
-        }
-        if (intersection_points.size() > 1) {
-//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
-            if (leaf->depth < max_depth){
-                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
-
-                //leaf->type = NODE_INTERNAL;
-                if(leaf->construct_or_update_children(max_depth, mesh))
-                {
-                    leaf->type = NODE_INTERNAL;
-                    return leaf;
-                }
-                std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
-                delete leaf;
-                return nullptr;
-            }
-        }
-        // if we consider that an intersection happened.
-        // we'll consider only the first intersection for now
-        if (intersection_points.size() > 0)
-        {
-            vec3 &n = normals[0];
-            vec3 &v = intersection_points[0];
-            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
-            averageNormal += n;
-            hasIntersection = true;
-        }
-    }
-
-    if (!hasIntersection)
-    {   // voxel is full inside or outside the volume
-        delete leaf;
-        return nullptr;
-    }
-
-    if (leaf->drawInfo == nullptr){
-        leaf->drawInfo = new OctreeDrawInfo();
-    }
-    leaf->drawInfo->qef = qef.getData();
-    leaf->drawInfo->averageNormal += averageNormal;
-    //leaf->drawInfo = drawInfo;
-    leaf->type = NODE_LEAF;
-    for (int i = 0; i < NUM_CHILDREN; ++i) {
-        std::string vertex_hash = hashvertex(leaf->get_vertex(i));
-        if (leafvertexpool.count(vertex_hash) == 0)
-            leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-    }
-    //return clean_node(leaf);
-    return leaf;
-}
-
-OctreeNode *Octree::update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh)
+OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh)
 {
+    if (leaf == nullptr)
+        return nullptr;
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
     svd::QefSolver qef;
     bool hasIntersection = false;
-    //std::cout << "So far, so good" << std::endl;
-    //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
-    for (int i = 0; i < NUM_EDGES; ++i) //for each edge
-    {
-        const int c1 = edgevmap[i][0];
-        const int c2 = edgevmap[i][1];
-        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
-
-        vec3 intersection;
-        std::vector<vec3> intersection_points, normals;//, face_normals;
-        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
-        {
-            auto fv_it = mesh.cfv_iter(*face);
-            DefaultMesh::VertexHandle a = *fv_it;
-            DefaultMesh::VertexHandle b = *(++fv_it);
-            DefaultMesh::VertexHandle c = *(++fv_it);
-
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-            //trace("intersection");
-            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
-                //keeps the intersection here
-                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
-                    continue;
-                }
-                intersection_points.push_back(intersection);
-
-                float u, v, w;
-                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
-                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                normal_at_intersection =  glm::normalize(normal_at_intersection);
-                normals.push_back(normal_at_intersection);
-                //vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                //face_normals.push_back(face_normal);
-                //hasIntersection = true;
-            }
-        }
-        if (intersection_points.size() > 1) {
-//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
-            if (leaf->depth < max_depth){
-                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
-
-                //leaf->type = NODE_INTERNAL;
-                if(leaf->construct_or_update_children(max_depth, mesh))
-                {
-                    leaf->type = NODE_INTERNAL;
-                    return leaf;
-                }
-                std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
-                return leaf;
-            }
-        }
-        // if we consider that an intersection happened.
-        // we'll consider only the first intersection for now
-        if (intersection_points.size() > 0)
-        {
-            vec3 &n = normals[0];
-            vec3 &v = intersection_points[0];
-            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
-            averageNormal += n;
-            hasIntersection = true;
-        }
-    }
-
-    //TODO: pass drawinfo data from parent to child when descending
-    leaf->drawInfo->qef = leaf->drawInfo->qef + qef.getData();
-    leaf->drawInfo->averageNormal += averageNormal;
-
-    leaf->type = NODE_LEAF;
-    for (int i = 0; i < NUM_CHILDREN; ++i) {
-        std::string vertex_hash = hashvertex(leaf->get_vertex(i));
-        if (Octree::leafvertexpool.count(vertex_hash) == 0)
-            Octree::leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-    }
-    //return clean_node(leaf);
-    return leaf;
-}
-
-OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh)
-{
-    // otherwise the voxel contains the surface, so find the edge intersections
-    vec3 averageNormal(0.f);
-    svd::QefSolver qef;
-    bool hasIntersection = false;
-    //std::cout << "So far, so good" << std::endl;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
@@ -372,7 +187,7 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
         if (intersection_points.size() > 1) {
 //            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
             if (leaf->depth < max_depth){
-                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
+                //std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
 
                 //leaf->type = NODE_INTERNAL;
                 if(leaf->construct_or_update_children(max_depth, mesh))
@@ -381,7 +196,12 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
                     return leaf;
                 }
                 std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
-                return leaf;
+                if (leaf->type == NODE_LEAF) //it's being updated
+                {
+                    return leaf;
+                }
+                delete leaf;
+                return nullptr;
             }
         }
         // if we consider that an intersection happened.
@@ -413,7 +233,12 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
     }
 
     if (!hasIntersection){
-        return leaf;
+        if (leaf->type == NODE_LEAF)
+        {
+            return leaf;
+        }
+        delete leaf;
+        return nullptr;
     }
 
     int corners = 0;
@@ -442,19 +267,16 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
         std::string vertex_hash = hashvertex(leaf->get_vertex(i));
         if (leafvertexpool.count(vertex_hash) == 0)
         {
-            //leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
             leafvertexpool[vertex_hash] = vecsigns[i];
         }
         else
         {
             int oldsign = leafvertexpool[vertex_hash];
-            //assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
             if (oldsign == MATERIAL_UNKNOWN){
                 leafvertexpool[vertex_hash] = vecsigns[i];
                 continue;
             }
             if (oldsign == MATERIAL_AMBIGUOUS){
-                //std::cout << "AMBIGUITY HERE!!!" << std::endl;
                 continue;
             }
 
@@ -471,170 +293,6 @@ OctreeNode *Octree::update_leaf_intersection(OctreeNode *leaf, unsigned int max_
         }
     }
 
-    //return clean_node(leaf);
-    return leaf;
-}
-
-
-OctreeNode *Octree::ConstructLeafIntersection(OctreeNode *leaf, unsigned int max_depth, const DefaultMesh &mesh) {
-    if (!leaf)
-    {
-        std::cout << "Trying to construct a leaf in the middle" << std::endl;
-        return nullptr;
-    }
-
-    // otherwise the voxel contains the surface, so find the edge intersections
-    vec3 averageNormal(0.f);
-    svd::QefSolver qef;
-    bool hasIntersection = false;
-    int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
-                       MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
-    //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
-    int edges_intesercted = 0;
-    for (int i = 0; i < 12; ++i) //for each edge
-    {
-        const int c1 = edgevmap[i][0];
-        const int c2 = edgevmap[i][1];
-        const vec3 p1 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c1]);
-        const vec3 p2 = vec3(leaf->min + leaf->size*CHILD_MIN_OFFSETS[c2]);
-
-        vec3 intersection;
-        std::vector<vec3> intersection_points, normals, face_normals;
-        for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
-        {
-            auto fv_it = mesh.cfv_iter(*face);
-            DefaultMesh::VertexHandle a = *fv_it;
-            DefaultMesh::VertexHandle b = *(++fv_it);
-            DefaultMesh::VertexHandle c = *(++fv_it);
-
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-            //trace("intersection");
-            if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
-                //keeps the intersection here
-                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
-                    continue;
-                }
-                intersection_points.push_back(intersection);
-
-                float u, v, w;
-                barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
-                vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
-                normal_at_intersection =  glm::normalize(normal_at_intersection);
-//                normals.push_back(normal_at_intersection);
-                vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
-                face_normals.push_back(face_normal);
-                //hasIntersection = true;
-                normals.push_back(face_normal);
-            }
-        }
-        if (intersection_points.size() > 1) {
-//            std::cout << intersection_points.size() << " Interseções na mesma aresta " << vecsigns[c1] << vecsigns[c2] << std::endl;
-            if (leaf->depth < max_depth){
-                std::cout << intersection_points.size() << " Child Depth: " << leaf->depth+1 << " Child Size: " << leaf->size/2 << std:: endl;
-
-                //leaf->type = NODE_INTERNAL;
-                if(leaf->construct_or_update_children(max_depth, mesh))
-                {
-                    leaf->type = NODE_INTERNAL;
-                    return leaf;
-                }
-                std::cout << "SERIAO????" << std::endl; //if it has an intersection why not the children?
-                delete leaf;
-                return nullptr;
-            }
-        }
-        // if we consider that an intersection happened.
-        // we'll consider only the first intersection for now
-        if (intersection_points.size() > 0)
-        {
-            vec3 &n = normals[0];
-            vec3 &v = intersection_points[0];
-            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
-            averageNormal += n;
-            hasIntersection = true;
-
-            /*BEGIN VERTEX CLASSIFICATION*/
-            int sign1 = computeSideOfPoint(p1, intersection_points[0], face_normals[0]);
-            if (vecsigns[c1] == MATERIAL_UNKNOWN){
-                vecsigns[c1] = sign1;
-            }
-            else{
-                if (vecsigns[c1] != sign1){
-                    std::cout << vecsigns[c1] << " --> " << sign1 << std::endl;
-                }
-            }
-            if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
-                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
-            }
-            /*END VERTEX CLASSIFICATION*/
-            edges_intesercted++;
-        }
-    }
-
-    if (!hasIntersection)
-    {   // voxel is full inside or outside the volume
-        delete leaf;
-        return nullptr;
-    }
-
-    int corners = 0;
-    //updateSignsArray(vecsigns, 8);
-    //updateSignsArray(vecsigns, 8, edges_intesercted, leaf);
-    //mergeSigns(vecsigns, leaf);
-
-    //TODO: if I will reclassify everybody before contouring, I don't need to do this here
-    for (size_t i = 0; i < 8; i++)
-    {   //encode the signs to the corners variable to save memory
-        //if (vecsigns[i] != MATERIAL_UNKNOWN)
-        if(vecsigns[i] == MATERIAL_AIR)
-            corners |= (vecsigns[i] << i);
-        //updateVertexpool(OctreeNode::vertexpool, leaf->min + leaf->size*CHILD_MIN_OFFSETS[i], vecsigns[i]);
-    }
-
-    if (leaf->drawInfo == nullptr){
-        leaf->drawInfo = new OctreeDrawInfo();
-    }
-
-    leaf->drawInfo->corners |= corners;
-
-    leaf->drawInfo->qef = qef.getData();
-    leaf->drawInfo->averageNormal += averageNormal;
-    //leaf->drawInfo = drawInfo;
-    leaf->type = NODE_LEAF;
-    for (int i = 0; i < NUM_CHILDREN; ++i) {
-        std::string vertex_hash = hashvertex(leaf->get_vertex(i));
-        if (leafvertexpool.count(vertex_hash) == 0)
-        {
-            //leafvertexpool[vertex_hash] = MATERIAL_UNKNOWN;
-            leafvertexpool[vertex_hash] = vecsigns[i];
-        }
-        else
-        {
-            int oldsign = leafvertexpool[vertex_hash];
-            //assert(oldsign != MATERIAL_UNKNOWN); //if we run updateSignsArray
-            if (oldsign == MATERIAL_UNKNOWN){
-                leafvertexpool[vertex_hash] = vecsigns[i];
-                //std::cout << "XABUZACO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
-                continue;
-            }
-            if (oldsign == MATERIAL_AMBIGUOUS){
-             //   std::cout << "AMBIGUITY HERE!!!!!" << std::endl;
-                continue;
-            }
-            if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
-                if (oldsign != vecsigns[i]){
-#ifdef DEBUG
-                    std::cout << "Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
-                    Octree::divergence++;
-#endif
-                    // if we have divergence, we let the camera method classify
-                    leafvertexpool[vertex_hash] = MATERIAL_AMBIGUOUS;
-                }
-            }
-        }
-
-    }
     //return clean_node(leaf);
     return leaf;
 }
@@ -680,122 +338,6 @@ void Octree::classify_leaves_vertices(glm::vec3 cam_origin, OctreeNode* node, De
             classify_leaves_vertices(cam_origin, node->children[i], mesh);
         }
     }
-}
-
-// Intersect ray R(t) = p + t*d against AABB a. When intersecting,
-// return intersection distance tmin and point q of intersection
-bool intersectRayBox(vec3 origin, vec3 dest, const glm::vec3 min, const Real size, Real &intersection_distance, vec3 &intersection) {
-    intersection_distance = 0.0f; // set to -FLT_MAX to get first hit on line
-    float tmax = FLT_MAX; // set to max distance ray can travel (for segment)
-    // For all three slabs
-    vec3 dir = glm::normalize(dest - origin);
-    vec3 max = min + vec3(size);
-    for (int i = 0; i < 3; i++)
-    {
-        if (std::abs(dir[i]) < EPSILON)
-        {
-            // Ray is parallel to slab. No hit if origin not within slab
-            if (origin[i] < min[i] || origin[i] > max[i])
-                return 0;
-        }
-        else
-        {
-            // Compute intersection t value of ray with near and far plane of slab
-            float ood = 1.0f / dir[i];
-            float t1 = (min[i] - origin[i]) * ood;
-            float t2 = (max[i] - origin[i]) * ood;
-            // Make t1 be intersection with near plane, t2 with far plane
-            if (t1 > t2)
-            {
-                Real aux = t1;
-                t1 = t2;
-                t2 = aux;
-            }
-            // Compute the intersection of slab intersection intervals
-            if (t1 > intersection_distance) intersection_distance = t1;
-            if (t2 > tmax) tmax = t2;
-            // Exit with no collision as soon as slab intersection becomes empty
-            if (intersection_distance > tmax)
-                return false;
-        }
-    }
-    // Ray intersects all 3 slabs. Return point (q) and intersection t value (intersection_distance)
-    intersection = origin + dir * intersection_distance;
-    return true;
-}
-
-
-int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, DefaultMesh &mesh,
-                           std::list<DefaultMesh::FaceHandle> &facelist, std::unordered_map<int, bool> &visited_triangles)
-{
-    int num_intersections = 0;
-    std::vector<vec3> intersections;
-    for (std::list<DefaultMesh::FaceHandle>::iterator face = facelist.begin(); face != facelist.end(); ++face){
-        if (visited_triangles.count(face->idx()) == 0){
-            auto fv_it = mesh.cfv_iter(*face);
-            DefaultMesh::VertexHandle a = *fv_it;
-            DefaultMesh::VertexHandle b = *(++fv_it);
-            DefaultMesh::VertexHandle c = *(++fv_it);
-
-            vec3 face_vertices[3] = {openmesh_to_glm(mesh.point(a)), openmesh_to_glm(mesh.point(b)), openmesh_to_glm(mesh.point(c))};
-            Vertex vertices[3] = { face_vertices[0], face_vertices[1], face_vertices[2]};
-
-            vec3 intersection;
-
-            if (moller_triangle_intersection(origin, dest, vertices, intersection)) {
-                //keeps the intersection here
-                intersections.push_back(intersection);
-                ++num_intersections;
-            }
-            visited_triangles[face->idx()] = true;
-        }
-    }
-    /*if (num_intersections > 1){
-        for (int i = 0; i < intersections.size(); ++i) {
-            std::cout << intersections[i].x << " " <<  intersections[i].y << " " <<  intersections[i].z << std::endl;
-        }
-        exit(67);
-    }*/
-    return num_intersections;
-}
-
-int ray_mesh_intersection(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh, std::unordered_map<int, bool> &visited_triangles)
-{
-    if (root == nullptr){
-        return 0;
-    }
-    int num_intersections = 0;
-    vec3 intersection;
-    Real t;
-    if (intersectRayBox(cam_origin, vertex, root->min, root->size, t, intersection)){
-        if (root->type == NODE_LEAF)
-        {
-            num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->crossingFaces, visited_triangles);
-            num_intersections += ray_faces_intersection(cam_origin, vertex, mesh, root/*->meshInfo*/->innerFaces, visited_triangles);
-        }
-        else
-        {
-            for (int i = 0; i < NUM_CHILDREN; ++i)
-            {
-                num_intersections += ray_mesh_intersection(cam_origin, vertex, root->children[i], mesh, visited_triangles);
-            }
-        }
-    }
-    return num_intersections;
-}
-
-int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh)
-{
-    std::unordered_map<int, bool> visited_triangles;
-    int num_intersections = ray_mesh_intersection(cam_origin, vertex, root, mesh, visited_triangles);
-    if (num_intersections >= 2){
-        //std::cout << "intersections: " << num_intersections << std::endl;
-    }
-    if (/*num_intersections%2 == 1*/num_intersections > 0)
-    {
-        return MATERIAL_SOLID;
-    }
-    return MATERIAL_AIR;
 }
 
 // -------------------------------------------------------------------------------

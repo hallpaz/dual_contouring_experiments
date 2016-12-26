@@ -157,13 +157,22 @@ void ContourProcessEdge(OctreeNode* node[4], int dir, IndexBuffer& indexBuffer)
     {
         if (!flip)
         {
-            indexBuffer.push_back(Triangle{indices[0], indices[1], indices[3]});
-            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[2]});
+            if (indices[0] != indices[3]){
+                if (indices[0] != indices[1] && indices[1] != indices[3])
+                    indexBuffer.push_back(Triangle{indices[0], indices[1], indices[3]});
+                if (indices[0] != indices[2] && indices[2] != indices[3])
+                    indexBuffer.push_back(Triangle{indices[0], indices[3], indices[2]});
+            }
+
         }
         else
         {
-            indexBuffer.push_back(Triangle{indices[0], indices[3], indices[1]});
-            indexBuffer.push_back(Triangle{indices[0], indices[2], indices[3]});
+            if (indices[0] != indices[3]){
+                if (indices[0] != indices[1] && indices[1] != indices[3])
+                    indexBuffer.push_back(Triangle{indices[0], indices[3], indices[1]});
+                if (indices[0] != indices[2] && indices[2] != indices[3])
+                    indexBuffer.push_back(Triangle{indices[0], indices[2], indices[3]});
+            }
         }
     }
 }

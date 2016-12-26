@@ -39,7 +39,6 @@ namespace Fusion
         NormalsEstimator::compute_better_normals(mesh);
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
-
         std::cout << "The first is OK" << std::endl;
         for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
@@ -47,7 +46,8 @@ namespace Fusion
             //Octree::leafvertexpool.clear();
             // disabled because now we use only intersections
 
-            clean_nodes(demi_octree.root);
+            clean_nodes(demi_octree.root);//TODO: now I can clean the nodes during leaf construction
+
             DefaultMesh mesh;
             OpenMesh::IO::read_mesh(mesh, *s_it);
             mesh.request_vertex_status();
