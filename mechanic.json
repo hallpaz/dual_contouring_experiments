@@ -1,5 +1,5 @@
 {
-    "mesh_files": ["../models/taoju/mech_simp.off"
+    "mesh_files": ["../models/taoju/mech_simp01.off"
                     ],
     "cam_pos": [
             {"x": 0.0,  "y": 0.0, "z": 16.0}

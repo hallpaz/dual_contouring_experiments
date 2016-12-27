@@ -96,6 +96,11 @@ public:
         return min + size * CHILD_MIN_OFFSETS[index];
     }
 
+    glm::vec3 get_max()
+    {
+        return min + size*glm::vec3(1.0f, 1.0f, 1.0f);
+    }
+
     OctreeNodeType	type;
     glm::vec3		min;
     Real			size;

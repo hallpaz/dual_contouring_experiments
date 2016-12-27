@@ -9,6 +9,9 @@
 #include "glm/glm.hpp"
 #include "Utils.h"
 
+#include "TaojuQef.h"
+#include "GeoCommon.h"
+
 using glm::vec3;
 
 
@@ -64,11 +67,28 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         Vertex vertex;
         d->index = vertexBuffer.size();
         d->averageNormal = glm::normalize(d->averageNormal);
+        // ---------------------------------------------------------------
         svd::Vec3 qefPosition;
         svd::QefSolver qef;
         qef.setData(d->qef);
         qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
         d->position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
+        const auto& massPoint = qef.getMassPoint();
+        // ---------------------------------------------------------------
+
+        float ata[6] = {d->qef.ata_00, d->qef.ata_01, d->qef.ata_02, d->qef.ata_11, d->qef.ata_12, d->qef.ata_22};
+        float atb[3] = {d->qef.atb_x, d->qef.atb_y, d->qef.atb_z};
+        BoundingBoxf box;
+        box.begin = node->min;
+        box.end = node->get_max();
+        float pt[] = {massPoint.x, massPoint.y, massPoint.z};
+        float mat[10];
+        float mp[3] = {0.0f, 0.0f, 0.0f};
+        float error = TaojuQef::calcPoint(ata, atb, d->qef.btb, pt, mp, box, mat);
+        d->position = vec3(mp[0], mp[1], mp[2]);
+
+
+
 
         const vec3 min = vec3(node->min);
         const vec3 max = vec3(node->min + vec3(node->size));
@@ -81,6 +101,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 #ifdef DEBUG
             vertex.color = glm::uvec3(255, 0, 0);
             Octree::unoptimized_points++;
+            std::cout << d->qef.numPoints << std::endl;
 #endif
         }
         vertex.position = d->position;
