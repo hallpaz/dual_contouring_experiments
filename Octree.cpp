@@ -174,14 +174,19 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
                 intersection_points.push_back(intersection);
 
                 float u, v, w;
+                if(u < 0){
+                    u = 0.0;
+                    leaf->dangerous_intersection = true;
+                }
                 barycentric(intersection, face_vertices[0], face_vertices[1], face_vertices[2], u, v, w);
+                //u = 1.0f; v = 1.0f; w = 1.0f;
                 vec3 normal_at_intersection = u * openmesh_to_glm(mesh.normal(a)) + v * openmesh_to_glm(mesh.normal(b)) + w * openmesh_to_glm(mesh.normal(c));
                 normal_at_intersection =  glm::normalize(normal_at_intersection);
-//                normals.push_back(normal_at_intersection);
+                normals.push_back(normal_at_intersection);
                 vec3 face_normal = openmesh_to_glm(mesh.normal(*face));
                 face_normals.push_back(face_normal);
                 //hasIntersection = true;
-                normals.push_back(face_normal);
+                //normals.push_back(face_normal);
             }
         }
         if (intersection_points.size() > 1) {
@@ -213,6 +218,8 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
             averageNormal += n;
             hasIntersection = true;
+
+            leaf->num_intersections++;
 
             /*BEGIN VERTEX CLASSIFICATION*/
             int sign1 = computeSideOfPoint(p1, intersection_points[0], face_normals[0]);

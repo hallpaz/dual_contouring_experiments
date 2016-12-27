@@ -81,15 +81,21 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 #ifdef DEBUG
             vertex.color = glm::uvec3(255, 0, 0);
             Octree::unoptimized_points++;
+            if (node->dangerous_intersection){
+                vertex.color = glm::uvec3(0, 255, 0);
+            }
 #endif
         }
-        vertex.position = d->position;
+        else {
 #ifdef DEBUG
-        if(node->irregular){
-            vertex.color = glm::uvec3(0, 0, 255);
-            Octree::irregular_cells++;
-        }
+            if(node->dangerous_intersection){
+                vertex.color = glm::uvec3(0, 0, 255);
+                //Octree::irregular_cells++;
+            }
 #endif
+        }
+
+        vertex.position = d->position;
         vertexBuffer.push_back(vertex);
 
 #ifdef DEBUG // DEBUG --------------------------------------------------------------------

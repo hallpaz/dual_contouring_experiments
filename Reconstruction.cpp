@@ -32,11 +32,18 @@ namespace Fusion
     {
         DefaultMesh mesh;
         OpenMesh::IO::read_mesh(mesh, meshfiles[0]);
+        OpenMesh::IO::Options options;
+        options += OpenMesh::IO::Options::VertexNormal;
         int i = 0;
         mesh.request_vertex_status();
         mesh.request_edge_status();
         mesh.request_face_status();
         NormalsEstimator::compute_better_normals(mesh);
+        /*mesh.request_face_normals();
+        mesh.update_face_normals();
+        mesh.request_vertex_normals();
+        mesh.update_vertex_normals();*/
+        OpenMesh::IO::write_mesh(mesh, "../malha_vaso.ply", options);
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
         std::cout << "The first is OK" << std::endl;
