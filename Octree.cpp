@@ -55,7 +55,7 @@ bool OctreeNode::construct_or_update_children(unsigned int max_depth, const Defa
                                                childSize,
                                                childHeight,
                                                this);
-// TODO: check if this can help
+// TODO: check if this can help - seems to not
 //            if (this->drawInfo)
 //            {
 //                child->drawInfo = new OctreeDrawInfo();
