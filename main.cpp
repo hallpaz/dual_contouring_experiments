@@ -23,7 +23,7 @@ const string CAM_POS = "cam_pos";
 
 int main(int argc, char** argv)
 {
-    const int height = 12;
+    const int height = 8;
 //    int dist = 16;
 
     string folder_name = "../";
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
     OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
     //OpenMesh::IO::read_mesh(myMesh, "../models/taoju/mechanic.off");
-    //OpenMesh::IO::read_mesh(myMesh, "../models/bunny.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/cow.off");
     // compute bounding box
     DefaultMesh::Point bb_min;
     Real octreeSize = compute_boundingbox(myMesh, bb_min);
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
     OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize * 1.1, height,
                                                    filenames, cameras);
     Octree::classify_leaves_vertices(root);
-    //root = Octree::SimplifyOctree(root, 0.01/*octreeSize/100000.0*/);
+    root = Octree::SimplifyOctree(root, octreeSize/1000.0);
 
     VertexBuffer vertices;
     IndexBuffer indices;

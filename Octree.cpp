@@ -94,7 +94,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
         delete node;
         return nullptr;
     }
-    if (((node->parent && node->parent->innerEmpty()) || node->depth == max_depth) && node->depth > 4)
+    if ((/*(node->parent && node->parent->innerEmpty()) ||*/ node->depth == max_depth) && node->depth > 4)
     {
         return construct_or_update_leaf(node, max_depth, mesh);
     }
@@ -119,7 +119,7 @@ OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth
 
     if (node->type == NODE_LEAF)
     {
-        if (node->depth < max_depth && !node->parent->innerEmpty())
+        if (node->depth < max_depth /*&& !node->parent->innerEmpty()*/)
         {
             node->type = NODE_INTERNAL;
             node->construct_or_update_children(max_depth, mesh);
@@ -215,16 +215,44 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             hasIntersection = true;
 
             /*BEGIN VERTEX CLASSIFICATION*/
-            int sign1 = computeSideOfPoint(p1, intersection_points[0], face_normals[0]);
+            int sign1 = MATERIAL_UNKNOWN;
+            if (intersection_points.size() == 1){
+                sign1 = computeSideOfPoint(p1, intersection_points[0], face_normals[0]);
+            }
+            else{
+                if (intersection_points.size()%2 == 0){
+                    int nearmost_index = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+                    sign1 = computeSideOfPoint(p1, intersection_points[nearmost_index], face_normals[nearmost_index]);
+                    vecsigns[c1] = sign1;
+                    vecsigns[c2] = sign1;
+                }
+                else{
+                    int airs = 0;
+                    int solids = 0;
+                    for (int j = 0; j < intersection_points.size(); ++j) {
+                        sign1 = computeSideOfPoint(p1, intersection_points[j], face_normals[j]);
+                        if (sign1 == MATERIAL_AIR)
+                            ++airs;
+                        if (sign1 == MATERIAL_SOLID)
+                            ++solids;
+                    }
+                    if (solids > airs){
+                        sign1 = MATERIAL_SOLID;
+                    } else{
+                        sign1 = MATERIAL_AIR;
+                    }
+                }
+            }
+
             if (vecsigns[c1] == MATERIAL_UNKNOWN){
                 vecsigns[c1] = sign1;
             }
             else{
                 if (vecsigns[c1] != sign1){
-                    std::cout << vecsigns[c1] << " --> " << sign1 << std::endl;
+                    std::cout << intersection_points.size() << " X " << vecsigns[c1] << " --> " << sign1 << std::endl;
                 }
             }
-            if (vecsigns[c2] != MATERIAL_SOLID/*vecsigns[c2] == MATERIAL_UNKNOWN*/){
+            if (vecsigns[c2] == MATERIAL_UNKNOWN){
                 vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
             }
             /*END VERTEX CLASSIFICATION*/
@@ -283,7 +311,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             if (vecsigns[i] != MATERIAL_UNKNOWN && oldsign != MATERIAL_AMBIGUOUS){
                 if (oldsign != vecsigns[i]){
 #ifdef DEBUG
-                    std::cout << "Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
+                    std::cout << " Computed Before: " << oldsign << " " << " Now: " << vecsigns[i] << std::endl;
                     Octree::divergence++;
 #endif
                     // if we have divergence, we let the camera method classify
@@ -381,8 +409,10 @@ void Octree::classify_leaves_vertices(OctreeNode* node)
         //TODO: check if i can save the sign in the hash during update to verify the ambiguity ratio
         if (should_revise_signs)
         {
+            //std::cout << "pizza" << std::endl;
             updateSignsArray(vecsigns, 8, node);
             //updateSignsArray(vecsigns, 8);
+            //std::cout << "hambuerguer" << std::endl;
         }
         for (int k = 0; k < 8; ++k) {
             node->drawInfo->corners |= (vecsigns[k] << k);

@@ -101,7 +101,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
 #ifdef DEBUG
             vertex.color = glm::uvec3(255, 0, 0);
             Octree::unoptimized_points++;
-            std::cout << d->qef.numPoints << std::endl;
+            //std::cout << d->qef.numPoints << std::endl;
 #endif
         }
         vertex.position = d->position;

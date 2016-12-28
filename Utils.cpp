@@ -424,50 +424,63 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
 // ----------------------------------------------------------------------------
  void updateSignsArray(int *vecsigns, int size, OctreeNode* node){
     bool checksigns = true;
+//    for (int j = 0; j < 8; ++j) {
+//        std::cout << vecsigns[j];
+//    }
+    bool terror = false;
+    std::cout << std::endl;
+    int index = 0;
     while(checksigns) {
         checksigns = false;
+        index++;
         for (size_t i = 0; i < size; ++i) {
             if (vecsigns[i] == MATERIAL_UNKNOWN) {
                 checksigns = true;
-                for (int j = 0; j < 3; ++j) {
-                    //DEBUG
-                    bool flag = false;
-                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][1]]
-                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
-                            vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN)) {
-                        flag = true;
+                int sn0 = vecsigns[vneighbors[i][0]];
+                int sn1 = vecsigns[vneighbors[i][1]];
+                int sn2 = vecsigns[vneighbors[i][2]];
+                //std::cout << i << sn0 << sn1 << sn2 << std::endl;
+                if (sn0 == MATERIAL_UNKNOWN && sn1 == MATERIAL_UNKNOWN && sn2 == MATERIAL_UNKNOWN){
+                    std::cout << "caso do terror" << std::endl;
+                    for (int j = 0; j < 8; ++j) {
+                        std::cout << vecsigns[j];
                     }
-                    if (vecsigns[vneighbors[i][0]] != vecsigns[vneighbors[i][2]]
-                        && (vecsigns[vneighbors[i][0]] != MATERIAL_UNKNOWN &&
-                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
-                        flag = true;
-                    }
-                    if (vecsigns[vneighbors[i][1]] != vecsigns[vneighbors[i][2]]
-                        && (vecsigns[vneighbors[i][1]] != MATERIAL_UNKNOWN &&
-                            vecsigns[vneighbors[i][2]] != MATERIAL_UNKNOWN)) {
-                        flag = true;
-                    }
-                    if (flag) {
-                        /*std::cout << i << ": Diferentes: " << vneighbors[i][0] << ": " << vecsigns[vneighbors[i][0]]
-                                  << " "
-                                  << vneighbors[i][1] << ": " << vecsigns[vneighbors[i][1]] << " "
-                                  << vneighbors[i][2] << ": " << vecsigns[vneighbors[i][2]] << std::endl;
-                        for (int k = 0; k < 8; ++k) {
-                            std::cout << vecsigns[k];
-                        }*/
-                        node->irregular = true;
-                        //na duvida coloca como fora??? hipotese...
-                        //vecsigns[i] = MATERIAL_AIR; break;
-                    }
-                    //DEBUG
-                    int n = vneighbors[i][j];
-                    if (vecsigns[n] != MATERIAL_UNKNOWN) {
-                        vecsigns[i] = vecsigns[n];
-                        break;
-                    }
+                    std::cout << std::endl;
+                    terror = true;
+                    continue;
+                }
+                bool flag = false;
+                if (sn0 != sn1 && (sn0 != MATERIAL_UNKNOWN && sn1 != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (sn0 != sn2 && (sn0 != MATERIAL_UNKNOWN && sn2 != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (sn1 != sn2 && (sn1 != MATERIAL_UNKNOWN && sn2 != MATERIAL_UNKNOWN)) {
+                    flag = true;
+                }
+                if (flag) {
+                    node->irregular = true;
+                    vecsigns[i] = MATERIAL_AIR;
+                }
+                else
+                {
+                    vecsigns[i] = sn0 != MATERIAL_UNKNOWN ? sn0 : sn1 != MATERIAL_UNKNOWN ? sn1 : sn2;
                 }
             }
         }
+        if(index > 8){
+            terror = true;
+            break;
+        }
+    }
+    if(terror){
+        for (int j = 0; j < 8; ++j) {
+            std::cout << vecsigns[j];
+        }
+        std::cout << std::endl;
+        if(index > 8)
+            exit(88);
     }
  }
 
