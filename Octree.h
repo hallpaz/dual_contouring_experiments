@@ -110,6 +110,8 @@ public:
     OctreeDrawInfo*	drawInfo;
 
     bool irregular = false; //irregular intersection
+    int num_intersections = 0;
+    bool dangerous_intersection = false;
     //OctreeMeshInfo* meshInfo;
     std::list<DefaultMesh::FaceHandle> innerFaces;
     std::list<DefaultMesh::FaceHandle> crossingFaces;
