@@ -13,11 +13,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0f209f5e-4a36-4e0a-9caf-e9262c60b0ba" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/cow.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dual_contouring_experiments.iml" afterPath="$PROJECT_DIR$/.idea/dual_contouring_experiments.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Contouring.cpp" afterPath="$PROJECT_DIR$/Contouring.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Octree.cpp" afterPath="$PROJECT_DIR$/Octree.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Octree.h" afterPath="$PROJECT_DIR$/Octree.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Reconstruction.cpp" afterPath="$PROJECT_DIR$/Reconstruction.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Utils.cpp" afterPath="$PROJECT_DIR$/Utils.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
     </list>
     <ignored path="dual_contouring_experiments.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -40,7 +43,7 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="700">
+            <state relative-caret-position="915">
               <caret line="61" column="4" selection-start-line="61" selection-start-column="4" selection-end-line="61" selection-end-column="4" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
@@ -76,7 +79,7 @@
       <file leaf-file-name="Utils.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Utils.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1320">
+            <state relative-caret-position="12885">
               <caret line="859" column="1" selection-start-line="859" selection-start-column="1" selection-end-line="859" selection-end-column="1" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
@@ -100,7 +103,7 @@
       <file leaf-file-name="Octree.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Octree.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="795">
+            <state relative-caret-position="7635">
               <caret line="509" column="1" selection-start-line="509" selection-start-column="1" selection-end-line="509" selection-end-column="1" />
               <folding>
                 <element signature="e#837#855#0" expanded="true" />
@@ -112,8 +115,8 @@
       <file leaf-file-name="Contouring.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Contouring.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2505">
-              <caret line="167" column="12" selection-start-line="167" selection-start-column="12" selection-end-line="167" selection-end-column="12" />
+            <state relative-caret-position="-2355">
+              <caret line="102" column="41" selection-start-line="102" selection-start-column="41" selection-end-line="102" selection-end-column="41" />
               <folding>
                 <element signature="e#52#70#0" expanded="true" />
               </folding>
@@ -503,12 +506,12 @@
       <workItem from="1482516684795" duration="9746000" />
       <workItem from="1482605268211" duration="13415000" />
       <workItem from="1482757257199" duration="6684000" />
-      <workItem from="1483105616982" duration="168000" />
+      <workItem from="1483106854316" duration="19000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="208603000" />
+    <option name="totallyTimeSpent" value="208454000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
@@ -808,6 +811,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/DataStructures.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+          <folding>
+            <element signature="e#159#176#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Utils.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1260">
@@ -825,22 +838,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Octree.h">
+    <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="31" column="27" selection-start-line="31" selection-start-column="27" selection-end-line="31" selection-end-column="27" />
+        <state relative-caret-position="915">
+          <caret line="61" column="4" selection-start-line="61" selection-start-column="4" selection-end-line="61" selection-end-column="4" />
           <folding>
-            <element signature="e#920#937#0" expanded="true" />
+            <element signature="e#0#19#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Octree.cpp">
+    <entry file="file://$PROJECT_DIR$/Utils.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="795">
-          <caret line="509" column="1" selection-start-line="509" selection-start-column="1" selection-end-line="509" selection-end-column="1" />
+        <state relative-caret-position="12885">
+          <caret line="859" column="1" selection-start-line="859" selection-start-column="1" selection-end-line="859" selection-end-column="1" />
           <folding>
-            <element signature="e#837#855#0" expanded="true" />
+            <element signature="e#0#16#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -855,40 +868,30 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Utils.cpp">
+    <entry file="file://$PROJECT_DIR$/Octree.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1320">
-          <caret line="859" column="1" selection-start-line="859" selection-start-column="1" selection-end-line="859" selection-end-column="1" />
+        <state relative-caret-position="7635">
+          <caret line="509" column="1" selection-start-line="509" selection-start-column="1" selection-end-line="509" selection-end-column="1" />
           <folding>
-            <element signature="e#0#16#0" expanded="true" />
+            <element signature="e#837#855#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DataStructures.h">
+    <entry file="file://$PROJECT_DIR$/Octree.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="465">
+          <caret line="31" column="27" selection-start-line="31" selection-start-column="27" selection-end-line="31" selection-end-column="27" />
           <folding>
-            <element signature="e#159#176#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="700">
-          <caret line="61" column="4" selection-start-line="61" selection-start-column="4" selection-end-line="61" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
+            <element signature="e#920#937#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Contouring.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2505">
-          <caret line="167" column="12" selection-start-line="167" selection-start-column="12" selection-end-line="167" selection-end-column="12" />
+        <state relative-caret-position="-2355">
+          <caret line="102" column="41" selection-start-line="102" selection-start-column="41" selection-end-line="102" selection-end-column="41" />
           <folding>
             <element signature="e#52#70#0" expanded="true" />
           </folding>

@@ -47,7 +47,7 @@ namespace Fusion
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
         std::cout << "The first is OK" << std::endl;
-        for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
+        /*for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             //testing
             //Octree::leafvertexpool.clear();
@@ -61,7 +61,7 @@ namespace Fusion
             mesh.request_edge_status();
             mesh.request_face_status();
             NormalsEstimator::compute_better_normals(mesh);
-            /*std::cout << "Opening " << *s_it << std::endl;*/
+            //std::cout << "Opening " << *s_it << std::endl;
             Octree::UpdateMeshHierarchy(demi_octree.root, max_depth, mesh);
 
             //demi_octree.classify_leaves_vertices(cameras[i++], demi_octree.root, mesh);
@@ -69,7 +69,7 @@ namespace Fusion
             std::cout << "Divergence: " << Octree::divergence << std::endl;
             std::cout << "Ambiguities solved: " << Octree::ambiguous_vertices << std::endl;
 #endif
-        }
+        }*/
 
         return demi_octree.root;
     }
