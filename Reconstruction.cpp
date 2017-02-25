@@ -47,7 +47,7 @@ namespace Fusion
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
         std::cout << "The first is OK" << std::endl;
-        /*for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
+        for (std::vector<string>::iterator s_it = meshfiles.begin() + 1; s_it != meshfiles.end(); ++s_it)
         {
             //testing
             //Octree::leafvertexpool.clear();
@@ -69,7 +69,7 @@ namespace Fusion
             std::cout << "Divergence: " << Octree::divergence << std::endl;
             std::cout << "Ambiguities solved: " << Octree::ambiguous_vertices << std::endl;
 #endif
-        }*/
+        }
 
         return demi_octree.root;
     }

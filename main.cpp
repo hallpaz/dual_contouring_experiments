@@ -21,6 +21,17 @@ Real compute_boundingbox(DefaultMesh &mesh, DefaultMesh::Point &bb_min);
 const string MESH_FILES = "mesh_files";
 const string CAM_POS = "cam_pos";
 
+string threshold_str(Real threshold){
+    std::stringstream ss;
+    ss << "simp";
+    while(threshold < 0){
+        ss<< "0";
+        threshold *= 10;
+    }
+    ss << "1";
+    return ss.str();
+}
+
 int main(int argc, char** argv)
 {
     const int height = 8;
@@ -49,7 +60,8 @@ int main(int argc, char** argv)
 
     DefaultMesh myMesh;
     //OpenMesh::IO::read_mesh(myMesh, "../models/analytic/sphere_lowpoly.off");
-    OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    //OpenMesh::IO::read_mesh(myMesh, "../models/divided/vase_antonina.off");
+    OpenMesh::IO::read_mesh(myMesh, "../models/branca/k3branca1.off");
     //OpenMesh::IO::read_mesh(myMesh, "../models/taoju/mechanic.off");
     //OpenMesh::IO::read_mesh(myMesh, "../models/cow.off");
     // compute bounding box
@@ -60,18 +72,29 @@ int main(int argc, char** argv)
     OctreeNode* root = Fusion::octree_from_samples(openmesh_to_glm(bb_min) - vec3(0.1), octreeSize * 1.1, height,
                                                    filenames, cameras);
     Octree::classify_leaves_vertices(root);
-    root = Octree::SimplifyOctree(root, octreeSize/1000.0);
 
     VertexBuffer vertices;
     IndexBuffer indices;
     GenerateMeshFromOctree(/*sphere_octree.*/root, vertices, indices);
+
+
 #ifdef DEBUG
     std::cout << "Unoptimized points: " << Octree::unoptimized_points << std::endl;
     std::cout << "Irregular cells " << Octree::irregular_cells << std::endl;
 #endif
     std::stringstream filepath;
-    filepath << folder_name << outputfilename << height << ".ply";
+    filepath << folder_name << outputfilename << "full" << height << ".ply";
     write_Ply(filepath.str(), vertices, indices);
+
+
+    //generates simplified version
+    Real simp_threshold = 0.1;
+    root = Octree::SimplifyOctree(root, simp_threshold);
+    GenerateMeshFromOctree(root, vertices, indices);
+    std::stringstream simpfilepath;
+    simpfilepath << folder_name << threshold_str(simp_threshold) << outputfilename << "full" << height << ".ply";
+    write_Ply(simpfilepath.str(), vertices, indices);
+
     return EXIT_SUCCESS;
 }
 

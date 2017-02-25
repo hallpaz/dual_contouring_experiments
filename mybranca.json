@@ -1,0 +1,16 @@
+{
+    "mesh_files": ["../models/branca/mybranca1t.off", "../models/branca/mybranca2t.off",
+                    "../models/branca/mybranca3t.off", "../models/branca/mybranca5t.off",
+                    "../models/branca/mybranca6t.off", "../models/branca/mybranca7t.off",
+                    "../models/branca/mybranca8t.off", "../models/branca/mybranca10t.off"],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0},
+            {"x": 16.00,  "y": 0.0, "z": 0.0},
+            {"x": -16.0,  "y": 0.0, "z": 0.0},
+            {"x": 0.00,  "y": 16.0, "z": 0.00},
+            {"x": 0.0,  "y": -16.0, "z": 0.0},
+            {"x": 0.0,  "y": 0.0, "z": 16.0},
+            {"x": 16.00,  "y": 0.0, "z": 0.0},
+            {"x": -16.0,  "y": 0.0, "z": 0.0}
+        ]
+}

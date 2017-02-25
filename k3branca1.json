@@ -1,0 +1,7 @@
+{
+    "mesh_files": [
+                "../models/branca/k3branca5_smoothed.off"],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0}
+        ]
+}
