@@ -145,8 +145,11 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
     bool hasIntersection = false;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
+
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
     int edges_intersected = 0;
+    std::cout << "LET THE GAME BEGIN!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << std::endl;
+    bool inversion_flag = false;
     for (int i = 0; i < NUM_EDGES; ++i) //for each edge
     {
         const int c1 = edgevmap[i][0];
@@ -156,6 +159,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
         vec3 intersection;
         std::vector<vec3> intersection_points, normals, face_normals;
+
         for (std::list<DefaultMesh::FaceHandle>::iterator face = leaf->crossingFaces.begin(); face != leaf->crossingFaces.end(); ++face)
         {
             auto fv_it = mesh.cfv_iter(*face);
@@ -168,9 +172,21 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             //trace("intersection");
             if (moller_triangle_intersection(p1, p2, vertices, intersection)) {
                 //keeps the intersection here
-                if ((intersection_points.size() > 0) && (glm::distance(intersection, intersection_points[0]) < POINT_DISTANCE_THRESHOLD)){
-                    continue;
-                }
+                /*if (intersection_points.size() > 0)
+                {
+                    bool redundant_intersection = false;
+                    for(int i = 0; i < intersection_points.size(); ++i)
+                    {
+                        if (glm::distance(intersection, intersection_points[i]) < POINT_DISTANCE_THRESHOLD)
+                        {
+                            redundant_intersection = true;
+                        }
+                    }
+                    if(redundant_intersection)
+                    {
+                        continue;
+                    }
+                }*/
                 intersection_points.push_back(intersection);
 
                 float u, v, w;
@@ -213,22 +229,74 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         // we'll consider only the first intersection for now
         if (intersection_points.size() > 0)
         {
-            vec3 &n = normals[0];
-            vec3 &v = intersection_points[0];
-            qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
-            averageNormal += n;
-            hasIntersection = true;
-
-            leaf->num_intersections++;
-
+            bool should_add = true;
             /*BEGIN VERTEX CLASSIFICATION*/
             int sign1 = MATERIAL_UNKNOWN;
+            int sign2 = MATERIAL_UNKNOWN;
             if (intersection_points.size() == 1){
                 sign1 = computeSideOfPoint(p1, intersection_points[0], face_normals[0]);
+                sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                int corrector = computeSideOfPoint(p2, intersection_points[0], face_normals[0]);
+
+                if (corrector != sign2){
+                    std::cout << "DIVERGENCIA NO CALCULO DOS SINAIS EM CASO SINGLE" << std::endl;
+                    std::cout << "Interseções: " << intersection_points.size() << " " << std::endl;
+                    print_points(intersection_points);
+                    std::cout << "Normais de face: " << face_normals.size() << " " << std::endl;
+                    print_points(face_normals);
+                    std::cout << "Sinal P1: " << sign1 << " ";
+                    print_point(p1);
+                    std::cout << std::endl;
+                    std::cout << "Sinal P2: " << sign2 << " ";
+                    print_point(p2);
+                    std::cout << std::endl;
+                    std::cout << "Sinal Corretor: " << corrector << std::endl;
+
+                    exit(77);
+                    //TODO: investigate the reason of the divergence
+                    sign2 = corrector;
+                }
+
             }
             else{
+                int nearmost_index1 = compute_nearmost_index(p1, intersection_points);
+                sign1 = computeSideOfPoint(p1, intersection_points[nearmost_index1], face_normals[nearmost_index1]);
+
+
                 if (intersection_points.size()%2 == 0){
-                    int nearmost_index = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+                    sign2 = sign1;
+                }
+                else
+                {
+                    sign2 = sign1 == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                }
+
+                // PROVA REAL
+                int nearmost_index2 = compute_nearmost_index(p2, intersection_points);
+                int corrector = computeSideOfPoint(p2, intersection_points[nearmost_index2], face_normals[nearmost_index2]);
+
+                if (corrector != sign2){
+                    std::cout << "DIVERGENCIA NO CALCULO DOS SINAIS EM CASO MULTIPLO" << std::endl;
+                    std::cout << "Interseções: " << intersection_points.size() << " " << std::endl;
+                    print_points(intersection_points);
+                    std::cout << "Normais de face: " << face_normals.size() << " " << std::endl;
+                    print_points(face_normals);
+                    std::cout << "Sinal P1: " << sign1 << " " << "Near P1: " << nearmost_index1 << " ";
+                    print_point(p1);
+                    std::cout << std::endl;
+                    std::cout << "Sinal P2: " << sign2 << " " << "Near P2: " << nearmost_index2 << " ";
+                    print_point(p2);
+                    std::cout << std::endl;
+                    std::cout << "Sinal Corretor: " << corrector << std::endl;
+
+                    //exit(77);
+                    //TODO: investigate the reason of the divergence
+                    sign2 = corrector;
+                }
+
+                /*if (intersection_points.size()%2 == 0){
+                    //int nearmost_index = glm::distance(p1, intersection_points[0]) < glm::distance(p1, intersection_points[1]) ? 0 : 1;
+                    int nearmost_index = compute_nearmost_index(p1, intersection_points);
                     sign1 = computeSideOfPoint(p1, intersection_points[nearmost_index], face_normals[nearmost_index]);
                     vecsigns[c1] = sign1;
                     vecsigns[c2] = sign1;
@@ -248,25 +316,80 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
                     } else{
                         sign1 = MATERIAL_AIR;
                     }
-                }
+                }*/
             }
+
 
             if (vecsigns[c1] == MATERIAL_UNKNOWN){
                 vecsigns[c1] = sign1;
             }
             else{
                 if (vecsigns[c1] != sign1){
-                    std::cout << intersection_points.size() << " X " << vecsigns[c1] << " --> " << sign1 << std::endl;
+                    std::cout << intersection_points.size() << " X1 " << vecsigns[c1] << " --> " << sign1 << std::endl;
+                    inversion_flag = true;
+                    should_add = false;
                 }
             }
             if (vecsigns[c2] == MATERIAL_UNKNOWN){
-                vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                //vecsigns[c2] = vecsigns[c1] == MATERIAL_AIR ? MATERIAL_SOLID : MATERIAL_AIR;
+                vecsigns[c2] = sign2;
+
+            }
+            else{
+                if (vecsigns[c1] != sign1){
+                    std::cout << intersection_points.size() << " X2 " << vecsigns[c2] << " --> " << sign2 << std::endl;
+                    inversion_flag = true;
+                    should_add = false;
+                }
             }
             /*END VERTEX CLASSIFICATION*/
             edges_intersected++;
+            std::cout << "Classificação das arestas. Aresta: " << c1 << "--" << c2 << std::endl;
+            std::cout << "Interseções: " << intersection_points.size() << " " << std::endl;
+            print_points(intersection_points);
+            std::cout << "Normais de face: " << face_normals.size() << " " << std::endl;
+            print_points(face_normals);
+            std::cout << "Sinal P1: " << sign1 << " " << "Vecsigns[c1]: " << vecsigns[c1];
+            print_point(p1);
+            std::cout << std::endl;
+            std::cout << "Sinal P2: " << sign2 << " " << "Vecsigns[c2]: " << vecsigns[c2];
+            print_point(p2);
+            std::cout << std::endl;
+
+            if (should_add) {
+                vec3 &n = normals[0];
+                vec3 &v = intersection_points[0];
+                qef.add(v.x, v.y, v.z, n.x, n.y, n.z);
+                averageNormal += n;
+                hasIntersection = true;
+
+                leaf->num_intersections++;
+            }
         }
     }
 
+    if (inversion_flag){
+        std::ofstream inversionfile;
+        inversionfile.open("../subproducts/inversion.ply", std::ios::app);
+        for (int i = 0; i < 8; ++i) {
+            const vec3 cornerPos = leaf->get_vertex(i);
+            int sign = vecsigns[i];
+            if (sign == MATERIAL_SOLID) {
+                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+            }
+
+            if (sign == MATERIAL_AIR) {
+                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+            }
+
+            if (sign == MATERIAL_UNKNOWN) {
+                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 0 << " " << 0 << std::endl;
+            }
+
+        }
+        inversionfile.close();
+        //exit(62);
+    }
     if (!hasIntersection){
         if (leaf->type == NODE_LEAF)
         {

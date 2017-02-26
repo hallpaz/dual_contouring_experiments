@@ -871,3 +871,32 @@ bool ray_box_overlap(const glm::vec3 origin, const glm::vec3 dest, const glm::ve
     //TODO: implement
     return true;
 }
+
+// -------------------------------------------------------------------------------
+int compute_nearmost_index(glm::vec3 pivot, std::vector<glm::vec3> intersections)
+{
+    int index = 0;
+    Real mindistance = 99999999.9;
+    for (int i = 0; i < intersections.size(); ++i) {
+        Real sqrdist = glm::distance2(pivot, intersections[i]);
+        if ( sqrdist < mindistance)
+        {
+            mindistance = sqrdist;
+            index = i;
+        }
+    }
+    return index;
+}
+
+// -------------------------------------------------------------------------------
+void print_point(glm::vec3 point){
+    std::cout << "(" << point.x << ", " << point.y << ", " << point.z << ") ";
+}
+
+// -------------------------------------------------------------------------------
+void print_points(std::vector<glm::vec3> points){
+    for (std::vector<glm::vec3>::iterator p_it = points.begin(); p_it != points.end(); ++p_it) {
+        print_point(*p_it);
+    }
+    std::cout << std::endl;
+}

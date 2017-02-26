@@ -84,4 +84,9 @@ int ray_faces_intersection(const glm::vec3 origin, const glm::vec3 dest, Default
                            std::list<DefaultMesh::FaceHandle> &facelist, std::unordered_map<int, bool> &visited_triangles);
 int classify_vertex(glm::vec3 cam_origin, glm::vec3 vertex, OctreeNode* root, DefaultMesh &mesh);
 
+int compute_nearmost_index(glm::vec3 pivot, std::vector<glm::vec3> intersections);
+
+void print_point(glm::vec3 point);
+void print_points(std::vector<glm::vec3> points);
+
 #endif /* Utils_hpp */

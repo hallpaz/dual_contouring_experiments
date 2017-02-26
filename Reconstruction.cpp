@@ -43,7 +43,7 @@ namespace Fusion
         mesh.update_face_normals();
         mesh.request_vertex_normals();
         mesh.update_vertex_normals();*/
-        OpenMesh::IO::write_mesh(mesh, "../malha_vaso.ply", options);
+        //OpenMesh::IO::write_mesh(mesh, "../malha_vaso.ply", options);
 
         Octree demi_octree(min, size, max_depth, mesh, cameras[i++]);
         std::cout << "The first is OK" << std::endl;
