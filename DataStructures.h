@@ -72,4 +72,21 @@ enum OctreeNodeType
 
 // ----------------------------------------------------------------------------
 
+struct HermiteData
+{
+    glm::vec3 intersection;
+    glm::vec3 normal;
+
+    HermiteData(): intersection(0.0), normal(0.0) {}
+
+    bool is_valid()
+    {
+        if (normal.x < 0.1 && normal.y < 0.1 & normal.z < 0.1){
+            return false;
+        }
+        return true;
+    }
+};
+
+
 #endif //DUAL_CONTOURING_EXPERIMENTS_DATASTRUCTURES_H

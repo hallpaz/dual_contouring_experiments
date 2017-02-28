@@ -428,7 +428,7 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
 //        std::cout << vecsigns[j];
 //    }
     bool terror = false;
-    std::cout << std::endl;
+    //std::cout << std::endl;
     int index = 0;
     while(checksigns) {
         checksigns = false;
@@ -441,11 +441,11 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
                 int sn2 = vecsigns[vneighbors[i][2]];
                 //std::cout << i << sn0 << sn1 << sn2 << std::endl;
                 if (sn0 == MATERIAL_UNKNOWN && sn1 == MATERIAL_UNKNOWN && sn2 == MATERIAL_UNKNOWN){
-                    std::cout << "caso do terror" << std::endl;
+                    /*std::cout << "caso do terror" << std::endl;
                     for (int j = 0; j < 8; ++j) {
                         std::cout << vecsigns[j];
                     }
-                    std::cout << std::endl;
+                    std::cout << std::endl;*/
                     terror = true;
                     continue;
                 }
@@ -475,12 +475,14 @@ void updateSignsArray(int *vecsigns, int size, int edges_intersected, OctreeNode
         }
     }
     if(terror){
-        for (int j = 0; j < 8; ++j) {
-            std::cout << vecsigns[j];
-        }
-        std::cout << std::endl;
-        if(index > 8)
+
+        if(index > 8) {
+            for (int j = 0; j < 8; ++j) {
+                std::cout << vecsigns[j];
+            }
+            std::cout << std::endl;
             exit(88);
+        }
     }
  }
 

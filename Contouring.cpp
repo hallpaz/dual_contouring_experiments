@@ -107,7 +107,7 @@ void GenerateVertexIndices(OctreeNode* node, VertexBuffer& vertexBuffer)
         else {
 #ifdef DEBUG
             if(node->dangerous_intersection){
-                vertex.color = glm::uvec3(0, 0, 255);
+                //vertex.color = glm::uvec3(0, 0, 255);
                 //Octree::irregular_cells++;
             }
 #endif

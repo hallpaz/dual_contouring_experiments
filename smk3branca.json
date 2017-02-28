@@ -1,0 +1,13 @@
+{
+    "mesh_files": [
+             "../models/branca/smoothed/smk3branca1.off",
+             "../models/branca/smoothed/smk3branca2.off",
+             "../models/branca/smoothed/smk3branca3.off",
+             "../models/branca/smoothed/smk3branca6.off",
+             "../models/branca/smoothed/smk3branca7.off",
+             "../models/branca/smoothed/smk3branca10.off"
+                ],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0}
+        ]
+}

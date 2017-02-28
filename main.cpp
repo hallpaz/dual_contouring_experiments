@@ -28,19 +28,20 @@ string threshold_str(Real threshold){
         ss<< "0";
         threshold *= 10;
     }
-    ss << "1";
+    ss << std::to_string(threshold) ;
     return ss.str();
 }
 
 int main(int argc, char** argv)
 {
-    const int height = 8;
+    const int height = 6;
 //    int dist = 16;
 
     string folder_name = "../";
     string inputfilename, outputfilename;
     std::cout <<"Input File Name" << endl;
-    std::cin >> inputfilename;
+    //std::cin >> inputfilename;
+    inputfilename = "ssmbranca.json";
     std::cout <<"Output File Name" << endl;
     std::cin >> outputfilename;
 
@@ -88,7 +89,7 @@ int main(int argc, char** argv)
 
 
     //generates simplified version
-    Real simp_threshold = 0.1;
+    Real simp_threshold = 100;
     root = Octree::SimplifyOctree(root, simp_threshold);
     GenerateMeshFromOctree(root, vertices, indices);
     std::stringstream simpfilepath;

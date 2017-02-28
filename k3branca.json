@@ -1,7 +1,8 @@
 {
-    "mesh_files": ["../models/branca/k3branca1.off", "../models/branca/k3branca3.off",
-        "../models/branca/k3branca5_smoothed.off",
-                "../models/branca/k3branca6.off", "../models/branca/k3branca7.off"],
+    "mesh_files": ["../models/branca/k3branca1.off", "../models/branca/k3branca2.off",
+        "../models/branca/k3branca3.off", "../models/branca/k3branca5_smoothed.off",
+                "../models/branca/k3branca6.off", "../models/branca/k3branca7.off",
+            "../models/branca/k3branca8.off", "../models/branca/k3branca10.off"],
     "cam_pos": [
             {"x": 0.0,  "y": 0.0, "z": 16.0}
         ]

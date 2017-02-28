@@ -52,6 +52,7 @@ namespace Fusion
             //testing
             //Octree::leafvertexpool.clear();
             // disabled because now we use only intersections
+            //Octree::edgepool.clear();
 
             clean_nodes(demi_octree.root);//TODO: now I can clean the nodes during leaf construction
 
