@@ -42,6 +42,30 @@ int Octree::irregular_cells = 0;
 int classify_vertex(glm::vec3 vertex, glm::vec3 cam_origin, OctreeNode* root, DefaultMesh &mesh);
 // ----------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------
+bool is_good_optimization(OctreeNode *node, svd::QefData qefdata)
+{
+    svd::Vec3 qefPosition;
+    svd::QefSolver qef;
+    qef.setData(qefdata);
+    if (qefdata.numPoints > 0)
+    {
+        qef.solve(qefPosition, QEF_ERROR, QEF_SWEEPS, QEF_ERROR);
+        vec3 optmized_position = vec3(qefPosition.x, qefPosition.y, qefPosition.z);
+        const vec3 min = vec3(node->min);
+        const vec3 max = vec3(node->min + vec3(node->size));
+        if (optmized_position.x < min.x || optmized_position.x > max.x ||
+            optmized_position.y < min.y || optmized_position.y > max.y ||
+            optmized_position.z < min.z || optmized_position.z > max.z)
+        {
+            return false;
+        }
+    } else{
+        return false;
+    }
+    return true;
+}
+
 
 bool OctreeNode::construct_or_update_children(unsigned int max_depth, const DefaultMesh &mesh)
 {
@@ -142,7 +166,10 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         return nullptr;
     // otherwise the voxel contains the surface, so find the edge intersections
     vec3 averageNormal(0.f);
+
     svd::QefSolver qef;
+    svd::QefSolver tmpQef;
+
     bool hasIntersection = false;
     int vecsigns[8] = {MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN,
                        MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN, MATERIAL_UNKNOWN};
@@ -442,7 +469,27 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
 
     //TODO: pass drawinfo data from parent to child when descending
-    leaf->drawInfo->qef = leaf->drawInfo->qef + qef.getData();
+    //CHECK WHICH QEF TO KEEP
+
+    bool old_opt = is_good_optimization(leaf, leaf->drawInfo->qef);
+    bool cur_opt = is_good_optimization(leaf, qef.getData());
+    if (old_opt && !cur_opt)
+    {
+        tmpQef.setData(leaf->drawInfo->qef);
+    }
+    else if (!old_opt && cur_opt){
+        tmpQef.setData(qef.getData());
+    }
+    else {
+        tmpQef.setData(leaf->drawInfo->qef + qef.getData());
+    }
+
+
+
+    //END CHECK
+
+    //leaf->drawInfo->qef = leaf->drawInfo->qef + qef.getData();
+    leaf->drawInfo->qef = tmpQef.getData();
     leaf->drawInfo->averageNormal += averageNormal;
     //leaf->drawInfo = drawInfo;
     leaf->type = NODE_LEAF;
