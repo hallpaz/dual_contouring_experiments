@@ -95,7 +95,7 @@ OctreeNode *Octree::BuildMeshHierarchy(OctreeNode *node, unsigned int max_depth,
         delete node;
         return nullptr;
     }
-    if (((node->parent && node->parent->innerEmpty()) || node->depth == max_depth) && node->depth > 4)
+    if ((/*(node->parent && node->parent->innerEmpty()) ||*/ node->depth == max_depth) && node->depth > 4)
     {
         return construct_or_update_leaf(node, max_depth, mesh);
     }
@@ -120,7 +120,7 @@ OctreeNode* Octree::UpdateMeshHierarchy(OctreeNode *node, unsigned int max_depth
 
     if (node->type == NODE_LEAF)
     {
-        if (node->depth < max_depth && !node->parent->innerEmpty())
+        if (node->depth < max_depth /*&& !node->parent->innerEmpty()*/)
         {
             node->type = NODE_INTERNAL;
             node->construct_or_update_children(max_depth, mesh);
@@ -150,7 +150,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
     //TODO: optimize computations to avoid redundant intersections (same edge from other cell)
     int edges_intersected = 0;
 
-    //std::cout << "LET THE GAME BEGIN!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << std::endl;
+    std::cout << "LET THE GAME BEGIN!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl << std::endl;
     bool inversion_flag = false;
     for (int i = 0; i < NUM_EDGES; ++i) //for each edge
     {
@@ -161,7 +161,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
         // ----------------------------------------------------------------------------
         //Check if this edge was already evaluated
-        std::string edgehash = hashedge(p1, p2);
+        /*std::string edgehash = hashedge(p1, p2);
         if (edgepool.count(edgehash) != 0){
             vecsigns[c1] = leafvertexpool[hashvertex(p1)];
             vecsigns[c2] = leafvertexpool[hashvertex(p2)];
@@ -175,7 +175,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
                 continue;
             }
 
-        }
+        }*/
         // End check
         // ----------------------------------------------------------------------------
 
@@ -248,6 +248,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
         // we'll consider only the first intersection for now
         if (intersection_points.size() > 0)
         {
+            std::cout << "Intersected Edge: " << c1 << "--" << c2 << std::endl;
             bool should_add = true;
             /*BEGIN VERTEX CLASSIFICATION*/
             int sign1 = MATERIAL_UNKNOWN;
@@ -255,6 +256,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
             if (intersection_points.size() > 1)
             {
+
                 int nearmost_index1 = compute_nearmost_index(p1, intersection_points);
                 sign1 = computeSideOfPoint(p1, intersection_points[nearmost_index1], face_normals[nearmost_index1]);
 
@@ -314,9 +316,16 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             }
             else{
                 if (vecsigns[c1] != sign1){
-                    std::cout << intersection_points.size() << " X1 " << vecsigns[c1] << " --> " << sign1 << std::endl;
+                    std::cout << intersection_points.size() << " edge1 " << c1 << "--" << c2 << " : " << vecsigns[c1] << " --> " << sign1 << std::endl;
                     inversion_flag = true;
-                    should_add = false;
+                    //should_add = false;
+
+
+
+
+                    //if (sign1 != vecsigns[c2])
+                    vecsigns[c1] = sign1;
+
                 }
             }
             if (vecsigns[c2] == MATERIAL_UNKNOWN){
@@ -325,10 +334,13 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
             }
             else{
-                if (vecsigns[c1] != sign1){
-                    std::cout << intersection_points.size() << " X2 " << vecsigns[c2] << " --> " << sign2 << std::endl;
+                if (vecsigns[c2] != sign2){
+                    std::cout << intersection_points.size() << " edge2 " << c2 << "--" << c1 << " : " << vecsigns[c2] << " --> " << sign2 << std::endl;
                     inversion_flag = true;
-                    should_add = false;
+                    //should_add = false;
+
+                    //if (sign2 != vecsigns[c1])
+                    vecsigns[c2] = sign2;
                 }
             }
             /*END VERTEX CLASSIFICATION*/
@@ -365,6 +377,20 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
     }
 
     if (inversion_flag){
+        std::cout << "Current Signs: ";
+        for (int j = 0; j < 8; ++j) {
+            std::cout << vecsigns[j];
+        }
+        std::cout << std::endl;
+        std::cout << "Old Signs: ";
+        for (int j = 0; j < 8; ++j) {
+            auto vertex = leaf->get_vertex(j);
+            int sign = leafvertexpool[hashvertex(vertex)];
+            std::cout << sign;
+        }
+        std::cout << std::endl;
+        exit(89);
+
         std::ofstream inversionfile;
         std::cout << "Num edges intersected: " << edges_intersected << std::endl;
         inversionfile.open("../subproducts/inversion.ply", std::ios::app);
@@ -372,11 +398,11 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             const vec3 cornerPos = leaf->get_vertex(i);
             int sign = vecsigns[i];
             if (sign == MATERIAL_SOLID) {
-                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 128 << " " << 255 << std::endl;
+                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 255 << " " << 255 << " " << 0<< std::endl;
             }
 
             if (sign == MATERIAL_AIR) {
-                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 64 << " " << 255 << " " << 64 << std::endl;
+                inversionfile << cornerPos.x << " " << cornerPos.y << " " << cornerPos.z << " " << 0 << " " << 255 << " " << 0 << std::endl;
             }
 
             if (sign == MATERIAL_UNKNOWN) {
@@ -449,7 +475,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
 
 
                     //NOW WE CONSIDER OUT
-                    leafvertexpool[vertex_hash] = MATERIAL_AIR;
+                    leafvertexpool[vertex_hash] = vecsigns[i];//MATERIAL_AIR;
                 }
             }
         }

@@ -42,6 +42,7 @@ int main(int argc, char** argv)
     std::cout <<"Input File Name" << endl;
     //std::cin >> inputfilename;
     inputfilename = "ssmbranca.json";
+    //inputfilename = "vase_antonina.json";
     std::cout <<"Output File Name" << endl;
     std::cin >> outputfilename;
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 
 
     //generates simplified version
-    Real simp_threshold = 100;
+    Real simp_threshold = 1000;
     root = Octree::SimplifyOctree(root, simp_threshold);
     GenerateMeshFromOctree(root, vertices, indices);
     std::stringstream simpfilepath;
