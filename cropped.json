@@ -1,0 +1,15 @@
+{
+    "mesh_files": [
+        "../models/branca/cropped/ssmbranca1.off",
+        "../models/branca/cropped/ssmbranca2.off",
+        "../models/branca/cropped/ssmbranca3.off",
+        "../models/branca/cropped/ssmbranca5.off",
+        "../models/branca/cropped/ssmbranca6.off",
+        "../models/branca/cropped/ssmbranca7.off",
+        "../models/branca/cropped/ssmbranca8.off",
+        "../models/branca/cropped/ssmbranca10.off"
+                ],
+    "cam_pos": [
+            {"x": 0.0,  "y": 0.0, "z": 16.0}
+        ]
+}

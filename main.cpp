@@ -28,6 +28,7 @@ string threshold_str(Real threshold){
         ss<< "0";
         threshold *= 10;
     }
+    threshold = (int) threshold;
     ss << std::to_string(threshold) ;
     return ss.str();
 }
@@ -39,9 +40,9 @@ int main(int argc, char** argv)
 
     string folder_name = "../";
     string inputfilename, outputfilename;
-    std::cout <<"Input File Name" << endl;
+    //std::cout <<"Input File Name" << endl;
     //std::cin >> inputfilename;
-    inputfilename = "ssmbranca.json";
+    inputfilename = "cropped.json";
     //inputfilename = "vase_antonina.json";
     std::cout <<"Output File Name" << endl;
     std::cin >> outputfilename;
@@ -90,12 +91,16 @@ int main(int argc, char** argv)
 
 
     //generates simplified version
-    Real simp_threshold = 1000;
-    root = Octree::SimplifyOctree(root, simp_threshold);
-    GenerateMeshFromOctree(root, vertices, indices);
-    std::stringstream simpfilepath;
-    simpfilepath << folder_name << threshold_str(simp_threshold) << outputfilename << "full" << height << ".ply";
-    write_Ply(simpfilepath.str(), vertices, indices);
+    Real simp_threshold = 1;
+    for (int i = 0; i < 3; ++i) {
+        simp_threshold *= 10;
+        root = Octree::SimplifyOctree(root, simp_threshold);
+        GenerateMeshFromOctree(root, vertices, indices);
+        std::stringstream simpfilepath;
+        simpfilepath << folder_name << threshold_str(simp_threshold) << outputfilename << "full" << height << ".ply";
+        write_Ply(simpfilepath.str(), vertices, indices);
+    }
+
 
     return EXIT_SUCCESS;
 }

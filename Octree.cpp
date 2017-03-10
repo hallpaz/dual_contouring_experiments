@@ -416,7 +416,7 @@ OctreeNode *Octree::construct_or_update_leaf(OctreeNode *leaf, unsigned int max_
             std::cout << sign;
         }
         std::cout << std::endl;
-        exit(89);
+        //exit(89);
 
         std::ofstream inversionfile;
         std::cout << "Num edges intersected: " << edges_intersected << std::endl;
